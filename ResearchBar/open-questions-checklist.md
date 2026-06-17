@@ -54,6 +54,7 @@ Open questions to close before scaling beyond the pulse panel. **Track A (Corbis
 
 ### Distribution and platform
 
+- [ ] Register product domain. Candidate: [`research.bar`](https://instantdomainsearch.com?q=research.bar) (menu-bar on-brand; verify availability and `.bar` registrar pricing before committing).
 - [ ] Notarized DMG plus Sparkle plus Homebrew on a throwaway build.
 - [ ] Test `NSStatusItem` on macOS 26 (Tahoe).
 - [ ] Agent launch behind capability flag if App Store variant is ever wanted.

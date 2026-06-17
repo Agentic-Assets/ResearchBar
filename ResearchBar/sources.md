@@ -128,3 +128,8 @@ _(no external URL citations; evidence cited local files)_
 - [Best Mac apps for researchers - Medium](https://joebathelt.medium.com/the-best-mac-apps-for-researchers-and-academics-8f9c0563cb26)
 - [Top tools for tracking research impact and citations 2026 - SciJournal (paywalled in fetch)](https://www.scijournal.org/articles/best-tools-for-tracking-research-impact-and-citations)
 
+## ResearchBar branding
+
+- [research.bar domain availability (Instant Domain Search)](https://instantdomainsearch.com?q=research.bar)
+- [CiteBar product site (prior art for `.bar`-style naming: citebar.org)](https://www.citebar.org/)
+

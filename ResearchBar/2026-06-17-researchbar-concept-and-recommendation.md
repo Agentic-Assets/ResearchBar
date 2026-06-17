@@ -296,6 +296,8 @@ If you want to move, the lowest-risk first move is **Phase 0 Track A**: ship `ge
 
 Two naming options to consider alongside the working name ResearchBar: a Corbis-branded name (for example "Corbis Bar" or "Scholar by Corbis") that maximizes funnel attribution, or a neutral name (for example "ScholarBar" or "Tenure") that reads as a community tool and may earn more open-source goodwill. The Corbis-branded route serves the funnel more directly; the neutral route may spread further before users learn it runs on Corbis. I lean Corbis-branded given that driving platform adoption is the stated goal.
 
+**Possible domain:** [`research.bar`](https://instantdomainsearch.com?q=research.bar) is a strong candidate for a product landing or download site: short, on-brand with the menu bar metaphor (`.bar` TLD, same pattern as [citebar.org](https://www.citebar.org/) for CiteBar), and aligned with the working name. Use corbis.ai for platform attribution; use `research.bar` (if registered) for the free macOS app surface. Check availability before public announcement.
+
 When you are ready to turn any phase into a build, the natural next artifact is an implementation plan for that phase (architecture, files, milestones), at which point this concept moves from exploration into a build spec.
 
 ---
