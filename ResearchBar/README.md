@@ -23,6 +23,10 @@ Research-backed concept and high-level spec for **ResearchBar**: a macOS menu ba
 
 Reference files name data sources the product never exposes. In the product the user sees ORCID and Corbis-branded results only.
 
+## Code-grounded plan (start here for a build)
+
+The verified, code-grounded plan now lives in [`corbis-integration-plan/`](corbis-integration-plan/). It inventories the live Corbis codebase, corrects the concept docs where the code disagrees (tool count 24 to 30, credit cost 1 to 0.5, ORCID-first "in progress" to unstarted), specifies the exact `get_research_pulse` contract the client renders, and lays out the phased Corbis Track A plan the client depends on. Where it and the concept docs below disagree on facts, the code-grounded plan wins.
+
 ## Status
 
-Concept exploration plus high-level spec. Not a build spec. Next artifact: Phase 0 Track A implementation plan for `get_research_pulse` in `agentic-assets-app`.
+Concept exploration plus high-level spec. Not a build spec. The Phase 0 Track A implementation plan promised here was delivered in [`corbis-integration-plan/`](corbis-integration-plan/) on 2026-06-17 (with the full Corbis-internal evaluation in `agentic-assets-app/docs/researchbar-evaluation/`).
