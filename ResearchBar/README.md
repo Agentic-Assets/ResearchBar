@@ -1,0 +1,28 @@
+# ResearchBar concept and spec
+
+Research-backed concept and high-level spec for **ResearchBar**: a macOS menu bar app for academic researchers (papers, citations, related work, GitHub repos, conference deadlines), powered by and gated to Corbis as a free top-of-funnel into the paid platform.
+
+**New here?** Read [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md) first.
+
+**Canonical location:** `ResearchBar/ResearchBar/` inside the [Agentic-Assets/ResearchBar](https://github.com/Agentic-Assets/ResearchBar) repo (CodexBar fork). Concept docs were moved here from `agentic-assets/ResearchBar-Concept/` on 2026-06-17.
+
+## Read in this order
+
+1. **`2026-06-17-researchbar-concept-and-recommendation.md`** - main report: recommendation, product, funnel, fork strategy, roadmap, business model, risks.
+2. **`identity-and-data-consolidation.md`** - ORCID anchor, centralized Corbis service, thin client, never-surface rule.
+3. **`corbis-api-contracts.md`** - aggregate MCP tools and Corbis vs ResearchBar split.
+4. **`funnel-economics.md`** - illustrative credit burn and conversion.
+5. **`open-questions-checklist.md`** - Phase 0 checklist (Corbis Track A before ResearchBar Track B).
+
+## Reference material (the research underneath)
+
+6. **`research-dossier.md`** - synthesized research across six lanes.
+7. **`subagent-findings.md`** - raw sub-agent output.
+8. **`verification-verdicts.md`** - 12 flagged claims re-checked.
+9. **`sources.md`** - citation URLs by lane.
+
+Reference files name data sources the product never exposes. In the product the user sees ORCID and Corbis-branded results only.
+
+## Status
+
+Concept exploration plus high-level spec. Not a build spec. Next artifact: Phase 0 Track A implementation plan for `get_research_pulse` in `agentic-assets-app`.

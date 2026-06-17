@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## ResearchBar product spec
+
+This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS menu bar for academics). Product concept, API contracts, and phased plan live in **`ResearchBar/`** — start at [`ResearchBar/README.md`](ResearchBar/README.md) and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). Server-side intelligence builds in `agentic-assets-app`; this repo stays the thin client shell.
+
 ## Project Structure & Modules
 - `Sources/CodexBar`: Swift 6 menu bar app (usage/credits probes, icon renderer, settings). Keep changes small and reuse existing helpers.
 - `Tests/CodexBarTests`: XCTest coverage for usage parsing, status probes, icon patterns; mirror new logic with focused tests.
