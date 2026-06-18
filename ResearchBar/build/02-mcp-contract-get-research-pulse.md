@@ -1,6 +1,6 @@
 # 02. MCP contract: `get_research_pulse`
 
-The exact JSON the client renders, framed for the Swift client. This is the build-against contract. It supersedes the illustrative table in `corbis-api-contracts.md` where they disagree (mainly: trend fields are nullable with a status flag, `lowConfidence` is a structured object, and no internal id or backend name appears anywhere). The full Corbis-side spec is `agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`. All `path:line` references point into the Corbis repo.
+The exact JSON the client renders, framed for the Swift client. This is the build-against contract. It supersedes the illustrative table in [`../concept/corbis-api-contracts.md`](../concept/corbis-api-contracts.md) where they disagree (mainly: trend fields are nullable with a status flag, `lowConfidence` is a structured object, and no internal id or backend name appears anywhere). The full Corbis-side spec is [`../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`](../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md). All `path:line` references point into the Corbis repo.
 
 ## Call facts
 
@@ -148,7 +148,7 @@ If `get_research_pulse` does not appear in `tools/list`, Corbis Phase 0 is not d
 
 ## The other aggregates (shapes the client will consume later)
 
-These ship in later Corbis phases. The client builds renderers against them when the corresponding phase lands. Concrete shapes are in `agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md`.
+These ship in later Corbis phases. The client builds renderers against them when the corresponding phase lands. Concrete shapes are in [`../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md`](../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md).
 
 - `get_data_freshness` (Phase 1): `{ fieldPreset, items: [{ title, category, dataThrough, summary, url }], fetchedAt, staleAfter, etag }`. Observed "data through" dates only; no forward "next release" in v0. Global and cacheable.
 - `get_new_work_radar` (Phase 2): `{ citingYou: [...], subfieldAlerts: [...], relatedToProjects: [...], watermark, fetchedAt, staleAfter, etag }`. Per-user; "new since last run" is real once Corbis adds the watermark store.

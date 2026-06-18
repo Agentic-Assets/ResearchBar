@@ -15,14 +15,16 @@
 | Linked repos (remote metadata) | Corbis |
 | Local git ahead/behind | ResearchBar only |
 
-**Build order:** Corbis APIs first (`get_research_pulse` and friends), thin client second. See `corbis-api-contracts.md`.
+**Build order:** Corbis APIs first (`get_research_pulse` and friends), thin client second. Start at [`BUILD.md`](BUILD.md) and [`build/00-what-this-means-for-researchbar.md`](build/00-what-this-means-for-researchbar.md).
 
-**Phase 0 right now:** Ship `get_research_pulse` in Corbis, then render it here.
+**Phase 0 right now:** Ship `get_research_pulse` in Corbis ([`agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`](../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md)), then render it here.
+
+**Blockers:** [`OPEN-ISSUES.md`](OPEN-ISSUES.md).
 
 **Moat:** No other citation tracker launches a Corbis-powered Claude Code agent from the menu bar.
 
 **Funnel:** Every install that reaches value is a Corbis account. Finance and real estate academics first; everything else is a server-side preset change.
 
-**Full spec:** Start at `README.md` in this folder.
+**Full spec:** [`README.md`](README.md) in this folder.
 
-*Concept package moved here 2026-06-17 from `ResearchBar-Concept/`.*
+*Concept package moved here 2026-06-17; reorganized into `build/`, `concept/`, `research/` 2026-06-18.*

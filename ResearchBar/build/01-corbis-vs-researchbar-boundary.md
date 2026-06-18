@@ -1,6 +1,6 @@
 # 01. Corbis vs ResearchBar boundary (corrected)
 
-The ownership split, reconciled against the Corbis code. The concept's split (`identity-and-data-consolidation.md:60-74`, `corbis-api-contracts.md:89-111`) is largely correct and endorsed. This file corrects two things the concept got optimistic about and adds the client obligations that fall out of the corrected facts. All `path:line` references point into the sibling Corbis repo `agentic-assets-app`.
+The ownership split, reconciled against the Corbis code. The concept's split ([`../concept/identity-and-data-consolidation.md`](../concept/identity-and-data-consolidation.md), [`../concept/corbis-api-contracts.md`](../concept/corbis-api-contracts.md)) is largely correct and endorsed. This file corrects two things the concept got optimistic about and adds the client obligations that fall out of the corrected facts. All `path:line` references point into the sibling Corbis repo `agentic-assets-app`.
 
 ## Ownership table
 
@@ -55,4 +55,4 @@ ResearchBar MUST NOT contain:
 
 ## Why centralize in Corbis (unchanged, and confirmed by the code)
 
-The concept's reasons hold (`identity-and-data-consolidation.md:16-22`): one service serves ResearchBar, corbis.ai web, and EQUIRE; reconciliation rules improve everywhere at once; ToS-sensitive sources stay behind one audited boundary; billing and routing tune without a client update; and the user experiences "Corbis told me," not "this app scraped six sites." The VISION guardrail to honor: the universal MCP endpoint stays client-agnostic, so the aggregates must not take ResearchBar-specific shaping. Keep the contract reusable by web and EQUIRE.
+The concept's reasons hold ([`../concept/identity-and-data-consolidation.md`](../concept/identity-and-data-consolidation.md)): one service serves ResearchBar, corbis.ai web, and EQUIRE; reconciliation rules improve everywhere at once; ToS-sensitive sources stay behind one audited boundary; billing and routing tune without a client update; and the user experiences "Corbis told me," not "this app scraped six sites." The VISION guardrail to honor: the universal MCP endpoint stays client-agnostic, so the aggregates must not take ResearchBar-specific shaping. Keep the contract reusable by web and EQUIRE.

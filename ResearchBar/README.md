@@ -1,32 +1,58 @@
-# ResearchBar concept and spec
+# ResearchBar documentation
 
-Research-backed concept and high-level spec for **ResearchBar**: a macOS menu bar app for academic researchers (papers, citations, related work, GitHub repos, conference deadlines), powered by and gated to Corbis as a free top-of-funnel into the paid platform.
+Research-backed concept and build spec for **ResearchBar**: a macOS menu bar app for academic researchers, powered by and gated to Corbis.
 
-**New here?** Read [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md) first.
+**New here?** Read [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md).
 
-**Canonical location:** `ResearchBar/ResearchBar/` inside the [Agentic-Assets/ResearchBar](https://github.com/Agentic-Assets/ResearchBar) repo (CodexBar fork). Concept docs were moved here from `agentic-assets/ResearchBar-Concept/` on 2026-06-17.
+**Building?** Start at [`BUILD.md`](BUILD.md).
 
-## Read in this order
+**Tracking blockers?** See [`OPEN-ISSUES.md`](OPEN-ISSUES.md).
 
-1. **`2026-06-17-researchbar-concept-and-recommendation.md`** - main report: recommendation, product, funnel, fork strategy, roadmap, business model, risks.
-2. **`identity-and-data-consolidation.md`** - ORCID anchor, centralized Corbis service, thin client, never-surface rule.
-3. **`corbis-api-contracts.md`** - aggregate MCP tools and Corbis vs ResearchBar split.
-4. **`funnel-economics.md`** - illustrative credit burn and conversion.
-5. **`open-questions-checklist.md`** - Phase 0 checklist (Corbis Track A before ResearchBar Track B).
+**Canonical location:** `ResearchBar/ResearchBar/` in [Agentic-Assets/ResearchBar](https://github.com/Agentic-Assets/ResearchBar) (CodexBar fork). Moved from `ResearchBar-Concept/` on 2026-06-17. Reorganized into subfolders on 2026-06-18.
 
-## Reference material (the research underneath)
+## Folder map
 
-6. **`research-dossier.md`** - synthesized research across six lanes.
-7. **`subagent-findings.md`** - raw sub-agent output.
-8. **`verification-verdicts.md`** - 12 flagged claims re-checked.
-9. **`sources.md`** - citation URLs by lane.
+| Folder / file | Purpose | Who reads it |
+|---|---|---|
+| [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md) | Elevator pitch | Everyone |
+| [`BUILD.md`](BUILD.md) | Builder entry point and read order | Engineers |
+| [`RESEARCHBAR-BUILD-REVIEW-2026-06-18.md`](RESEARCHBAR-BUILD-REVIEW-2026-06-18.md) | Deep build review and concrete Track B file plan | Engineers |
+| [`OPEN-ISSUES.md`](OPEN-ISSUES.md) | Open decisions, blockers, closed checklist items | Founders + builders |
+| [`build/`](build/) | Code-grounded client plan and Corbis dependency contract | Client + Corbis trackers |
+| [`concept/`](concept/) | Product north star (why, menu, funnel, fork strategy) | Product + founders |
+| [`research/`](research/) | Research archive and verification provenance | Background only |
 
-Reference files name data sources the product never exposes. In the product the user sees ORCID and Corbis-branded results only.
+## Corbis backend (sibling repo)
 
-## Code-grounded plan (start here for a build)
+Full Corbis Track A evaluation (inventory, gap analysis, design review, implementation spec) lives in the **agentic-assets-app** repo:
 
-The verified, code-grounded plan now lives in [`corbis-integration-plan/`](corbis-integration-plan/). It inventories the live Corbis codebase, corrects the concept docs where the code disagrees (tool count 24 to 30, credit cost 1 to 0.5, ORCID-first "in progress" to unstarted), specifies the exact `get_research_pulse` contract the client renders, and lays out the phased Corbis Track A plan the client depends on. Where it and the concept docs below disagree on facts, the code-grounded plan wins.
+**Path:** [`../../agentic-assets-app/docs/researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/)
+
+| Corbis doc | What it is |
+|---|---|
+| [`README.md`](../../agentic-assets-app/docs/researchbar-evaluation/README.md) | Verdict, reading order, scope |
+| [`01-inventory-what-exists-today.md`](../../agentic-assets-app/docs/researchbar-evaluation/01-inventory-what-exists-today.md) | File-level map of identity + MCP stack |
+| [`02-gap-analysis.md`](../../agentic-assets-app/docs/researchbar-evaluation/02-gap-analysis.md) | Requirement vs exists, effort estimates |
+| [`03-design-review.md`](../../agentic-assets-app/docs/researchbar-evaluation/03-design-review.md) | Endorsed decisions and rejected alternatives |
+| [`04-revised-corbis-api-contracts.md`](../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md) | Full aggregate JSON contracts |
+| [`05-revised-implementation-plan.md`](../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md) | Corbis phases, files, smoke tests |
+| [`06-risks-and-open-questions.md`](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) | Closed vs open items with repo evidence |
+| [`07-adversarial-review-verdict.md`](../../agentic-assets-app/docs/researchbar-evaluation/07-adversarial-review-verdict.md) | What would fail in production |
+| [`08-get-research-pulse-v0-spec.md`](../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md) | Implementation-ready pulse spec |
+| [`09-deep-dive-review-and-next-actions.md`](../../agentic-assets-app/docs/researchbar-evaluation/09-deep-dive-review-and-next-actions.md) | Cross-repo deep review and sequence |
+| [`_recon/`](../../agentic-assets-app/docs/researchbar-evaluation/_recon/) | Raw agent evidence (audit trail) |
+
+**Relationship:** [`build/`](build/) is the ResearchBar-facing slice of that evaluation plus client guidance. For backend implementation, Corbis `01`–`08` wins on depth; for macOS client work, `build/00`–`02` wins on framing. Where they disagree on facts, both were grounded against code on 2026-06-17 and should agree.
+
+## Authority (which doc wins)
+
+| Question type | Authoritative source |
+|---|---|
+| Product intent, competitive gap, GTM | [`concept/2026-06-17-researchbar-concept-and-recommendation.md`](concept/2026-06-17-researchbar-concept-and-recommendation.md) |
+| Implementation facts (credits, tools, ORCID, phases) | [`build/`](build/) and Corbis [`researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/) |
+| Exact `get_research_pulse` JSON for Swift | [`build/02-mcp-contract-get-research-pulse.md`](build/02-mcp-contract-get-research-pulse.md) + Corbis [`08-get-research-pulse-v0-spec.md`](../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md) |
+| Open blockers and founder decisions | [`OPEN-ISSUES.md`](OPEN-ISSUES.md) |
 
 ## Status
 
-Concept exploration plus high-level spec. Not a build spec. The Phase 0 Track A implementation plan promised here was delivered in [`corbis-integration-plan/`](corbis-integration-plan/) on 2026-06-17 (with the full Corbis-internal evaluation in `agentic-assets-app/docs/researchbar-evaluation/`).
+Concept exploration plus code-grounded build spec (2026-06-17 audit). **No Swift client or Corbis Phase 0 shipped yet.** Corbis Track A Phase 0 (`get_research_pulse` v0 + ORCID anchor + redaction) blocks a working menu panel.

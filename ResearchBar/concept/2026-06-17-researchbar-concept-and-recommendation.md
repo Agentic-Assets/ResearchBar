@@ -3,7 +3,7 @@
 **Date:** 2026-06-17
 **Author:** Claude (Opus 4.8), for Cayman Seagraves
 **Status:** Concept exploration plus high-level spec. Not a build spec yet.
-**Companion files:** `identity-and-data-consolidation.md` (ORCID anchor, centralized Corbis service, thin client, never-surface rule), `corbis-api-contracts.md` (aggregate MCP tools ResearchBar calls; Corbis vs ResearchBar split), `research-dossier.md` (the full, source-cited research this report is built on)
+**Companion files:** [`identity-and-data-consolidation.md`](identity-and-data-consolidation.md), [`corbis-api-contracts.md`](corbis-api-contracts.md), [`../research/research-dossier.md`](../research/research-dossier.md). **Build spec:** [`../BUILD.md`](../BUILD.md), [`../build/`](../build/). **Corbis eval:** [`../../../agentic-assets-app/docs/researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/).
 **Location note:** This folder is a sibling of the Corbis-Plugin repo, kept separate per your instruction. Move or rename it freely.
 
 ---
@@ -12,7 +12,7 @@
 
 You floated a product: a macOS menu bar app, in the spirit of Peter Steinberger's CodexBar and RepoBar, that helps academic researchers track their papers, citation counts (Google Scholar, SSRN), downloads, related work, GitHub repositories, and conference deadlines, and that is powered by and gated to the Corbis plugin so that using it pulls people onto the Corbis platform.
 
-I ran a six-lane research workflow (19 agents) on the two reference apps, the academic data sources, the macOS build constraints, the Corbis integration surface, and the competitive landscape, then ran an adversarial verification pass against primary sources (GitHub REST API, package manifests, release metadata). The findings and every disposition are in `research-dossier.md`. This report turns that into a recommendation, a concept, and a phased plan, with three decisions you already made folded in:
+I ran a six-lane research workflow (19 agents) on the two reference apps, the academic data sources, the macOS build constraints, the Corbis integration surface, and the competitive landscape, then ran an adversarial verification pass against primary sources (GitHub REST API, package manifests, release metadata). The findings and every disposition are in [`../research/research-dossier.md`](../research/research-dossier.md). This report turns that into a recommendation, a concept, and a phased plan, with three decisions you already made folded in:
 
 1. **Free, Corbis-gated funnel.** The app is free; the intelligence requires a connected Corbis account. It is top-of-funnel for the paid platform.
 2. **Fork-first.** Clone CodexBar as the base and build on it, optionally borrowing RepoBar pieces. Do not build the shell from scratch.
@@ -150,28 +150,29 @@ Because the resolver accepts a name override, the same flow resolves coauthors, 
 ### 4.2 The funnel math
 
 - Every install that reaches value is a Corbis account. The app is a daily-active surface, so Corbis brand exposure is daily, not occasional.
-- The Corbis free tier is 50 lifetime credits at 1 credit per call. A user who watches citations, runs new-work radar, and checks data freshness exhausts 50 credits quickly, which is the upgrade trigger. The Academic plan is $30/month for 1,000 credits, sized for exactly this user.
+- The Corbis free tier is 50 lifetime credits at **0.5 credits per call** (~100 aggregate calls). A user who watches citations, runs new-work radar, and checks data freshness exhausts credits on a roughly four-to-six-week horizon under daily polling, which is the upgrade trigger. The Academic plan is $30/month for 1,000 credits, sized for exactly this user. See [`funnel-economics.md`](funnel-economics.md) (corrected 2026-06-18).
 - The agentic layer (each agent run consumes Corbis credits plus, optionally, Claude API tokens) is the high-intent conversion path and pulls power users into the Claude Code plugin.
 
 This is two funnels in one app: a broad funnel into the Corbis web platform (anyone who installs), and a deeper funnel into the Claude Code plugin and paid tiers (power users who run agents).
 
 ### 4.3 What Corbis gives you, and the gaps to fill
 
-Corbis exposes MCP tools over `https://www.corbis.ai/api/mcp/universal` with Bearer auth, 200 requests/hour, 10 concurrent, 1 credit per call (billing per aggregate call is a product decision). Five tools are enterprise-only (`literature_search`, `internet_search`, `read_web_page`, `deep_research`, `query_corbis`).
+Corbis exposes MCP tools over `https://www.corbis.ai/api/mcp/universal` with Bearer auth, **200 requests/hour enforced** (**10 concurrent is documentation-only**), **0.5 credits per call**. **Ten** tools are premium (enterprise-only in practice), including `literature_search`, `internet_search`, `read_web_page`, `deep_research`, `query_corbis`, and others (full list in Corbis [`06`](../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md)).
 
-**Today:** 24 registered tools in `agentic-assets-app`, including identity (`find_academic_identity`, `confirm_academic_identity`), paper search, `get_paper_details_batch` (up to 25 papers), FRED, CRE, and datasets. Substantial identity code already lives in `lib/research-profile/*`; the web candidate API is richer than MCP today.
+**Today:** **30** registered tools in `agentic-assets-app`, including identity (`find_academic_identity`, `confirm_academic_identity`), paper search, `get_paper_details_batch` (up to 25 papers), FRED, CRE, and datasets. Substantial identity code already lives in `lib/research-profile/*`; the web candidate API is richer than MCP today.
 
-**To build for ResearchBar:** four aggregate tools (`get_research_pulse`, `get_new_work_radar`, `get_data_freshness`, `get_conference_deadlines`) plus optional `get_linked_repos`. These wrap existing primitives and add multi-source reconciliation, delta math, sparklines, link resolution, and deadline curation. The client never loops low-level tools for menu panels.
+**To build for ResearchBar:** four aggregate tools plus optional `get_linked_repos`. These wrap existing primitives and add multi-source reconciliation, delta math, sparklines, link resolution, and deadline curation. The client never loops low-level tools for menu panels. Precise contracts: [`../build/02`](../build/02-mcp-contract-get-research-pulse.md) and Corbis [`04`](../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md).
 
 Gaps the aggregates must fill (all server-side):
 
-- ORCID-first confirm (today confirm still keys on internal author ID; migration in progress).
+- ORCID-first confirm (**unstarted**; today confirm keys on internal author ID).
 - Multi-source citation reconciliation and h-index (web candidate already returns h-index; consolidation rule not yet documented).
 - Forward citations and author works list as part of radar and pulse payloads.
 - Conference deadline curation and per-user overrides (not client-held).
 - Resolved links on every returned entity (DOI, Corbis paper page, PDF where available).
+- Backend redaction pass so internal ids and backend names never reach clients (Phase 0.B).
 
-**Agent catalog:** the 62 skills, 18 agents, and 16 slash commands are Claude Code Markdown workflows. v1 ResearchBar reads the local plugin install for the browse menu and launches via subprocess; Corbis may add `get_agent_catalog` later for web parity. See `corbis-api-contracts.md`.
+**Agent catalog:** the exact plugin catalog is versioned and should be read from the local Corbis plugin install at build or runtime. These entries are Claude Code Markdown workflows, not REST endpoints. v1 ResearchBar reads the local plugin install for the browse menu and launches via subprocess; Corbis may add `get_agent_catalog` later for web parity. See `corbis-api-contracts.md`.
 
 ---
 
@@ -245,10 +246,10 @@ Scope the MVP to the wedge, then deepen the differentiator, then add the moat. E
 Outcome: Corbis account required, ORCID-anchored identity, consolidated citation pulse visible. Funnel-ready.
 
 **Phase 1: The wedge (daily value).**
-Ship `get_new_work_radar` and `get_conference_deadlines` in Corbis. ResearchBar adds panels plus `UNUserNotifications` on server-flagged deltas. Finance and real estate field presets are server-side inside the aggregates.
+The build docs now sequence citation snapshots and `get_data_freshness` before radar and deadlines. Treat this concept paragraph as historical framing and use [`../BUILD.md`](../BUILD.md), [`../build/03`](../build/03-corbis-track-a-plan.md), and Corbis [`05`](../../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md) for implementation order.
 
 **Phase 2: The differentiator (finance/RE moat).**
-Ship `get_data_freshness` in Corbis. Ship `get_linked_repos` (paper-to-repo associations plus remote GitHub metadata). ResearchBar merges local clone ahead/behind/dirty at render time only.
+In the authoritative build plan, this phase is radar plus linked repos. The finance and real estate data-freshness panel moves earlier with the snapshot store.
 
 **Phase 3: The moat (agentic).**
 Agent catalog browser (local plugin v1), "Run research agent" launcher (Claude Code subprocess), weekly briefing assembled server-side or from cached radar plus freshness payloads. Optional: promote catalog to Corbis `get_agent_catalog`.
@@ -292,7 +293,7 @@ Open questions to confirm against the live API or vendors before building the re
 
 ## 10. Suggested next step
 
-If you want to move, the lowest-risk first move is **Phase 0 Track A**: ship `get_research_pulse` in `agentic-assets-app` and prove it with MCP calls (identity, citations, deltas, links). Then **Track B**: fork CodexBar and render that one payload. That sequence answers §9 with real schemas and credit burn before the macOS shell work expands. Put it in front of five finance and real estate colleagues once Track B shows the pulse in the menu bar.
+If you want to move, the lowest-risk first move is **Phase 0 Track A**: ship `get_research_pulse` in `agentic-assets-app` and prove it with MCP calls (identity, static citation metrics, null trend fields, profile links, redaction, and billing). Then **Track B**: fork CodexBar and render that one payload. That sequence answers §9 with real schemas and credit burn before the macOS shell work expands. Put it in front of five finance and real estate colleagues once Track B shows the pulse in the menu bar.
 
 Two naming options to consider alongside the working name ResearchBar: a Corbis-branded name (for example "Corbis Bar" or "Scholar by Corbis") that maximizes funnel attribution, or a neutral name (for example "ScholarBar" or "Tenure") that reads as a community tool and may earn more open-source goodwill. The Corbis-branded route serves the funnel more directly; the neutral route may spread further before users learn it runs on Corbis. I lean Corbis-branded given that driving platform adoption is the stated goal.
 
@@ -304,6 +305,6 @@ When you are ready to turn any phase into a build, the natural next artifact is 
 
 ## Appendix: research provenance
 
-- Full source-cited research: `research-dossier.md` in this folder (six lanes: CodexBar, RepoBar, academic data sources, macOS build constraints, Corbis integration surface, competitive landscape).
+- Full source-cited research: [`../research/research-dossier.md`](../research/research-dossier.md) in this folder (six lanes: CodexBar, RepoBar, academic data sources, macOS build constraints, Corbis integration surface, competitive landscape).
 - Verification: 12 flagged claims were checked against primary sources (GitHub REST API, package manifests, release metadata, Hacker News Algolia API). Two were refuted as misattributions (a bogus "125 forks" figure for the Corbis-Plugin repo, and a claim that "Xcode 26" implies a beta when it is the current stable line). Several were corrected to exact figures (CodexBar 14,945 stars; RepoBar 2,090 stars and 23 releases). The CodexBar "passive monitor, not agent launcher" finding is high confidence and shaped the fork strategy here.
-- Corbis tool facts are drawn from the plugin's own reference files in the Corbis-Plugin repo, not from live calls (the live MCP token was expired at the time of writing). The identity resolution and `citedByCount` facts were additionally confirmed from the loaded MCP tool schemas.
+- **Code audit (2026-06-17):** Tool count (30), credit cost (0.5/call), ORCID-first status (unstarted), and pulse trend fields (null in v0) were verified against `agentic-assets-app` and documented in [`../build/`](../build/) and [`../../../agentic-assets-app/docs/researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/). Corbis tool facts in the original research drew on plugin reference files; the live app inventory supersedes those counts.

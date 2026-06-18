@@ -1,21 +1,23 @@
 # Funnel economics (illustrative)
 
-This models credit burn and conversion logic for the aggregate-API architecture. Every rate marked "assume" is a placeholder for Phase 0 cohort data. Pricing inputs are verified from the research (see `research-dossier.md`, Sections 3 and 5).
+> **Verified 2026-06-17:** MCP calls cost **0.5 credits** each (`agentic-assets-app` `lib/mcp/tool-credits.ts:16`), not 1. Free tier is **50 credits lifetime** (~**100** aggregate calls). See [`../build/README.md`](../build/README.md) and Corbis [`06-risks-and-open-questions.md`](../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md).
+
+This models credit burn and conversion logic for the aggregate-API architecture. Every rate marked "assume" is a placeholder for Phase 0 cohort data. Pricing inputs are verified from the research (see [`../research/research-dossier.md`](../research/research-dossier.md), Sections 3 and 5).
 
 ## Verified inputs
 
-Corbis MCP plans (baseline: 1 credit per call, 200 calls/hour, 10 concurrent):
+Corbis MCP plans (baseline: **0.5 credits per call**, 200 calls/hour enforced; **10 concurrent is documentation-only**, not enforced in code):
 
 | Plan | Credits | Price | Per-day budget |
 |---|---|---|---|
-| Free | 50 lifetime | $0 | one-time |
+| Free | 50 lifetime | $0 | one-time (~100 aggregate calls) |
 | Starter | 250/mo | $20/mo | ~8/day |
 | Academic | 1,000/mo | $30/mo | ~33/day |
 | Basic | 1,000/mo | $49/mo | ~33/day |
 | Pro | 5,000/mo | $199/mo | ~165/day |
 | Enterprise | unlimited | custom | n/a |
 
-**Aggregate billing assumption:** one user-facing credit per aggregate MCP call (`get_research_pulse`, `get_new_work_radar`, etc.), regardless of internal fan-out. Internal bibliographic cost is Corbis cost-to-serve (~$0.001/search after free allowance), not a separate user charge.
+**Aggregate billing assumption:** one MCP reservation of 0.5 credits per aggregate call (`get_research_pulse`, `get_new_work_radar`, etc.), regardless of internal fan-out. Internal bibliographic cost is Corbis cost-to-serve (~$0.001/search after free allowance), not a separate user charge.
 
 ## The core lever: credit per aggregate vs cost absorbed server-side
 
@@ -31,37 +33,37 @@ The gate stays real in every regime: identity onboarding, CRE/FRED freshness, an
 
 ## Illustrative per-user credit burn (aggregate model)
 
-Assumptions: one active researcher; pulse daily; radar daily; freshness and agentic briefing weekly; one aggregate call per panel per refresh.
+Assumptions: one active researcher; pulse daily; radar daily; freshness and agentic briefing weekly; one aggregate call per panel per refresh; **0.5 credits per call**.
 
 | Aggregate | Refresh cadence | Regime A /day | Regime B /day | Regime C /day |
 |---|---|---|---|---|
-| `get_research_pulse` | 1/day | 1.0 | 0 (absorbed) | 0 (absorbed) |
-| `get_new_work_radar` | 1/day | 1.0 | 1.0 | 0 (absorbed) |
-| `get_data_freshness` | ~4/week | 0.6 | 0.6 | 0.6 |
-| `get_conference_deadlines` | ~2/week | 0.3 | 0.3 | 0.3 |
-| Agentic briefing | ~4/week | 0.6 | 0.6 | 0.6 |
-| **Corbis credits/day** | | **~3.5** | **~2.5** | **~1.5** |
-| **Corbis credits/month** | | **~105** | **~75** | **~45** |
+| `get_research_pulse` | 1/day | 0.5 | 0 (absorbed) | 0 (absorbed) |
+| `get_new_work_radar` | 1/day | 0.5 | 0.5 | 0 (absorbed) |
+| `get_data_freshness` | ~4/week | 0.3 | 0.3 | 0.3 |
+| `get_conference_deadlines` | ~2/week | 0.15 | 0.15 | 0.15 |
+| Agentic briefing | ~4/week | 0.3 | 0.3 | 0.3 |
+| **Corbis credits/day** | | **~1.75** | **~1.25** | **~0.75** |
+| **Corbis credits/month** | | **~52** | **~38** | **~23** |
 
 How long the free 50-credit tier lasts under daily use:
 
 | Regime | Free tier lasts |
 |---|---|
-| A. All aggregates billed | ~14 days |
-| B. Hybrid | ~20 days |
-| C. Differentiator-only | ~5 weeks |
+| A. All aggregates billed | ~28 days |
+| B. Hybrid | ~40 days |
+| C. Differentiator-only | ~9 weeks |
 
 Aggregates reduce client call volume (better for the 200/hour cap) and concentrate billing decisions in Corbis. A single `get_research_pulse` replaces what was previously 3+ low-level calls in the old model.
 
 ## Two readings of those numbers
 
-Fifty lifetime credits still exhaust within roughly two to three weeks in regimes A and B. That drives conversion but risks activation churn if value is not felt before the wall.
+Fifty lifetime credits still exhaust within roughly four to six weeks in regimes A and B under aggressive daily polling. That drives conversion but risks activation churn if value is not felt before the wall. **Client polling cadence is the main lever** ([`../build/00`](../build/00-what-this-means-for-researchbar.md)).
 
-Paid Academic ($30/month, 1,000 credits) has comfortable headroom at ~2.5 to 3.5 credits/day.
+Paid Academic ($30/month, 1,000 credits) has comfortable headroom at ~1.25 to 1.75 credits/day.
 
 Absorbing pulse refresh server-side (regime B) costs roughly $0.001 per internal search. One thousand users at two absorbed searches per day is about $60/month total Corbis cost-to-serve.
 
-Recommended: regime B, plus a ResearchBar-specific free allowance above 50 lifetime credits, tunable server-side without a client update.
+Recommended: regime B, plus a ResearchBar-specific free allowance above 50 lifetime credits. That needs schema/tier work, not a config flip alone ([`../OPEN-ISSUES.md`](../OPEN-ISSUES.md)).
 
 ## Illustrative conversion funnel
 
@@ -79,7 +81,7 @@ Dominant value: new Corbis accounts and plugin adopters, not direct app subscrip
 
 ## What to measure in Phase 0
 
-- Credit burn per active day per regime, using **aggregate** calls only.
+- Credit burn per active day per regime, using **aggregate** calls only (at 0.5/call).
 - Activation rate (ORCID confirm complete).
 - Time-to-value vs time-to-credit-wall.
 - Free-to-paid and plugin-adoption from the five-colleague cohort.

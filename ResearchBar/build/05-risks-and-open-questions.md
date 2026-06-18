@@ -1,6 +1,6 @@
 # 05. Risks and open questions
 
-The client-relevant risks and the decisions that gate the funnel. This adapts the Corbis-side risk register (`agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md` and `07-adversarial-review-verdict.md`) to what a ResearchBar builder and a founder need to decide. All `path:line` references point into the Corbis repo.
+The client-relevant risks and the decisions that gate the funnel. This adapts the Corbis-side risk register ([`../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md`](../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) and [`07-adversarial-review-verdict.md`](../../../agentic-assets-app/docs/researchbar-evaluation/07-adversarial-review-verdict.md)). See also [`../OPEN-ISSUES.md`](../OPEN-ISSUES.md). All `path:line` references point into the Corbis repo.
 
 ## Risks that touch the client
 
@@ -21,16 +21,16 @@ The client-relevant risks and the decisions that gate the funnel. This adapts th
 | Decision | Why it is open | Evidence |
 |---|---|---|
 | ResearchBar-specific free allowance (bigger than 50 lifetime credits) | No install-attribution column exists; entitlement overrides are typed `tier_upgrade`/`feature_unlock`/`model_access`, none grant credits. A scoped allowance needs a new tier or admin grants keyed to an install source that does not exist. Raising the global allowance raises it for all web users too. | `lib/db/schema.ts:1653,1662`; `lib/entitlements/queries.ts:71-79` |
-| Polling cadence and credit regime | Determines how fast the free endowment burns and whether Corbis absorbs the pulse cost server-side (a subsidy) or the user pays per refresh. Product and margin call. | `funnel-economics.md` regimes (recompute at 0.5) |
+| Polling cadence and credit regime | Determines how fast the free endowment burns and whether Corbis absorbs the pulse cost server-side (a subsidy) or the user pays per refresh. Product and margin call. | [`../concept/funnel-economics.md`](../concept/funnel-economics.md) |
 | SSRN-derived numbers on any paid surface | SSRN is actively scraped in production via Firecrawl (`ssrn-scraper.ts`, wired at `app/api/user/ssrn/route.ts:13-14`), which contradicts the concept's "no scraping; license or omit." Resolve before showing SSRN numbers in a commercial funnel. | `lib/research-profile/ssrn-scraper.ts:12-23` |
-| ToS for commercial sources | Semantic Scholar (CC BY-NC commercial display), Google Scholar (SerpAPI, opt-in only), ResearchGate (no compliant channel), ORCID Public vs Member API for revenue use. Vendor and legal questions, not code-resident. | concept `open-questions-checklist.md:39-43` |
+| ToS for commercial sources | Semantic Scholar (CC BY-NC commercial display), Google Scholar (SerpAPI, opt-in only), ResearchGate (no compliant channel), ORCID Public vs Member API for revenue use. Vendor and legal questions, not code-resident. | [`../concept/open-questions-checklist.md`](../concept/open-questions-checklist.md) |
 | Tier1 aggregates calling premium primitives | A free-tier aggregate that internally calls a premium or token-heavy primitive routes enterprise-cost capability to free users. Acquisition subsidy or forbidden? Margin decision. | `lib/ai/capabilities/index.ts:950-966` |
-| Conference-deadline dataset | Confirm a maintained public finance-conference dataset or commit to in-house curation. Content-ops commitment. | concept `open-questions-checklist.md:19` |
+| Conference-deadline dataset | Confirm a maintained public finance-conference dataset or commit to in-house curation. Content-ops commitment. | [`../concept/open-questions-checklist.md`](../concept/open-questions-checklist.md) |
 | Corbis corpus figure | Quote only from live corbis.ai, never from the repo, per the hard rule and VISION trust model. | standing rule |
 
 ## Client distribution and platform questions (this repo owns)
 
-These are unchanged from `open-questions-checklist.md` Track B and remain the client's to resolve: register the product domain (candidate `research.bar`, verify availability and registrar pricing), notarized DMG plus Sparkle plus Homebrew on a throwaway build, `NSStatusItem` on current macOS, launch-at-login via `SMAppService`, and whether an agent-launch capability flag is needed for any App Store variant.
+These remain the client's to resolve ([`../concept/open-questions-checklist.md`](../concept/open-questions-checklist.md) Track B): register the product domain (candidate `research.bar`, verify availability and registrar pricing), notarized DMG plus Sparkle plus Homebrew on a throwaway build, `NSStatusItem` on current macOS, launch-at-login via `SMAppService`, and whether an agent-launch capability flag is needed for any App Store variant.
 
 ## Bottom line
 

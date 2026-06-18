@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-6e5aff?style=flat-square)](LICENSE)
 [![Site](https://img.shields.io/badge/site-codexbar.app-16d3b4?style=flat-square)](https://codexbar.app)
 
-> **ResearchBar fork:** Agentic Assets is adapting this codebase into a Corbis-gated academic menu bar app. Product concept and build plan: [`ResearchBar/README.md`](ResearchBar/README.md) (full spec in the [`ResearchBar/`](ResearchBar/) folder).
+> **ResearchBar fork:** Agentic Assets is adapting this codebase into a Corbis-gated academic menu bar app. Docs: [`ResearchBar/README.md`](ResearchBar/README.md), builders start at [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md). Corbis backend: `agentic-assets-app/docs/researchbar-evaluation/`.
 
 <a href="https://codexbar.app"><img src="docs/social.png" alt="CodexBar — every AI coding limit in your menu bar. 53 providers." width="100%" /></a>
 

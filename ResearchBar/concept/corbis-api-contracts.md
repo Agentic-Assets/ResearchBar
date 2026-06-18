@@ -1,15 +1,17 @@
 # Corbis API contracts for ResearchBar
 
+> **Build against:** [`../build/02-mcp-contract-get-research-pulse.md`](../build/02-mcp-contract-get-research-pulse.md) and Corbis [`04-revised-corbis-api-contracts.md`](../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md). **Inventory facts verified 2026-06-17:** 30 MCP tools, 0.5 credits/call.
+
 This file specifies the **aggregate MCP tools and endpoints** ResearchBar calls. It is the build target for `agentic-assets-app`. The ResearchBar fork should not orchestrate low-level tool fan-out (`search_papers` plus `get_paper_details` loops) for menu panels; it calls these aggregates and renders the JSON.
 
-Full identity, consolidation, and never-surface rules live in `identity-and-data-consolidation.md`.
+Full identity, consolidation, and never-surface rules live in [`identity-and-data-consolidation.md`](identity-and-data-consolidation.md).
 
 ## Design rules
 
 1. **One panel, one call (ideal).** Each menu section maps to a single aggregate endpoint where possible.
 2. **Every record carries links.** Corbis resolves `url` (and optional `corbisPaperUrl`, `doiUrl`, `pdfUrl`) so the client only opens links; it never constructs them.
 3. **ORCID is the public key.** Responses surface ORCID; internal backend IDs never appear in client-facing fields.
-4. **Credits bill per aggregate call**, not per internal fan-out. The service absorbs orchestration cost inside one credit (product decision; see `funnel-economics.md`).
+4. **Credits bill per aggregate call** (0.5 credits per MCP `tools/call`), not per internal fan-out. See [`funnel-economics.md`](funnel-economics.md).
 5. **Cache-friendly.** Responses include `fetchedAt`, `staleAfter`, and optional `etag` so the client's GRDB cache can respect server freshness.
 
 ## Corbis-owned aggregates (build in `agentic-assets-app`)
@@ -30,14 +32,17 @@ Daily-glance identity and citation summary. Replaces client-side delta math and 
 | `creditsRemaining` | Corbis account credits |
 | `plan` | Corbis plan label |
 | `totalCitations` | Consolidated, cross-verified count |
-| `citationDelta7d` | Change over 7 days |
-| `citationDelta52w` | Change over 52 weeks |
-| `sparkline52w` | Array of weekly citation totals for menu icon and panel |
+| `citationDelta7d` | Change over 7 days (**null in v0** until snapshot store exists) |
+| `citationDelta52w` | Change over 52 weeks (**null in v0**) |
+| `sparkline52w` | Weekly citation totals (**null in v0**) |
+| `citationHistoryStatus` | `not_yet_tracked` \| `accruing` \| `tracked` |
 | `hIndex` | Consolidated career metric (optional; premium tier may add Scholar) |
 | `trackedPaperCount` | Works in the user's consolidated bibliography |
-| `lowConfidence` | Boolean or per-metric flags when sources disagreed beyond threshold |
+| `lowConfidence` | Structured `{ identity, metrics, reasons[] }` when sources disagreed |
 | `profileLinks` | Array of `{ label, url }` (ORCID page, institutional page, etc.; Corbis-resolved) |
 | `fetchedAt`, `staleAfter`, `etag` | Freshness metadata |
+
+Precise v0 JSON: [`../build/02-mcp-contract-get-research-pulse.md`](../build/02-mcp-contract-get-research-pulse.md).
 
 ### `get_new_work_radar`
 
@@ -60,11 +65,11 @@ Finance and real estate data-release calendar. Replaces FRED plus CRE tool fan-o
 
 | Field | Description |
 |---|---|
-| `items` | Release and update events: FRED series, CRE market metrics, dataset availability |
+| `items` | Observed data-through and update events: FRED series, CRE market metrics, dataset availability |
 | `fieldPreset` | Active preset (e.g. finance, real estate) |
 | `fetchedAt`, `staleAfter`, `etag` | Freshness metadata |
 
-Each item includes `title`, `summary`, `releasedAt` or `updatedAt`, and `url` where applicable.
+Each item includes `title`, `category`, `dataThrough`, `summary`, and `url` where applicable. Forward-looking release dates need a separate backing source and are not part of v0.
 
 ### `get_conference_deadlines`
 
@@ -84,7 +89,7 @@ Curated conference calendar plus per-user overrides. Stored and maintained serve
 | Tool | Role |
 |---|---|
 | `find_academic_identity` | Propose match; candidate labeled by ORCID; rich shape should match web `/api/user/author-link/candidate` (h-index, top works, profile links) |
-| `confirm_academic_identity` | Confirm by ORCID (target); link to account server-side |
+| `confirm_academic_identity` | Confirm by ORCID (target); link to account server-side. **Today:** keys on internal author id; ORCID-first is net-new ([`../OPEN-ISSUES.md`](../OPEN-ISSUES.md)) |
 
 ## Split ownership: Corbis plus ResearchBar
 
@@ -112,12 +117,12 @@ v1 keeps the catalog read in ResearchBar because launch is macOS-local (subproce
 
 ## What already exists in `agentic-assets-app` (inventory)
 
-Build aggregates on top of this; do not duplicate in ResearchBar.
+Build aggregates on top of this; do not duplicate in ResearchBar. Full inventory: Corbis [`01-inventory-what-exists-today.md`](../../../agentic-assets-app/docs/researchbar-evaluation/01-inventory-what-exists-today.md).
 
 | Piece | Location | Notes |
 |---|---|---|
-| Identity search MCP | `lib/ai/tools/find-academic-identity.ts` | Returns candidate with ORCID; confirm key still OpenAlex today |
-| Identity confirm MCP | `lib/ai/tools/confirm-academic-identity.ts` | Target: ORCID-first confirm |
+| Identity search MCP | `lib/ai/tools/find-academic-identity.ts` | Returns candidate with ORCID; confirm key still internal author id today |
+| Identity confirm MCP | `lib/ai/tools/confirm-academic-identity.ts` | Target: ORCID-first confirm (unstarted) |
 | OpenAlex linking | `lib/research-profile/openalex-linking.ts` | Scoring, auto/suggest thresholds |
 | Author linking service | `lib/research-profile/author-linking-service.ts` | Profile plus SSRN refresh |
 | ORCID enrichment | `lib/research-profile/orcid-enrichment.ts` | Employment, websites |
@@ -125,11 +130,13 @@ Build aggregates on top of this; do not duplicate in ResearchBar.
 | Web candidate API | `app/api/user/author-link/candidate/route.ts` | Richer than MCP today (h-index, websites, top works) |
 | Academic identity UI | `components/settings/academic-identity-card.tsx` | Web reference for MCP parity |
 | Paper batch fetch | `get_paper_details_batch` in MCP registry | Up to 25 papers; use inside aggregates |
-| Native MCP tools | `lib/mcp/tools/registry.ts` | 24 tools; building blocks for aggregates |
+| Native MCP tools | `lib/mcp/tools/registry.ts` | **30 tools**; building blocks for aggregates |
 
-**Gap:** no `get_research_pulse`, `get_new_work_radar`, `get_data_freshness`, or `get_conference_deadlines` yet. Multi-source citation reconciliation and ORCID-first confirm are partial.
+**Gap:** no `get_research_pulse`, `get_new_work_radar`, `get_data_freshness`, or `get_conference_deadlines` yet. ORCID-first confirm and multi-source citation reconciliation are not complete.
 
 ## ResearchBar client allowlist
+
+Authoritative corrected allowlist: [`../build/01-corbis-vs-researchbar-boundary.md`](../build/01-corbis-vs-researchbar-boundary.md).
 
 ResearchBar MAY contain:
 

@@ -1,42 +1,60 @@
-# Corbis integration plan (code-grounded)
+# Build plan (code-grounded)
 
-Date: 2026-06-17. This folder is the verified, code-grounded plan for the Corbis backend that ResearchBar depends on, plus the client-side guidance that follows from it. It is the "Phase 0 Track A implementation plan" that the repo `README.md` named as the next artifact.
+Date: 2026-06-17 (audit); folder renamed from `corbis-integration-plan/` to `build/` on 2026-06-18.
 
-It was produced by inventorying the live Corbis codebase (`agentic-assets/agentic-assets-app`), stress-testing the concept against real code, and writing a revised plan. The full Corbis-internal evaluation (gap analysis, design review with rejected alternatives, per-agent recon with line-level evidence) lives in the Corbis repo at `agentic-assets-app/docs/researchbar-evaluation/`. This folder is the slice that matters for building **ResearchBar** plus the dependency contract it consumes.
+Verified, code-grounded plan for the Corbis backend ResearchBar depends on, plus client-side guidance. Start at [`../BUILD.md`](../BUILD.md) or **`00-what-this-means-for-researchbar.md`**.
 
-## Citation convention (read this first)
+## Corbis evaluation (full backend spec)
 
-Every `path:line` reference in this folder points into the sibling Corbis repo `agentic-assets/agentic-assets-app`, not this repository. A builder who greps this repo for `lib/mcp/...` will find nothing here. Open the Corbis repo for those files. Paths that start with a doc name (for example `corbis-api-contracts.md`) refer to files in this ResearchBar repo.
+This folder is the **ResearchBar-facing slice**. The full Corbis Track A evaluation lives in the sibling repo:
+
+**[`../../../agentic-assets-app/docs/researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/)**
+
+| File | Use when |
+|---|---|
+| [`README.md`](../../../agentic-assets-app/docs/researchbar-evaluation/README.md) | Verdict and index |
+| [`01-inventory-what-exists-today.md`](../../../agentic-assets-app/docs/researchbar-evaluation/01-inventory-what-exists-today.md) | What exists in Corbis today |
+| [`02-gap-analysis.md`](../../../agentic-assets-app/docs/researchbar-evaluation/02-gap-analysis.md) | Gaps and effort estimates |
+| [`03-design-review.md`](../../../agentic-assets-app/docs/researchbar-evaluation/03-design-review.md) | Design critique + rejected alternatives |
+| [`04-revised-corbis-api-contracts.md`](../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md) | All aggregate JSON shapes |
+| [`05-revised-implementation-plan.md`](../../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md) | **Implement Corbis phases here** |
+| [`06-risks-and-open-questions.md`](../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) | Closed vs open with evidence |
+| [`07-adversarial-review-verdict.md`](../../../agentic-assets-app/docs/researchbar-evaluation/07-adversarial-review-verdict.md) | What would fail in production |
+| [`08-get-research-pulse-v0-spec.md`](../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md) | **Implementation-ready pulse spec** |
+| [`09-deep-dive-review-and-next-actions.md`](../../../agentic-assets-app/docs/researchbar-evaluation/09-deep-dive-review-and-next-actions.md) | Deep review and cross-repo sequence |
+| [`_recon/`](../../../agentic-assets-app/docs/researchbar-evaluation/_recon/) | Raw agent evidence (audit only) |
+
+Open blockers tracked in [`../OPEN-ISSUES.md`](../OPEN-ISSUES.md).
+
+## Citation convention
+
+Every `path:line` reference in this folder points into **`../../../agentic-assets-app`**, not this repository. Doc-name paths (for example `corbis-api-contracts.md`) refer to [`../concept/`](../concept/).
 
 ## One-paragraph verdict: BUILD WITH CHANGES
 
-The concept's architecture instinct is sound and worth building: centralize consolidation in Corbis, keep the macOS client thin, anchor identity on ORCID, map one menu panel to one aggregate MCP call, and design the aggregates so corbis.ai web and EQUIRE can reuse them. But three load-bearing facts in the concept docs that live in this same repo do not survive the code, and two realities the concept treats as "the client inherits for free" are Corbis backend projects that must land before the client can ship a panel. The client is blocked on a single Corbis deliverable (`get_research_pulse` v0) and on two backend prerequisites behind it (an ORCID anchor path and a leak-redaction pass). Build Corbis Track A first, render second.
+Centralize in Corbis, thin macOS client, ORCID anchor, one panel = one aggregate MCP call. The client is blocked on `get_research_pulse` v0 plus ORCID anchor and redaction (Corbis Phase 0). Build Corbis Track A first, render second.
 
-## Corrected facts (these change the concept, and the funnel math)
+## Corrected facts
 
-| Concept doc says | Code says | Where verified | Client impact |
-|---|---|---|---|
-| 24 registered MCP tools | **30** | `lib/mcp/tools/registry.ts:1241-1282`, pinned by `tests/unit/lib/mcp/mcp-consolidation.test.ts:87` | None directly; correct the baseline so the inventory is trusted. |
-| 1 credit per call | **0.5 credit per call** | `lib/mcp/tool-credits.ts:16` | Doubles the free-tier runway. 50 lifetime free credits divided by 0.5 is **100 aggregate calls** before the wall. Polling cadence is now a product lever, see `00`. |
-| ORCID-first confirm "migration in progress" | **Unstarted at the schema level** (no `orcid` column anywhere; confirm keys on the internal author id) | `lib/db/schema.ts` (no match), `lib/ai/tools/confirm-academic-identity.ts:25-42` | The anchor the client renders is net-new backend work, not in-flight. |
-| 5 tools enterprise-only | **10** | `lib/ai/capabilities/index.ts:950-966` | Identity tools are tier1, so the free gate still works; the count was wrong. |
-| 10 concurrent requests (guarantee) | Documentation-only, not enforced | `lib/mcp/resources/docs.ts:89,430`; only 200/hour is enforced (`lib/rate-limit.ts:67`) | Do not design client concurrency around a "10 concurrent" guarantee. |
+| Was (concept) | Is (code) | Client impact |
+|---|---|---|
+| 24 MCP tools | **30** | Inventory only |
+| 1 credit/call | **0.5** | ~100 lifetime aggregate calls on free tier |
+| ORCID-first "in progress" | **Unstarted** | Net-new backend work |
+| 5 enterprise-only tools | **10** | Count only; identity tools still tier1 |
+| 10 concurrent enforced | **Docs only** | Honor 200/hour |
 
-The "never surface backend source names or internal ids" rule is **already violated in shipped Corbis MCP output** (`lib/mcp/tools/output-schemas.ts:22`, `lib/mcp/result-format.ts:97`, `lib/ai/tools/confirm-academic-identity.ts:103`). A thin client rendering today's payloads would display the internal id and the backend name. Fixing this is a Corbis Phase 0 prerequisite, not a client property, and the client should also redact defensively (see `00`).
+Never-surface is **violated in shipped MCP output** today; Phase 0.B fixes the source. Client redacts defensively ([`00`](00-what-this-means-for-researchbar.md)).
 
-## Reading order
+## Reading order (this folder)
 
-1. **`00-what-this-means-for-researchbar.md`** the client-first summary: the build-order gate, what the client builds vs consumes, and the five corrected realities that change client design. Start here.
-2. **`01-corbis-vs-researchbar-boundary.md`** the corrected ownership table and the client allowlist (MUST and MUST NOT).
-3. **`02-mcp-contract-get-research-pulse.md`** the exact JSON the client renders, a Swift Codable sketch, auth and billing facts, and a smoke-test you can run before writing Swift.
-4. **`03-corbis-track-a-plan.md`** the Corbis backend plan you are waiting on, phased, with done-when gates and MCP smoke tests. Track this to know when the client is unblocked.
-5. **`04-corrections-and-sync-back.md`** the precise edits the concept docs in this repo need so the wrong facts are not re-imported.
-6. **`05-risks-and-open-questions.md`** client-relevant risks and the founder-only decisions that gate the funnel.
+1. [`00-what-this-means-for-researchbar.md`](00-what-this-means-for-researchbar.md)
+2. [`01-corbis-vs-researchbar-boundary.md`](01-corbis-vs-researchbar-boundary.md)
+3. [`02-mcp-contract-get-research-pulse.md`](02-mcp-contract-get-research-pulse.md)
+4. [`03-corbis-track-a-plan.md`](03-corbis-track-a-plan.md)
+5. [`04-corrections-and-sync-back.md`](04-corrections-and-sync-back.md) — audit errata (applied to `concept/` 2026-06-18)
+6. [`05-risks-and-open-questions.md`](05-risks-and-open-questions.md)
 
-## What this supersedes
+## Authority
 
-Where this folder and the concept docs in this repo disagree, this folder wins on facts (it is code-grounded as of 2026-06-17). It supersedes the tool count and credit-cost numbers in `corbis-api-contracts.md` and `funnel-economics.md`, the "migration in progress" framing in `identity-and-data-consolidation.md`, and the implied always-present trend fields in the `get_research_pulse` table. The concept docs remain useful as the product north star and the client research dossier; treat them as concept exploration, not a build spec.
-
-## Scope
-
-This folder covers the Corbis dependency (Track A) in enough detail to track it, and the ResearchBar client guidance (Track B) that follows from the corrected facts. It does not duplicate the Corbis-internal effort tables and rejected-alternatives analysis; that is in `agentic-assets-app/docs/researchbar-evaluation/` (files `01` through `08` plus `_recon/`). No code was implemented in producing this package.
+This folder wins over [`../concept/`](../concept/) on implementation facts. Corbis [`researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/) wins on backend implementation depth (file-level plans, Zod schemas, test lists).
