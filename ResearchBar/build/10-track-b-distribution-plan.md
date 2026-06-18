@@ -9,6 +9,12 @@ validation, and macOS Tahoe checks.
 Prepare ResearchBar for direct macOS distribution without destabilizing the
 working CodexBar chassis before the product path is proven.
 
+Distribution work should preserve the fork relationship until the product path
+is proven. Keep inherited CodexBar provider usage code available during beta
+planning, even if the default menu hides it. This keeps upstream pulls easier
+and leaves room for a smaller optional AI usage surface after the Corbis pulse
+is the clear center of the app.
+
 ## Gate
 
 Do not globally rename `CodexBar` to `ResearchBar` until:
@@ -17,6 +23,8 @@ Do not globally rename `CodexBar` to `ResearchBar` until:
 2. Live MCP client is behind a validated Corbis Phase 0 gate.
 3. The v0 menu renders real or captured clean pulse data.
 4. Cayman approves the public product name and bundle identity.
+5. The team decides whether inherited AI usage is hidden, optional, or removed
+   for the first beta.
 
 ## Existing release machinery to preserve
 
@@ -122,6 +130,7 @@ Do not run release scripts in the background.
 | Homebrew cask | Useful after public beta, not needed for fixture work. |
 | App Store build | Conflicts with likely local agent launch. |
 | New app icon | Product identity decision should come first. |
+| Broad provider-code deletion | Decide only after upstream sync and optional AI usage scope are clear. |
 
 ## Done when
 

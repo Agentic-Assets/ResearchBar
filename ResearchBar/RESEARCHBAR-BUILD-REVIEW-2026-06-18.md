@@ -24,6 +24,13 @@ The ResearchBar plan is good, but the codebase is not a ResearchBar app yet. It 
 
 The actual app code lives under `Sources/CodexBar` and `Sources/CodexBarCore`. The package is still named `CodexBar`, and the implementation is a macOS menu bar usage monitor for AI providers. The docs under `ResearchBar/ResearchBar/` are product and build planning, not shipped functionality.
 
+That provider usage monitor should not be treated as waste. Keep it around
+while Track B proves the Corbis pulse path. It preserves the ability to pull
+upstream CodexBar improvements, gives tested patterns for settings, providers,
+auth, HTTP, menu rendering, and release automation, and leaves room for a small
+optional AI usage surface later. The product decision is narrower: generic AI
+usage is not the main ResearchBar menu.
+
 Useful inherited pieces:
 
 | Existing surface | Why it matters |
@@ -58,6 +65,8 @@ Missing today:
 5. **Do not show raw backend names or ids.** Test for them even if the backend should redact.
 6. **Do not globally rename CodexBar to ResearchBar first.** Working pulse beats cosmetic churn.
 7. **Do not add GRDB, a Swift MCP SDK, or a new updater pipeline without sign-off.**
+8. **Do not remove inherited provider usage broadly during Track B.** Hide or
+   demote it when needed, then decide after the research pulse works.
 
 ## Recommended Track B file plan
 
@@ -105,6 +114,7 @@ ResearchBar is blocked on Corbis Phase 0. The client can build fixtures and UI, 
 | Deferred item | Why |
 |---|---|
 | Global package rename | It touches packaging, Sparkle, bundle ids, release automation, docs, and tests before the product path is proven. |
+| Broad deletion of AI provider usage code | It weakens upstream mergeability and removes useful implementation patterns before ResearchBar knows which small usage surface it may keep. |
 | `get_new_work_radar` UI | It needs session-aware server logic and fail-closed ZDR behavior. |
 | Data freshness panel | It is Phase 1 after pulse and citation snapshots. |
 | Linked repo merge | It needs Corbis repo associations first. Local git can be added later. |
@@ -146,4 +156,9 @@ The `rg` command should return no matches.
 
 ## Builder bottom line
 
-Treat this fork as a good chassis, not as an almost-finished app. Keep the first slice modest: Corbis auth, ORCID identity, one pulse payload, one panel, careful cache, and no fabricated trends. That will answer the real product question faster than a broad rename or a many-panel prototype.
+Treat this fork as a good chassis, not as an almost-finished app. Keep the
+first slice modest: Corbis auth, ORCID identity, one pulse payload, one panel,
+careful cache, and no fabricated trends. Preserve inherited CodexBar provider
+code as reusable machinery unless it blocks the research-first menu. That will
+answer the real product question faster than a broad rename, a broad deletion
+pass, or a many-panel prototype.

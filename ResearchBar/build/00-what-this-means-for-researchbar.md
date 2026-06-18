@@ -8,6 +8,25 @@ ResearchBar cannot ship a working menu panel until Corbis ships `get_research_pu
 
 Build order, restated: Corbis APIs first, thin client second. This was already the concept's instinct (`researchbar-in-60-seconds.md`); the code confirms it is not optional, because the client has nothing correct to render until the aggregate and its redaction land.
 
+## CodexBar inheritance strategy
+
+Treat CodexBar as the chassis, not as dead code to strip out. The existing AI
+provider usage system is useful in three ways:
+
+- It keeps the fork easier to sync with upstream CodexBar while ResearchBar is
+  still proving the Corbis pulse path.
+- It gives working local patterns for provider registration, settings, auth,
+  HTTP calls, status item rendering, tests, packaging, and releases.
+- It may become a small optional ResearchBar surface later, such as an
+  advanced "AI tools" panel, diagnostics view, or developer-only status block.
+
+The default ResearchBar experience should still be research-first: Corbis
+identity, research pulse, credits, cache freshness, profile links, and later
+agent launch. If inherited AI usage competes with that menu, hide it, demote
+it, or put it behind a feature flag. Do not delete broad provider code until
+the Corbis pulse slice works, product naming is approved, and the upstream
+merge strategy is clear.
+
 ## What ResearchBar builds (and never computes)
 
 ResearchBar is a renderer and a launcher. It consumes aggregate JSON and opens links. It does not consolidate, reconcile, scrape, compute citation deltas, or orchestrate multi-tool fan-out. The full allowlist is in `01-corbis-vs-researchbar-boundary.md`. The short version:

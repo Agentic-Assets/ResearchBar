@@ -4,6 +4,11 @@
 
 **Docs describe the product; Swift lives in `Sources/CodexBar`.** Intelligence and aggregates belong in `agentic-assets-app`. This tree is spec and planning only. Builders start at [`BUILD.md`](BUILD.md), not the concept report.
 
+**Fork strategy:** Reuse CodexBar aggressively. Keep inherited AI provider
+usage code during Track B for upstream sync and implementation patterns, but
+make Corbis research intelligence the default ResearchBar surface. Hide or
+demote provider usage if it competes with the pulse menu.
+
 ## Naming Patterns
 
 - Top-level entry: `researchbar-in-60-seconds.md`, `BUILD.md`, `OPEN-ISSUES.md`

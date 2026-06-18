@@ -4,7 +4,10 @@
 
 **Tagline:** ResearchBar is free. It runs on Corbis.
 
-**Chassis:** Public fork of CodexBar (MIT). The shell is open; the brain is not.
+**Chassis:** Public fork of CodexBar (MIT). Reuse the shell, provider
+patterns, settings, tests, and release pipeline. Keep generic AI usage as
+optional inherited machinery, not the main product. The shell is open; the
+brain is not.
 
 **Architecture in one breath:**
 

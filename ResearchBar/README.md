@@ -2,6 +2,12 @@
 
 Research-backed concept and build spec for **ResearchBar**: a macOS menu bar app for academic researchers, powered by and gated to Corbis.
 
+ResearchBar is a CodexBar fork by design. The plan is to keep CodexBar's
+polished menu bar and provider infrastructure reusable, while making Corbis
+research intelligence the primary surface. Generic AI usage can remain as
+inherited machinery, diagnostics, or a small optional panel, but it is not the
+main product.
+
 **New here?** Read [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md).
 
 **Building?** Start at [`BUILD.md`](BUILD.md).
@@ -62,6 +68,7 @@ small, reviewable slices:
 | Question type | Authoritative source |
 |---|---|
 | Product intent, competitive gap, GTM | [`concept/2026-06-17-researchbar-concept-and-recommendation.md`](concept/2026-06-17-researchbar-concept-and-recommendation.md) |
+| CodexBar fork and inherited AI usage strategy | [`BUILD.md`](BUILD.md) and [`build/00`](build/00-what-this-means-for-researchbar.md) |
 | Implementation facts (credits, tools, ORCID, phases) | [`build/`](build/) and Corbis [`researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/) |
 | Exact `get_research_pulse` JSON for Swift | [`build/02-mcp-contract-get-research-pulse.md`](build/02-mcp-contract-get-research-pulse.md) + Corbis [`08-get-research-pulse-v0-spec.md`](../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md) |
 | Track B native client implementation slices | [`build/06`](build/06-track-b-fixture-pulse-plan.md) through [`build/10`](build/10-track-b-distribution-plan.md) |

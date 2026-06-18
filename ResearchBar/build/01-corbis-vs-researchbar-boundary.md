@@ -33,6 +33,8 @@ The concept treats "the client never sees backend names or internal ids" as some
 ResearchBar MAY contain:
 
 - CodexBar shell (`NSStatusItem`, menus, settings, Sparkle, Homebrew).
+- Existing CodexBar AI provider usage infrastructure as inherited machinery,
+  diagnostics, or a small optional panel while the fork remains upstreamable.
 - Corbis auth (OAuth bearer or `corbis_mcp_...` key in Keychain).
 - Thin onboarding UI (confirm or cancel over the identity tools), displaying ORCID only.
 - A generic panel renderer for aggregate JSON, with explicit handling for null trend fields and the `citationHistoryStatus` enum.
@@ -44,6 +46,7 @@ ResearchBar MAY contain:
 
 ResearchBar MUST NOT contain:
 
+- Generic AI quota monitoring as the primary product surface.
 - Source adapters, scrapers, or reconcilers.
 - Multi-tool MCP orchestration for a menu panel (one aggregate call per panel).
 - Citation delta or sparkline computation (server-side only).

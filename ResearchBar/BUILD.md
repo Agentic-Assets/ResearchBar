@@ -6,6 +6,19 @@ Date: 2026-06-18. This is the single entry point for implementing ResearchBar or
 
 **BUILD WITH CHANGES.** Corbis APIs first, thin macOS client second. The client is blocked until Corbis Phase 0 ships `get_research_pulse` v0 (plus ORCID anchor and backend redaction). See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for the live blocker list.
 
+## Fork strategy
+
+ResearchBar should reuse CodexBar aggressively while making Corbis research
+intelligence the default product surface. Keep the existing AI provider usage
+machinery during Track B because it preserves upstream mergeability, provides
+working patterns for auth, providers, HTTP, settings, menus, and tests, and may
+become a small optional ResearchBar feature later. Do not make generic AI usage
+the main menu experience.
+
+Builder rule: hide, demote, or feature-flag inherited provider usage when it
+competes with the research pulse. Remove it only after the Corbis pulse path,
+product naming, and upstream sync strategy are proven.
+
 ## Read order
 
 ### Track B: ResearchBar macOS client (this repo)

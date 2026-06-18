@@ -49,6 +49,7 @@ Nothing in Track B ships real pulse data until Corbis **Phase 0** is done. Track
 | ToS: Semantic Scholar, Scholar/SerpAPI, ResearchGate, ORCID Member API | Legal/vendor | [`concept/open-questions-checklist.md`](concept/open-questions-checklist.md) |
 | `get_linked_repos` standalone vs nested | Product shape | [`concept/corbis-api-contracts.md`](concept/corbis-api-contracts.md) |
 | Product naming (ResearchBar vs Corbis-branded) | Funnel vs OSS goodwill | [`concept/2026-06-17-researchbar-concept-and-recommendation.md`](concept/2026-06-17-researchbar-concept-and-recommendation.md) §10 |
+| Inherited CodexBar AI usage surface | Keep as hidden machinery, optional advanced panel, or remove after pulse proves out | [`build/00`](build/00-what-this-means-for-researchbar.md) |
 | Domain `research.bar` | Register before public launch | [`concept/open-questions-checklist.md`](concept/open-questions-checklist.md) |
 | Corbis corpus figure | Quote live corbis.ai only | Company hard rule |
 
@@ -65,6 +66,7 @@ Nothing in Track B ships real pulse data until Corbis **Phase 0** is done. Track
 | Live JSON-RPC call to Corbis MCP | Blocked on Phase 0 smoke; see [`build/08`](build/08-track-b-live-mcp-plan.md) |
 | GRDB cache keyed by account; respect `staleAfter`/`etag` | Decision needed; see [`build/07`](build/07-track-b-auth-and-cache-plan.md) |
 | Notarized DMG + Sparkle + Homebrew | Deferred until pulse path works; see [`build/10`](build/10-track-b-distribution-plan.md) |
+| Hide or demote inherited AI provider usage in the menu | Not started; keep code during Track B unless it blocks the research-first surface |
 | Test `NSStatusItem` on macOS 26 (Tahoe) | Not started |
 | Local git scanner + agent launch (later phases) | Not started |
 

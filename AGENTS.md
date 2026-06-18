@@ -2,13 +2,15 @@
 
 ## ResearchBar product spec
 
-This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS menu bar for academics). Product docs live in **`ResearchBar/`** — start at [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). Code-grounded client plan: [`ResearchBar/build/`](ResearchBar/build/). Corbis backend spec: `agentic-assets-app/docs/researchbar-evaluation/`. Server-side intelligence builds in `agentic-assets-app`; this repo stays the thin client shell.
+This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS menu bar for academics). Product docs live in **`ResearchBar/`**, start at [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). Code-grounded client plan: [`ResearchBar/build/`](ResearchBar/build/). Corbis backend spec: `agentic-assets-app/docs/researchbar-evaluation/`. Server-side intelligence builds in `agentic-assets-app`; this repo stays the thin client shell.
+
+ResearchBar should reuse CodexBar aggressively. Keep inherited AI provider usage code during Track B for upstream sync and implementation patterns. Generic AI usage may become hidden machinery, diagnostics, or a small optional ResearchBar panel, but Corbis research intelligence is the default product surface.
 
 ## Project Structure & Modules
 - `Sources/CodexBar`: Swift 6 menu bar app (usage/credits probes, icon renderer, settings). Keep changes small and reuse existing helpers.
 - `Tests/CodexBarTests`: XCTest coverage for usage parsing, status probes, icon patterns; mirror new logic with focused tests.
 - `Scripts`: build/package helpers (`package_app.sh`, `sign-and-notarize.sh`, `make_appcast.sh`, `build_icon.sh`, `compile_and_run.sh`). Release wrappers call `Scripts/mac-release`, which resolves `MAC_RELEASE_TOOL` or the shared `agent-scripts` checkout.
-- `docs`: release notes and process (`docs/RELEASING.md`, screenshots). Root-level zips/appcast are generated artifacts—avoid editing except during releases.
+- `docs`: release notes and process (`docs/RELEASING.md`, screenshots). Root-level zips/appcast are generated artifacts, avoid editing except during releases.
 
 ## Build, Test, Run
 - Dev loop: `./Scripts/compile_and_run.sh` kills old instances, builds, packages, relaunches `CodexBar.app`, and confirms it stays running; add `--test` for the sharded full suite.
@@ -17,7 +19,7 @@ This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS 
 - Release flow: `./Scripts/release.sh`; app metadata lives in `.mac-release.env`, repo build/signing stays in `Scripts/sign-and-notarize.sh`, and validation steps live in `docs/RELEASING.md`.
 
 ## Coding Style & Naming
-- Enforce SwiftFormat/SwiftLint: run `swiftformat Sources Tests` and `swiftlint --strict`. 4-space indent, 120-char lines, explicit `self` is intentional—do not remove.
+- Enforce SwiftFormat/SwiftLint: run `swiftformat Sources Tests` and `swiftlint --strict`. 4-space indent, 120-char lines, explicit `self` is intentional, do not remove.
 - Favor small, typed structs/enums; maintain existing `MARK` organization. Use descriptive symbols; match current commit tone.
 
 ## Testing Guidelines
@@ -41,7 +43,7 @@ This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS 
 - For CLI-testable provider/parser/settings behavior, use CLI/focused tests instead of `Scripts/package_app.sh` or `./Scripts/compile_and_run.sh`.
 - Run `./Scripts/compile_and_run.sh` only when UI/runtime behavior needs bundle-level validation; it builds, tests, packages, relaunches, and verifies the app stays running.
 - Widget/Tahoe UI issues: use Parallels macOS VM plus screenshots/clicks for autonomous verification.
-- Release script: keep it in the foreground; do not background it—wait until it finishes.
+- Release script: keep it in the foreground; do not background it, wait until it finishes.
 - Sparkle release key: use `.mac-release.env` `MAC_RELEASE_SIGNING_KEY_FILE`, the legacy `AGCY8w5vHirVfGGDGc8Szc5iuOqupZSh9pMj/Qs67XI=` key. Do not use `sparkle-private-key-KEEP-SECURE.txt`; that is VibeTunnel's mismatched key.
 - Swift concurrency: treat sibling `async let` tasks as a review red flag when one child is required and another is optional/best-effort. Prefer sequential awaits or a drained `withThrowingTaskGroup` that surfaces required failures and explicitly contains optional failures; crash stacks mentioning `swift_task_dealloc` or `asyncLet_finish_after_task_completion` should trigger an audit of nearby `async let` usage.
 - Prefer modern SwiftUI/Observation macros: use `@Observable` models with `@State` ownership and `@Bindable` in views; avoid `ObservableObject`, `@ObservedObject`, and `@StateObject`.
