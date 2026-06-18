@@ -4,6 +4,11 @@ Date: 2026-06-17 (audit); folder renamed from `corbis-integration-plan/` to `bui
 
 Verified, code-grounded plan for the Corbis backend ResearchBar depends on, plus client-side guidance. Start at [`../BUILD.md`](../BUILD.md) or **`00-what-this-means-for-researchbar.md`**.
 
+The folder now has two layers:
+
+- `00` through `05`: Corbis dependency facts, boundary, pulse contract, and risk gates.
+- `06` through `10`: ResearchBar-native Track B build guides for the macOS client.
+
 ## Corbis evaluation (full backend spec)
 
 This folder is the **ResearchBar-facing slice**. The full Corbis Track A evaluation lives in the sibling repo:
@@ -52,9 +57,22 @@ Never-surface is **violated in shipped MCP output** today; Phase 0.B fixes the s
 2. [`01-corbis-vs-researchbar-boundary.md`](01-corbis-vs-researchbar-boundary.md)
 3. [`02-mcp-contract-get-research-pulse.md`](02-mcp-contract-get-research-pulse.md)
 4. [`03-corbis-track-a-plan.md`](03-corbis-track-a-plan.md)
-5. [`04-corrections-and-sync-back.md`](04-corrections-and-sync-back.md) — audit errata (applied to `concept/` 2026-06-18)
+5. [`04-corrections-and-sync-back.md`](04-corrections-and-sync-back.md): audit errata (applied to `concept/` 2026-06-18)
 6. [`05-risks-and-open-questions.md`](05-risks-and-open-questions.md)
+
+## Track B native client guides
+
+Use these after reading `00` through `03`. They are modular on purpose so
+builders can implement and review one slice at a time.
+
+| File | Use when |
+|---|---|
+| [`06-track-b-fixture-pulse-plan.md`](06-track-b-fixture-pulse-plan.md) | Starting the native client with fixtures, `ResearchPulse`, decode tests, redaction, and menu model. |
+| [`07-track-b-auth-and-cache-plan.md`](07-track-b-auth-and-cache-plan.md) | Adding Corbis token storage, account identity, cache keying, freshness, and the GRDB decision. |
+| [`08-track-b-live-mcp-plan.md`](08-track-b-live-mcp-plan.md) | Wiring JSON-RPC after Corbis Phase 0, with smoke tests, error mapping, and credit-safe refresh. |
+| [`09-track-b-menu-rendering-plan.md`](09-track-b-menu-rendering-plan.md) | Rendering v0 menu states, settings, status icon labels, and descriptor tests. |
+| [`10-track-b-distribution-plan.md`](10-track-b-distribution-plan.md) | Planning naming, bundle ids, Sparkle, Homebrew, notarization, and Tahoe checks. |
 
 ## Authority
 
-This folder wins over [`../concept/`](../concept/) on implementation facts. Corbis [`researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/) wins on backend implementation depth (file-level plans, Zod schemas, test lists).
+This folder wins over [`../concept/`](../concept/) on implementation facts. Corbis [`researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/) wins on backend implementation depth (file-level plans, Zod schemas, test lists). For the macOS client, `06` through `10` are the current Track B build guides.

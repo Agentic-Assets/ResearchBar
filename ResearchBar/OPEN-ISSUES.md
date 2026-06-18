@@ -12,11 +12,11 @@ Nothing in Track B ships real pulse data until Corbis **Phase 0** is done. Track
 
 | # | Work item | Owner | Status |
 |---|---|---|---|
-| 1 | **0.A ORCID anchor** — `orcid` column, resolver, ORCID-first confirm | Corbis | Not started |
-| 2 | **0.B Redaction pass** — strip internal ids and backend names from MCP output | Corbis | Not started |
-| 3 | **0.C `fetchAuthorCandidate` extraction** — share web candidate logic for MCP | Corbis | Not started |
-| 4 | **0.D `get_research_pulse` v0** — static pulse, null trends, `citationHistoryStatus` | Corbis | Not started |
-| 5 | **0.E Tests + smoke tests** — tool count 31, redaction regression, ORCID confirm | Corbis | Not started |
+| 1 | **0.A ORCID anchor**: `orcid` column, resolver, ORCID-first confirm | Corbis | Not started |
+| 2 | **0.B Redaction pass**: strip internal ids and backend names from MCP output | Corbis | Not started |
+| 3 | **0.C `fetchAuthorCandidate` extraction**: share web candidate logic for MCP | Corbis | Not started |
+| 4 | **0.D `get_research_pulse` v0**: static pulse, null trends, `citationHistoryStatus` | Corbis | Not started |
+| 5 | **0.E Tests + smoke tests**: target tool count 31 after registration, redaction regression, ORCID confirm | Corbis | Not started |
 
 **Phase 0 done when:** `get_research_pulse` appears in `tools/list`; live `tools/call` returns ORCID-anchored JSON with no leaks; trend fields null with `not_yet_tracked`. Curl commands in [`build/02`](build/02-mcp-contract-get-research-pulse.md) and Corbis [`05`](../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md).
 
@@ -58,15 +58,17 @@ Nothing in Track B ships real pulse data until Corbis **Phase 0** is done. Track
 
 | Item | Status |
 |---|---|
-| Fork CodexBar shell; Corbis auth in Keychain | Not started |
-| Thin ORCID confirm UI (ORCID display only) | Blocked on Corbis 0.A |
-| Render `get_research_pulse` in one menu panel | Blocked on Corbis 0.D |
-| GRDB cache keyed by account; respect `staleAfter`/`etag` | Not started |
-| Notarized DMG + Sparkle + Homebrew | Not started |
+| Fixture pulse model, fixtures, redaction, menu model | Not started; see [`build/06`](build/06-track-b-fixture-pulse-plan.md) |
+| Corbis auth in Keychain and account-keyed cache | Not started; see [`build/07`](build/07-track-b-auth-and-cache-plan.md) |
+| Thin ORCID confirm UI (ORCID display only) | Blocked on Corbis 0.A; see [`build/09`](build/09-track-b-menu-rendering-plan.md) |
+| Render `get_research_pulse` in one menu panel | Blocked on Corbis 0.D for live data; fixture work allowed via [`build/06`](build/06-track-b-fixture-pulse-plan.md) |
+| Live JSON-RPC call to Corbis MCP | Blocked on Phase 0 smoke; see [`build/08`](build/08-track-b-live-mcp-plan.md) |
+| GRDB cache keyed by account; respect `staleAfter`/`etag` | Decision needed; see [`build/07`](build/07-track-b-auth-and-cache-plan.md) |
+| Notarized DMG + Sparkle + Homebrew | Deferred until pulse path works; see [`build/10`](build/10-track-b-distribution-plan.md) |
 | Test `NSStatusItem` on macOS 26 (Tahoe) | Not started |
 | Local git scanner + agent launch (later phases) | Not started |
 
-Full checklist: [`concept/open-questions-checklist.md`](concept/open-questions-checklist.md).
+Full historical checklist: [`concept/open-questions-checklist.md`](concept/open-questions-checklist.md). Current Track B build guides: [`build/06`](build/06-track-b-fixture-pulse-plan.md) through [`build/10`](build/10-track-b-distribution-plan.md).
 
 ---
 
