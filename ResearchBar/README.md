@@ -12,6 +12,8 @@ main product.
 
 **Building?** Start at [`BUILD.md`](BUILD.md).
 
+**Writing the MCP client?** The wire contract is [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) (a symlink into the verified Corbis guide): transport, auth, billing, live `get_research_pulse` / `get_data_freshness` schemas, identity handshake, and redaction rules.
+
 **Tracking blockers?** See [`OPEN-ISSUES.md`](OPEN-ISSUES.md).
 
 **Canonical location:** `ResearchBar/ResearchBar/` in [Agentic-Assets/ResearchBar](https://github.com/Agentic-Assets/ResearchBar) (CodexBar fork). Moved from `ResearchBar-Concept/` on 2026-06-17. Reorganized into subfolders on 2026-06-18.
@@ -21,6 +23,7 @@ main product.
 | Folder / file | Purpose | Who reads it |
 |---|---|---|
 | [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md) | Elevator pitch | Everyone |
+| [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) | **Authoritative MCP wire contract** (symlink to the verified Corbis guide): transport, auth, billing, live schemas, identity handshake, redaction, Phase 0B checklist | Client engineers |
 | [`BUILD.md`](BUILD.md) | Builder entry point and read order | Engineers |
 | [`RESEARCHBAR-BUILD-REVIEW-2026-06-18.md`](RESEARCHBAR-BUILD-REVIEW-2026-06-18.md) | Deep build review and concrete Track B file plan | Engineers |
 | [`OPEN-ISSUES.md`](OPEN-ISSUES.md) | Open decisions, blockers, closed checklist items | Founders + builders |

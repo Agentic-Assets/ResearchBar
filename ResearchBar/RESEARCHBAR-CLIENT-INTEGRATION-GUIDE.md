@@ -1,0 +1,1 @@
+../../agentic-assets-app/docs/researchbar-evaluation/RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md

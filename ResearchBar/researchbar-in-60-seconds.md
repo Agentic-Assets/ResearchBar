@@ -20,7 +20,9 @@ brain is not.
 
 **Build order:** Corbis APIs first (`get_research_pulse` and friends), thin client second. Start at [`BUILD.md`](BUILD.md) and [`build/00-what-this-means-for-researchbar.md`](build/00-what-this-means-for-researchbar.md).
 
-**Phase 0 right now:** Ship `get_research_pulse` in Corbis ([`agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`](../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md)), then render it here.
+**Phase 0 status (2026-06-27):** `get_research_pulse` (and `get_data_freshness`) are shipped in Corbis and pass the live MCP smoke, so the client is unblocked. Now render the pulse here.
+
+**Client wire contract:** [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) (symlink to the verified Corbis guide): transport, auth, billing, live schemas, identity handshake, redaction.
 
 **Blockers:** [`OPEN-ISSUES.md`](OPEN-ISSUES.md).
 

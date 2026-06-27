@@ -37,19 +37,19 @@ Every `path:line` reference in this folder points into **`../../../agentic-asset
 
 ## One-paragraph verdict: BUILD WITH CHANGES
 
-Centralize in Corbis, thin macOS client, ORCID anchor, one panel = one aggregate MCP call. The client is blocked on `get_research_pulse` v0 plus ORCID anchor and redaction (Corbis Phase 0). Build Corbis Track A first, render second.
+Centralize in Corbis, thin macOS client, ORCID anchor, one panel = one aggregate MCP call. **Update 2026-06-27: Corbis Phase 0 + Phase 1 are shipped and the live MCP smoke passes, so the client is UNBLOCKED.** Build the Swift client against fixtures (`06`) first, then switch to live calls (`08`); the Phase 0 done-when gate is met.
 
 ## Corrected facts
 
 | Was (concept) | Is (code) | Client impact |
 |---|---|---|
-| 24 MCP tools | **30** | Inventory only |
+| 24 MCP tools | **30** registry audit (2026-06-17); live `tools/list` **41** authed / **31** anon (2026-06-26) | Inventory only |
 | 1 credit/call | **0.5** | ~100 lifetime aggregate calls on free tier |
-| ORCID-first "in progress" | **Unstarted** | Net-new backend work |
+| ORCID-first "in progress" | **Shipped** (migration `0162`; was unstarted at the 2026-06-17 audit) | Backend work now done |
 | 5 enterprise-only tools | **10** | Count only; identity tools still tier1 |
 | 10 concurrent enforced | **Docs only** | Honor 200/hour |
 
-Never-surface is **violated in shipped MCP output** today; Phase 0.B fixes the source. Client redacts defensively ([`00`](00-what-this-means-for-researchbar.md)).
+Never-surface was **violated in shipped MCP output** at the 2026-06-17 audit; Phase 0.B has since redacted the pulse surface (broader low-level redaction `A4b` remains open). Client redacts defensively regardless ([`00`](00-what-this-means-for-researchbar.md)).
 
 ## Reading order (this folder)
 

@@ -40,9 +40,10 @@ keeping research semantics out of quota-monitor types such as `UsageSnapshot`.
 |---|---|
 | No credential | Show "Connect Corbis" and Settings. No polling. |
 | Invalid credential | Show reconnect, last safe cache if available, and Settings. |
-| No ORCID confirmed | Show identity confirmation action. Do not show internal ids. |
+| Unlinked (`profileStatus: unlinked`) | Show identity confirmation action. Do not show internal ids. Not an error. |
+| Industry profile (`profileStatus: industry_profile`) | Show a professional pulse with null publication metrics. No zeroed citation widgets. |
 | Linked, not tracked | Show name, ORCID, affiliation, plan, credits, citations, h-index, paper count, profile links, and tracking-not-started state. |
-| Linked, accruing | Same as not tracked, with an accruing history state. |
+| Linked, tracking | Same as not tracked, with a "history is accruing" state (`citationHistoryStatus: tracking`). |
 | Linked, tracked | Show 7d and 52w deltas plus sparkline only when all trend fields are non-null. |
 | Low confidence | Show values plus a concise confidence notice and review action. |
 | Stale cache | Label cached values with fetched time and show refresh. |
@@ -92,15 +93,16 @@ Status icon accessibility value should reflect:
 
 ## Test checklist
 
-1. Every `ResearchPulseMenuModel.State` has descriptor coverage.
-2. Not-tracked and accruing states omit sparkline rows.
+1. Every `ResearchPulseMenuModel.State` has descriptor coverage (all four `profileStatus` states included).
+2. Not-tracked and tracking states omit sparkline rows.
 3. Tracked state includes trends only with complete trend data.
-4. Low-confidence state includes review action.
-5. Stale cache includes fetched time and refresh action.
-6. Credit-limited state contains no automatic refresh action.
-7. Leak-like values never reach descriptor rows.
-8. Profile link actions use supplied URLs only.
-9. Settings tab state can be built with test stores.
+4. Industry-profile state shows null publication metrics, never zeroed citation widgets.
+5. Low-confidence state includes review action.
+6. Stale cache includes fetched time and refresh action.
+7. Credit-limited state contains no automatic refresh action.
+8. Leak-like values never reach descriptor rows.
+9. Profile link actions use supplied URLs only.
+10. Settings tab state can be built with test stores.
 
 ## Verification
 

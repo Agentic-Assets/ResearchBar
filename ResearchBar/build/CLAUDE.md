@@ -2,7 +2,7 @@
 
 ## Most Critical Rule
 
-**This folder wins on implementation facts.** Corbis Track A Phase 0 (`get_research_pulse` v0 + ORCID anchor + redaction) blocks the client. Do not plan or implement against stale concept numbers. Read `00` first.
+**This folder wins on implementation facts.** Corbis Track A Phase 0 (`get_research_pulse` v0 + ORCID anchor + redaction) **is shipped (2026-06-27), so the client is unblocked**; build Track B against fixtures (`06`), then live (`08`). Do not plan or implement against stale concept numbers. Read `00` first. The authoritative wire schema is [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) §4-§5; it wins over the JSON sketches in `02`/`06` on any conflict.
 
 ## Naming Patterns
 
@@ -17,7 +17,7 @@
 | Owns | Delegates |
 |---|---|
 | Client rules, pulse JSON contract, condensed Corbis phases | Full backend spec: `../../../agentic-assets-app/docs/researchbar-evaluation/` (`01` through `09`) |
-| Corrected facts (30 tools, 0.5 credits/call, ORCID unstarted) | Product why: [`../concept/`](../concept/) |
+| Corrected facts (0.5 credits/call; live `tools/list` 41 authed / 31 anon; ORCID anchor shipped) | Product why: [`../concept/`](../concept/) |
 | Track B readiness gates and modular client plans | Swift implementation: repo `Sources/CodexBar` |
 | Audit errata record | Living blockers: [`../OPEN-ISSUES.md`](../OPEN-ISSUES.md) |
 
@@ -32,7 +32,7 @@
 ## Gotchas
 
 - Trend fields are **null in v0**; UI must use `citationHistoryStatus`, never fake zeros.
-- Never-surface is violated in shipped Corbis MCP output; client redacts defensively too.
+- Never-surface was violated in shipped Corbis MCP output at audit; the pulse surface is now redacted, but the client redacts defensively regardless.
 - GRDB cache must be keyed by Corbis account; server MCP cache is user-blind.
 - Poll on menu-open or slow cadence; 50 lifetime credits is about 100 calls at 0.5/call.
 - Do not add global package rename, Sparkle feed changes, or Homebrew cask work before the pulse path works.

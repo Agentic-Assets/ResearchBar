@@ -35,6 +35,17 @@ ResearchBar should reuse CodexBar aggressively. Keep inherited AI provider usage
 - Commit messages: short imperative clauses (e.g., “Improve usage probe”, “Fix icon dimming”); keep commits scoped.
 - PRs/patches should list summary, commands run, screenshots/GIFs for UI changes, and linked issue/reference when relevant.
 
+## Skills
+Project-local skills live in `.agents/skills/` (install with `npx skills add <owner/repo@skill> -y`, no `-g`). Read each `SKILL.md` before relying on it; skills run with full agent permissions.
+- `swift-concurrency`: `async let` / `withThrowingTaskGroup` patterns; pairs with the Swift concurrency note below.
+- `swiftui-expert-skill`: SwiftUI review, `@Observable` data flow, macOS scenes (MenuBarExtra), Instruments `.trace` analysis.
+- `macos-spm-app-packaging`: SPM `.app` packaging; pairs with `Scripts/package_app.sh`.
+- `mcp-builder`: Anthropic MCP transport/schema guidance; use for the Corbis wire contract.
+- `spec-driven-implementation`: spec-driven build flow; pairs with `ResearchBar/BUILD.md` and `build/06`-`build/10`.
+- `qa-test`, `release-codexbar`: repo-local QA and release workflows.
+
+Conflict rule: this `AGENTS.md` wins over any skill guidance. Notably, prefer `@Observable`/`@State`/`@Bindable` over the SwiftUI skill's legacy `@StateObject`/`@ObservedObject` checklist items, and preserve the inherited CodexBar folder structure over any skill that enforces a feature-based layout.
+
 ## Agent Notes
 - Use the provided scripts and package manager (SwiftPM); avoid adding dependencies or tooling without confirmation.
 - Menu bar automation: capture the target screen first and verify the CodexBar icon is visibly onscreen. Reject `click-extra` success when coordinates fall outside display bounds; hidden menu extras are not click proof.

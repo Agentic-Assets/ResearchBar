@@ -2,9 +2,11 @@
 
 Date: 2026-06-18. This is the single entry point for implementing ResearchBar or tracking the Corbis dependency.
 
+> **Wire contract lives in [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md)** (symlink to the verified Corbis guide). Read it before writing the MCP client: it carries the exact transport/auth/billing contract, the live `get_research_pulse` / `get_data_freshness` schemas, the identity handshake, and the redaction rules. The `build/` guides below are the Swift-side build plan; the guide is the authority on the wire facts.
+
 ## Verdict
 
-**BUILD WITH CHANGES.** Corbis APIs first, thin macOS client second. The client is blocked until Corbis Phase 0 ships `get_research_pulse` v0 (plus ORCID anchor and backend redaction). See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for the live blocker list.
+**BUILD WITH CHANGES.** Corbis APIs first, thin macOS client second. **Update 2026-06-27: Corbis Phase 0 (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so the client is now UNBLOCKED.** Build the Swift client against fixtures first, then switch to live calls (the Phase 0 done-when gate is met). See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for remaining (founder/product) items and [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) for the contract.
 
 ## Fork strategy
 
@@ -23,6 +25,7 @@ product naming, and upstream sync strategy are proven.
 
 ### Track B: ResearchBar macOS client (this repo)
 
+0. **[`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md): the authoritative wire contract (transport, auth, billing, live schemas, identity handshake, redaction, Phase 0B checklist). Read first; it supersedes any wire fact in `build/` on conflict.**
 1. [`build/00-what-this-means-for-researchbar.md`](build/00-what-this-means-for-researchbar.md): gate, client rules (polling, null trends, cache keyed by account, redaction).
 2. [`build/01-corbis-vs-researchbar-boundary.md`](build/01-corbis-vs-researchbar-boundary.md): ownership table and MUST/MUST NOT allowlist.
 3. [`build/02-mcp-contract-get-research-pulse.md`](build/02-mcp-contract-get-research-pulse.md): JSON contract, Swift Codable sketch, curl smoke tests.
@@ -54,15 +57,17 @@ Implement in [`../../agentic-assets-app`](../../agentic-assets-app). Full plan:
 
 ## Corrected facts (do not plan against stale numbers)
 
+Verified against Corbis code and the live MCP smoke (2026-06-26). Authoritative source: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
+
 | Topic | Value |
 |---|---|
-| MCP tools registered | **30** (not 24) |
-| Credit per `tools/call` | **0.5** (not 1) |
-| Free tier | **50 credits lifetime** (~**100** aggregate calls) |
-| ORCID-first confirm | **Unstarted** (net-new backend work) |
-| Premium MCP tools | **10** (enterprise-only in practice) |
+| MCP tools registered | **41** authed; anonymous/invalid token sees **31** tier1 (`tools/list`, 2026-06-26) |
+| Credit per `tools/call` | **0.5** (not 1; a diagnostics panel still displays `1`, which is stale) |
+| Free tier | **~50 credits** (~**100** aggregate calls). DB-driven default, not a frozen fact; read `creditsRemaining` from the pulse. |
+| ORCID-first confirm | **Shipped** (migration `0162`; `confirm_academic_identity` accepts ORCID / Google Scholar / opaque candidate token) |
+| Premium MCP tools | enterprise-only in practice; `get_research_pulse` + `get_data_freshness` are both **tier1** (free-reachable) |
 | Rate limit enforced | **200/hour** only (`10 concurrent` is docs-only) |
-| Pulse trends in v0 | **null** until weekly snapshot store accrues |
+| Pulse trends in v0 | **null** with `citationHistoryStatus: "not_yet_tracked"`; the weekly snapshot store (Phase 1) is shipped and populates real deltas + a 52-week sparkline once history accrues. Middle state is `"tracking"` (code), not `accruing`. |
 
 ## Citation convention
 

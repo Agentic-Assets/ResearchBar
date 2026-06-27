@@ -31,7 +31,7 @@ The client smoke tests in `02-mcp-contract-get-research-pulse.md` are exactly th
 ## Phase 1: citation trends and data freshness
 
 - **Snapshot store and weekly cron.** New table `author_citation_snapshot` (`authorKey` server-side, `userId`, `snapshotDate`, `totalCitations`, `worksCount`, `hIndex`, unique `(authorKey, snapshotDate)`). New `CRON_SECRET`-protected route `app/api/cron/author-citation-snapshot/route.ts`, weekly entry in `vercel.json`, `preferredRegion = 'iad1'`. Backfill the first snapshot on link.
-- **Wire deltas and sparkline** into `get_research_pulse`: compute `citationDelta7d`, `citationDelta52w`, `sparkline52w` from the snapshots; set `citationHistoryStatus` to `accruing` (one snapshot) or `tracked` (two or more). Never fabricate a delta.
+- **Wire deltas and sparkline** into `get_research_pulse`: compute `citationDelta7d`, `citationDelta52w`, `sparkline52w` from the snapshots; set `citationHistoryStatus` to `tracking` (one snapshot) or `tracked` (two or more). Never fabricate a delta. (Shipped code uses `tracking` as the one-snapshot value, not `accruing`.)
 - **`get_data_freshness`** ("data through" only): compose CRE freshness from `data_freshness`/`metric_dates` (`market-data.ts:582,685`) and FRED dates from `fred_series_batch`. Global, cacheable.
 
 Done when: after two weekly cron runs, the pulse returns non-null deltas and a sparkline with `citationHistoryStatus: 'tracked'`, and the cron is idempotent on the unique constraint. This is when the client can ship real trends and delta notifications.

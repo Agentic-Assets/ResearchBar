@@ -56,10 +56,10 @@ Client rules that follow:
 
 ### 2. Trend fields are null in v0; the UI must say "tracking will begin," never show a fake zero
 
-`get_research_pulse` v0 returns `citationDelta7d`, `citationDelta52w`, and `sparkline52w` as **null**, with a `citationHistoryStatus` flag (`not_yet_tracked`, `accruing`, or `tracked`). Corbis cannot return real deltas until a per-user citation-snapshot store accrues at least two weekly rows (Phase 1; see `03`). This is deliberate: Corbis returns honest nulls rather than fabricated deltas (VISION priority 1, evidence before fluency).
+`get_research_pulse` v0 returns `citationDelta7d`, `citationDelta52w`, and `sparkline52w` as **null**, with a `citationHistoryStatus` flag (`not_yet_tracked`, `tracking`, or `tracked`; the middle state is `tracking` in shipped code, not `accruing`). Corbis cannot return real deltas until a per-user citation-snapshot store accrues at least two weekly rows (Phase 1; see `03`). This is deliberate: Corbis returns honest nulls rather than fabricated deltas (VISION priority 1, evidence before fluency).
 
 Client rules that follow:
-- The menu-bar icon sparkline and the delta line must render a "tracking will begin shortly" state when `citationHistoryStatus` is `not_yet_tracked` or `accruing`. Do not draw an empty sparkline or a "0 this week" that reads as a real zero.
+- The menu-bar icon sparkline and the delta line must render a "tracking will begin shortly" state when `citationHistoryStatus` is `not_yet_tracked` or `tracking`. Do not draw an empty sparkline or a "0 this week" that reads as a real zero.
 - Model the trend fields as optionals in Swift, gated on the status enum, not as non-optional numbers. See the Codable sketch in `02`.
 - Notifications on citation deltas are a Phase 1 client feature, because there are no deltas to notify on in v0.
 
