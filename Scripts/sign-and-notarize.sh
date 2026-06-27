@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="CodexBar"
-APP_IDENTITY="Developer ID Application: Peter Steinberger (Y5PE65HELJ)"
-APP_BUNDLE="CodexBar.app"
+APP_NAME="ResearchBar"
+APP_EXECUTABLE="CodexBar"
+APP_IDENTITY="${APP_IDENTITY:-Developer ID Application: Peter Steinberger (Y5PE65HELJ)}"
+APP_BUNDLE="ResearchBar.app"
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 source "$ROOT/version.env"
 source "$ROOT/Scripts/release_artifacts.sh"
@@ -86,32 +87,32 @@ echo "Packaging dSYM"
 DSYM_STAGE_ROOT="$ROOT/.build/package-products/release"
 DSYM_PATHS=()
 for ARCH in "${ARCH_LIST[@]}"; do
-  STAGED_DSYM="$DSYM_STAGE_ROOT/$ARCH/${APP_NAME}.dSYM"
+  STAGED_DSYM="$DSYM_STAGE_ROOT/$ARCH/${APP_EXECUTABLE}.dSYM"
   if [[ -d "$STAGED_DSYM" ]]; then
     DSYM_PATHS+=("$STAGED_DSYM")
     continue
   fi
   BIN_DIR=$(codexbar_swiftpm_bin_path release "$ARCH")
-  DSYM_PATHS+=("$(codexbar_resolve_dsym_path "$DSYM_STAGE_ROOT" "$BIN_DIR" "$APP_NAME" "$ARCH")")
+  DSYM_PATHS+=("$(codexbar_resolve_dsym_path "$DSYM_STAGE_ROOT" "$BIN_DIR" "$APP_EXECUTABLE" "$ARCH")")
 done
 
 DSYM_PATH="${DSYM_PATHS[0]}"
 DSYM_DWARF_PATHS=()
 for ((index = 0; index < ${#ARCH_LIST[@]}; index++)); do
   ARCH="${ARCH_LIST[$index]}"
-  if ! ARCH_DSYM=$(codexbar_require_dsym_dwarf_for_arch "${DSYM_PATHS[$index]}" "$APP_NAME" "$ARCH"); then
+  if ! ARCH_DSYM=$(codexbar_require_dsym_dwarf_for_arch "${DSYM_PATHS[$index]}" "$APP_EXECUTABLE" "$ARCH"); then
     exit 1
   fi
   DSYM_DWARF_PATHS+=("$ARCH_DSYM")
 done
 
 if [[ ${#ARCH_LIST[@]} -gt 1 ]]; then
-  MERGED_DSYM_ROOT="${DSYM_STAGE_ROOT}/${APP_NAME}.dSYM-universal"
-  MERGED_DSYM="${MERGED_DSYM_ROOT}/${APP_NAME}.dSYM"
+  MERGED_DSYM_ROOT="${DSYM_STAGE_ROOT}/${APP_EXECUTABLE}.dSYM-universal"
+  MERGED_DSYM="${MERGED_DSYM_ROOT}/${APP_EXECUTABLE}.dSYM"
   rm -rf "$MERGED_DSYM_ROOT"
   mkdir -p "$MERGED_DSYM_ROOT"
   cp -R "$DSYM_PATH" "$MERGED_DSYM"
-  DWARF_PATH="${MERGED_DSYM}/Contents/Resources/DWARF/${APP_NAME}"
+  DWARF_PATH="${MERGED_DSYM}/Contents/Resources/DWARF/${APP_EXECUTABLE}"
   lipo -create "${DSYM_DWARF_PATHS[@]}" -output "$DWARF_PATH"
   DSYM_PATH="$MERGED_DSYM"
 fi
@@ -120,8 +121,8 @@ if [[ ! -d "$DSYM_PATH" ]]; then
   exit 1
 fi
 codexbar_verify_dsym_matches_binary \
-  "$APP_BUNDLE/Contents/MacOS/$APP_NAME" \
-  "$DSYM_PATH/Contents/Resources/DWARF/$APP_NAME" \
+  "$APP_BUNDLE/Contents/MacOS/$APP_EXECUTABLE" \
+  "$DSYM_PATH/Contents/Resources/DWARF/$APP_EXECUTABLE" \
   "${ARCH_LIST[@]}"
 "$DITTO_BIN" --norsrc -c -k --keepParent "$DSYM_PATH" "$DSYM_ZIP"
 

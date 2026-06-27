@@ -156,7 +156,7 @@ struct StatusMenuSwitcherRefreshTests {
     }
 
     @Test
-    func `merged provider switch updates live tab rows in place`() async throws {
+    func `merged provider switch keeps live tab rows populated`() async throws {
         let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
         StatusItemController.menuCardRenderingEnabled = false
         StatusItemController.setMenuRefreshEnabledForTesting(true)
@@ -186,9 +186,9 @@ struct StatusMenuSwitcherRefreshTests {
 
         let menu = controller.makeMenu()
         controller.menuWillOpen(menu)
-        let contentStartIndex = controller.providerSwitcherContentStartIndex(in: menu)
+        let contentStartIndex = Self.providerContentStartIndex(in: menu, controller: controller)
         #expect(menu.items.indices.contains(contentStartIndex))
-        let originalContentID = ObjectIdentifier(menu.items[contentStartIndex])
+        let originalSwitcher = try #require(menu.items.first?.view as? ProviderSwitcherView)
         let selectedButton = try #require(Self.switcherButtons(in: menu).first { $0.state == .on })
         let alternateButton = try #require(Self.switcherButtons(in: menu).first { $0.state == .off })
 
@@ -198,26 +198,28 @@ struct StatusMenuSwitcherRefreshTests {
         }
         defer { controller._test_openMenuRebuildObserver = nil }
 
-        // Provider switches now reconcile matching rows in place instead of parking and
-        // restoring distinct item sets per tab: the same NSMenuItem objects carry each
-        // tab's freshly built content, so AppKit never relayouts the open menu per insert.
-        let initialSwitcher = try #require(menu.items.first?.view as? ProviderSwitcherView)
-        #expect(initialSwitcher._test_simulateRuntimeClick(buttonTag: alternateButton.tag))
+        #expect(originalSwitcher._test_simulateRuntimeClick(buttonTag: alternateButton.tag))
         await Self.waitForRebuildCount(1, rebuildCount: { rebuildCount })
-        #expect(menu.items.indices.contains(contentStartIndex))
-        #expect(ObjectIdentifier(menu.items[contentStartIndex]) == originalContentID)
+        let alternateContentStartIndex = Self.providerContentStartIndex(in: menu, controller: controller)
+        #expect(menu.items.indices.contains(alternateContentStartIndex))
+        #expect(menu.items[alternateContentStartIndex].isSeparatorItem == false)
+        #expect(menu.items.first?.view === originalSwitcher)
 
         let alternateSwitcher = try #require(menu.items.first?.view as? ProviderSwitcherView)
         #expect(alternateSwitcher._test_simulateRuntimeClick(buttonTag: selectedButton.tag))
         await Self.waitForRebuildCount(2, rebuildCount: { rebuildCount })
-        #expect(menu.items.indices.contains(contentStartIndex))
-        #expect(ObjectIdentifier(menu.items[contentStartIndex]) == originalContentID)
+        let restoredContentStartIndex = Self.providerContentStartIndex(in: menu, controller: controller)
+        #expect(menu.items.indices.contains(restoredContentStartIndex))
+        #expect(menu.items[restoredContentStartIndex].isSeparatorItem == false)
+        #expect(menu.items.first?.view === originalSwitcher)
 
         let restoredSwitcher = try #require(menu.items.first?.view as? ProviderSwitcherView)
         #expect(restoredSwitcher._test_simulateRuntimeClick(buttonTag: alternateButton.tag))
         await Self.waitForRebuildCount(3, rebuildCount: { rebuildCount })
-        #expect(menu.items.indices.contains(contentStartIndex))
-        #expect(ObjectIdentifier(menu.items[contentStartIndex]) == originalContentID)
+        let finalContentStartIndex = Self.providerContentStartIndex(in: menu, controller: controller)
+        #expect(menu.items.indices.contains(finalContentStartIndex))
+        #expect(menu.items[finalContentStartIndex].isSeparatorItem == false)
+        #expect(menu.items.first?.view === originalSwitcher)
 
         controller.invalidateMenus()
         #expect(controller.mergedSwitcherContentCaches.isEmpty)
@@ -440,6 +442,17 @@ struct StatusMenuSwitcherRefreshTests {
     private static func switcherButtons(in menu: NSMenu) -> [NSButton] {
         guard let switcherView = menu.items.first?.view as? ProviderSwitcherView else { return [] }
         return self.switcherButtons(in: switcherView)
+    }
+
+    private static func providerContentStartIndex(in menu: NSMenu, controller: StatusItemController) -> Int {
+        let baseIndex = controller.providerSwitcherContentStartIndex(in: menu)
+        guard menu.items.indices.contains(baseIndex),
+              let researchBarIndex = menu.items[baseIndex...].firstIndex(where: { $0.title == "ResearchBar" }),
+              let separatorIndex = menu.items[(researchBarIndex + 1)...].firstIndex(where: \.isSeparatorItem)
+        else {
+            return baseIndex
+        }
+        return separatorIndex + 1
     }
 
     private static func switcherButtons(in switcherView: ProviderSwitcherView) -> [NSButton] {

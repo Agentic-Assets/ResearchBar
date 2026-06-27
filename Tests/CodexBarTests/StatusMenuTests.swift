@@ -757,7 +757,7 @@ struct StatusMenuTests {
         #expect(!titles.contains("Status Page"))
         #expect(titles.contains("Refresh"))
         #expect(titles.contains("Settings..."))
-        #expect(titles.contains("About CodexBar"))
+        #expect(titles.contains("About ResearchBar"))
         #expect(titles.contains("Quit"))
 
         let refreshItem = menu.items.first { $0.title == "Refresh" }
@@ -770,7 +770,11 @@ struct StatusMenuTests {
         #expect(settingsItem?.keyEquivalent == ",")
         #expect(settingsItem?.keyEquivalentModifierMask == [.command])
 
-        let quitItem = menu.items.first { $0.title == "Quit" }
+        let quitItem = menu.items.first {
+            $0.title == "Quit"
+                && $0.action == #selector(StatusItemController.quit)
+                && $0.keyEquivalent == "q"
+        }
         #expect(quitItem != nil)
         #expect(quitItem?.keyEquivalent == "q")
         #expect(quitItem?.keyEquivalentModifierMask == [.command])
@@ -888,8 +892,8 @@ extension StatusMenuTests {
             statusBar: self.makeStatusBarForTesting())
 
         let codexItem = try #require(controller.statusItems[.codex])
-        #expect(controller.statusItem.autosaveName == "codexbar-merged")
-        #expect(codexItem.autosaveName == "codexbar-codex")
+        #expect(controller.statusItem.autosaveName == "researchbar-merged")
+        #expect(codexItem.autosaveName == "researchbar-codex")
 
         try settings.setProviderEnabled(
             provider: .gemini,
@@ -898,8 +902,8 @@ extension StatusMenuTests {
         controller.handleProviderConfigChange(reason: "test")
 
         #expect(controller.statusItems[.codex] === codexItem)
-        #expect(controller.statusItems[.codex]?.autosaveName == "codexbar-codex")
-        #expect(controller.statusItems[.gemini]?.autosaveName == "codexbar-gemini")
+        #expect(controller.statusItems[.codex]?.autosaveName == "researchbar-codex")
+        #expect(controller.statusItems[.gemini]?.autosaveName == "researchbar-gemini")
     }
 
     @Test

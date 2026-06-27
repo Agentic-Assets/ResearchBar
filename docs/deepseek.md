@@ -13,7 +13,7 @@ so CodexBar only needs a valid API key to show your remaining credit balance.
 
 ## Data sources
 
-1. **API key** supplied via `DEEPSEEK_API_KEY` / `DEEPSEEK_KEY`, or selected from DeepSeek token accounts in `~/.codexbar/config.json`.
+1. **API key** supplied via `DEEPSEEK_API_KEY` / `DEEPSEEK_KEY`, or selected from DeepSeek token accounts in `~/.config/researchbar/config.json`.
 2. **Balance endpoint**
    - `GET https://api.deepseek.com/user/balance`
    - Request headers: `Authorization: Bearer <api key>`, `Accept: application/json`

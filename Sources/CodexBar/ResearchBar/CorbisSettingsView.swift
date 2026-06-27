@@ -32,7 +32,7 @@ final class CorbisSettingsModel {
 
     func connect() {
         guard self.state.isTokenFieldValid else { return }
-        self.onConnect(self.tokenField)
+        self.onConnect(self.tokenField.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     func unlink() {

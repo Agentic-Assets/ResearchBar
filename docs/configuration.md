@@ -1,24 +1,27 @@
 ---
-summary: "CodexBar config file layout for CLI + app settings."
+summary: "ResearchBar config file layout for CLI + app settings."
 read_when:
-  - "Editing the CodexBar config file or moving settings off Keychain."
+  - "Editing the ResearchBar config file or moving settings off Keychain."
   - "Adding new provider settings fields or defaults."
   - "Explaining CLI/app configuration and security."
 ---
 
 # Configuration
 
-CodexBar reads a single JSON config file for CLI and app provider settings.
+ResearchBar reads a single JSON config file for CLI and app provider settings.
 API keys, manual cookie headers, source selection, ordering, and token accounts live here. Keychain is still used for runtime cookie caches, browser Safe Storage access, and provider OAuth/device-flow credentials where those flows require it.
 
 ## Location
-- `CODEXBAR_CONFIG=/path/to/config.json` when set.
-- `$XDG_CONFIG_HOME/codexbar/config.json` when `XDG_CONFIG_HOME` is set to an absolute path. Relative values are
+- `RESEARCHBAR_CONFIG=/path/to/config.json` when set.
+- `CODEXBAR_CONFIG=/path/to/config.json` is accepted as a legacy explicit override only when `RESEARCHBAR_CONFIG`
+  is unset.
+- `$XDG_CONFIG_HOME/researchbar/config.json` when `XDG_CONFIG_HOME` is set to an absolute path. Relative values are
   ignored.
-- `~/.config/codexbar/config.json` by default for new installs.
-- `~/.codexbar/config.json` for existing legacy installs when no XDG config exists.
+- `~/.config/researchbar/config.json` by default for new installs.
+- ResearchBar does not auto-load CodexBar's legacy `~/.codexbar/config.json` or `~/.config/codexbar/config.json`
+  paths, which keeps a separate CodexBar install isolated.
 - The directory is created if missing.
-- Permissions are set to `0600` whenever CodexBar writes the file on macOS and Linux.
+- Permissions are set to `0600` whenever ResearchBar writes the file on macOS and Linux.
 
 ## Root shape
 ```json
@@ -145,7 +148,7 @@ LiteLLM also needs a base URL. Set `enterpriseHost` in config or `LITELLM_BASE_U
 
 See [CLI configuration](cli-configuration.md) for scripting examples and output formats.
 
-Manual cookies are secrets. Keep the CodexBar config file private, leave its permissions at `0600`, never commit it,
+Manual cookies are secrets. Keep the ResearchBar config file private, leave its permissions at `0600`, never commit it,
 and never paste real cookie values or readable DevTools screenshots into public issues.
 
 ### tokenAccounts

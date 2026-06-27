@@ -104,6 +104,16 @@ struct CorbisMCPClientTests {
     }
 
     @Test
+    func paymentRequiredMapsToCreditLimited() async throws {
+        let client = Self.client { request in
+            (Data("{}".utf8), Self.http(402, url: request.url))
+        }
+        await #expect(throws: CorbisMCPError.creditLimited) {
+            _ = try await client.fetchResearchPulse(token: Self.token)
+        }
+    }
+
+    @Test
     func serverErrorMapsToServer() async throws {
         let client = Self.client { request in
             (Data("{}".utf8), Self.http(500, url: request.url))
@@ -178,6 +188,31 @@ struct CorbisMCPClientTests {
                 return
             }
             #expect(message == "Profile temporarily unavailable")
+        }
+    }
+
+    @Test
+    func toolLevelStatusErrorSanitizesTokenLikeMessages() async throws {
+        let client = Self.client { request in
+            let envelope = """
+            {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\
+            {"status":"error","message":"Bearer \(Self.token) was rejected"},"content":[]}}
+            """
+            return (Data(envelope.utf8), Self.http(200, url: request.url))
+        }
+
+        do {
+            _ = try await client.fetchResearchPulse(token: Self.token)
+            Issue.record("expected a tool-level error")
+        } catch let error as CorbisMCPError {
+            guard case let .toolError(message) = error else {
+                Issue.record("expected toolError, got \(error)")
+                return
+            }
+            #expect(message == CorbisMCPError.genericToolMessage)
+            #expect(!message.contains(Self.token))
+            #expect(!message.lowercased().contains("bearer"))
+            #expect(!message.lowercased().contains("corbis_mcp_"))
         }
     }
 

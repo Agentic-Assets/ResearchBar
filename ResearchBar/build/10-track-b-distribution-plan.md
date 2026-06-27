@@ -15,16 +15,23 @@ planning, even if the default menu hides it. This keeps upstream pulls easier
 and leaves room for a smaller optional AI usage surface after the Corbis pulse
 is the clear center of the app.
 
-## Gate
+## Current decision
 
-Do not globally rename `CodexBar` to `ResearchBar` until:
+ResearchBar now owns the shipped app identity:
 
-1. Fixture pulse tests pass.
-2. Live MCP client is behind a validated Corbis Phase 0 gate.
-3. The v0 menu renders real or captured clean pulse data.
-4. Cayman approves the public product name and bundle identity.
-5. The team decides whether inherited AI usage is hidden, optional, or removed
-   for the first beta.
+1. Public product name: `ResearchBar`.
+2. Bundle id: `com.corbis.researchbar` (`.debug` for debug builds).
+3. App group: `<team>.com.corbis.researchbar` (`.debug` for debug builds).
+4. Config path: `~/.config/researchbar/config.json`, with `RESEARCHBAR_CONFIG`
+   as the primary override and `CODEXBAR_CONFIG` only as an explicit legacy
+   compatibility override.
+5. Keychain services: `com.corbis.researchbar` and
+   `com.corbis.researchbar.cache`.
+6. Local logs and support roots: `ResearchBar`.
+
+The SwiftPM package, executable, helper, widget target, and source folders may
+remain `CodexBar*` during beta to preserve upstream sync. Do not treat those
+internal target names as public product identity.
 
 ## Existing release machinery to preserve
 
@@ -45,11 +52,11 @@ Treat naming as a release migration, not a search-and-replace.
 
 | Item | Decision needed |
 |---|---|
-| Public product name | `ResearchBar` or Corbis-branded alternative. |
-| Bundle identifier | New ResearchBar id or temporary CodexBar id for internal beta. |
-| App display name | Finder, menu bar accessibility, About pane, Sparkle feed. |
-| Sparkle feed | New appcast URL or private beta feed. |
-| Homebrew cask | New cask or no cask for private beta. |
+| Public product name | `ResearchBar`. |
+| Bundle identifier | `com.corbis.researchbar`. |
+| App display name | ResearchBar in Finder, menu bar accessibility, About pane, and release metadata. |
+| Sparkle feed | Disabled until a ResearchBar-specific feed is approved. |
+| Homebrew cask | No public cask until a ResearchBar-specific cask is approved. |
 | Update channel | Separate from CodexBar upstream. |
 
 Do not reuse CodexBar public update feeds for ResearchBar.
@@ -70,15 +77,15 @@ spawn local tools.
 
 | Path | Change |
 |---|---|
-| `Package.swift` | Package and executable naming only when the rename window opens. |
+| `Package.swift` | Package and executable naming only if the team chooses a high-churn module rename. |
 | `Sources/CodexBar/Resources/Info.plist` or generated plist path | Bundle name, identifier, LSUIElement, update metadata. |
-| `Sources/CodexBar/About.swift` | Product name, version text, links. |
-| `Sources/CodexBar/CodexbarApp.swift` | Logging subsystem and app name strings after rename approval. |
-| `Sources/CodexBar/StatusItemController.swift` | Accessibility title and autosave names after migration plan exists. |
-| `Scripts/package_app.sh` | Bundle output names. |
-| `.mac-release.env` | Release app name, Sparkle feed, signing metadata. |
-| `docs/RELEASING.md` | ResearchBar-specific release checklist. |
-| `README.md` | User-facing install instructions once launch-ready. |
+| `Sources/CodexBar/About.swift` | Product name, version text, links. Done for ResearchBar identity. |
+| `Sources/CodexBar/CodexbarApp.swift` | Logging subsystem and app name strings. Done for ResearchBar identity. |
+| `Sources/CodexBar/StatusItemController.swift` | Accessibility title and autosave names. Done for ResearchBar identity. |
+| `Scripts/package_app.sh` | Bundle output names and generated Info.plist. Done for ResearchBar identity. |
+| `.mac-release.env` | Release app name, bundle id, feed, signing metadata. ResearchBar values set; feed remains disabled. |
+| `docs/RELEASING.md` | ResearchBar-specific release checklist. Done. |
+| `README.md` | ResearchBar-first repo guide. Done. |
 
 Exact file paths may differ because the current package generates some app
 bundle metadata through scripts. Read the scripts before editing.

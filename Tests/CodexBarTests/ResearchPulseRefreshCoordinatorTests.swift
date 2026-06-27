@@ -22,8 +22,18 @@ struct ResearchPulseRefreshCoordinatorTests {
             lastValidatedAt: nil)
     }
 
-    private static func successEnvelope() throws -> Data {
+    private static func successEnvelope(extraStructuredField: String? = nil) throws -> Data {
         let fixture = try ResearchBarFixtures.data("pulse-linked-tracked")
+        if let extraStructuredField {
+            var object = try #require(JSONSerialization.jsonObject(with: fixture) as? [String: Any])
+            object["futureSchemaProbe"] = extraStructuredField
+            let structuredData = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+            let structured = try #require(String(bytes: structuredData, encoding: .utf8))
+            let envelope = """
+            {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\(structured),"content":[]}}
+            """
+            return Data(envelope.utf8)
+        }
         let structured = try #require(String(bytes: fixture, encoding: .utf8))
         let envelope = """
         {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\(structured),"content":[]}}
@@ -99,6 +109,35 @@ struct ResearchPulseRefreshCoordinatorTests {
         }
         #expect(fromStaleCache == false)
         #expect(loadedPulse == pulse)
+    }
+
+    @Test
+    func successfulRefreshStoresValidatedStructuredJSONWithoutDroppingUnknownFields() async throws {
+        let transport = ProviderHTTPTransportHandler { request in
+            let envelope = try Self.successEnvelope(extraStructuredField: "kept")
+            return (envelope, Self.http(200, url: request.url))
+        }
+        let client = CorbisMCPClient(baseURL: Self.baseURL, transport: transport)
+
+        let credential = Self.credential()
+        let store = InMemoryCorbisCredentialStore(credential: credential)
+        let cache = InMemoryResearchPulseCache()
+        let coordinator = ResearchPulseRefreshCoordinator(
+            credentialStore: store,
+            cache: cache,
+            client: client)
+
+        let input = await coordinator.manualRefresh()
+        guard case .loaded = input else {
+            Issue.record("expected loaded, got \(input)")
+            return
+        }
+
+        let key = ResearchPulseCacheKey(identity: credential.accountIdentity())
+        let entry = try #require(await cache.entry(for: key))
+        let rawJSON = try #require(String(data: entry.rawJSON, encoding: .utf8))
+        #expect(rawJSON.contains("futureSchemaProbe"))
+        #expect(rawJSON.contains("kept"))
     }
 
     @Test

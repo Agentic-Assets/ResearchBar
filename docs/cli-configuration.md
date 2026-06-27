@@ -1,5 +1,5 @@
 ---
-summary: "CodexBar CLI configuration commands for provider toggles, API keys, and isolated config files."
+summary: "ResearchBar CLI configuration commands for provider toggles, API keys, and isolated config files."
 read_when:
   - Using codexbar config from scripts or CI
   - Enabling or disabling providers without opening Settings
@@ -9,8 +9,9 @@ read_when:
 # CLI configuration
 
 `codexbar config` edits the same resolved config file used by the app's Settings → Providers pane.
-New installs use `~/.config/codexbar/config.json`; absolute `XDG_CONFIG_HOME` paths and `CODEXBAR_CONFIG` are
-supported, and existing `~/.codexbar/config.json` installs keep using the legacy file when no XDG config exists.
+New installs use `~/.config/researchbar/config.json`; absolute `XDG_CONFIG_HOME` paths and `RESEARCHBAR_CONFIG` are
+supported. `CODEXBAR_CONFIG` is accepted only as an explicit legacy override, so ResearchBar does not auto-load a
+separate CodexBar install's config file.
 The CLI writes the file with `0600` permissions.
 
 ## Providers
@@ -62,18 +63,18 @@ printf '%s' "$Z_AI_API_KEY" | codexbar config set-api-key --provider zai --stdin
 
 Only providers that consume config-backed API keys accept this command. Admin API providers may require a key with
 organization/usage permissions, not a normal inference key. Browser/OAuth providers such as Grok use their own provider
-sessions instead of an xAI API key for CodexBar's billing view, so enable them with
+sessions instead of an xAI API key for ResearchBar's billing view, so enable them with
 `codexbar config enable --provider grok`.
 
 LLM Proxy also needs a base URL. Use `LLM_PROXY_BASE_URL` for CLI runs, or add `"enterpriseHost"` to the provider entry
-in the CodexBar config file.
+in the ResearchBar config file.
 
 ## Isolated config files
 
-For tests, demos, and CI, point CodexBar at a temporary config file:
+For tests, demos, and CI, point ResearchBar at a temporary config file:
 
 ```bash
-export CODEXBAR_CONFIG=/tmp/codexbar-config.json
+export RESEARCHBAR_CONFIG=/tmp/researchbar-config.json
 codexbar config enable --provider grok
 codexbar config providers --json --pretty
 ```

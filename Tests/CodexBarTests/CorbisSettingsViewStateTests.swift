@@ -73,10 +73,11 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func summaryFallsBackToAccountIDWhenNoEmail() {
+    func summaryDoesNotExposeAccountIDWhenNoEmail() {
         let identity = CorbisAccountIdentity.make(accountID: "acct-42", token: "corbis_mcp_secret")
         let state = CorbisSettingsViewState(connectionState: .connected(identity))
-        #expect(state.accountSummary.contains("acct-42"))
+        #expect(state.accountSummary == "Connected to Corbis")
+        #expect(!state.accountSummary.contains("acct-42"))
         #expect(!state.accountSummary.contains("corbis_mcp_secret"))
     }
 

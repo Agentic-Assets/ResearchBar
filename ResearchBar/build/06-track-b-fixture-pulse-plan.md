@@ -37,8 +37,10 @@ in [`02-mcp-contract-get-research-pulse.md`](02-mcp-contract-get-research-pulse.
 | `Tests/CodexBarTests/ResearchPulseMenuModelTests.swift` | State and display behavior coverage. |
 | `Tests/CodexBarTests/ResearchPulseRedactorTests.swift` | Defensive leak checks. |
 
-Keep all files under `ResearchBar/` namespaces or folders even though the
-package name remains `CodexBar`. Do not rename the package in this slice.
+Keep all product-facing files under `ResearchBar/` namespaces or folders. The
+packaged app identity is ResearchBar, while the SwiftPM package, executable,
+and target names still use inherited `CodexBar*` names in this branch to avoid
+a broad module rename.
 
 ## Model contract
 

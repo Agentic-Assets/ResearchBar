@@ -243,7 +243,7 @@ extension ResearchPulseMenuModel {
         var sections = [
             ResearchMenuSection(title: nil, rows: [
                 ResearchMenuRow(label: "Link your research identity", kind: .notice),
-                ResearchMenuRow(label: "Confirm your identity to see your pulse", kind: .info),
+                ResearchMenuRow(label: "Confirm identity", kind: .info),
             ]),
         ]
         sections.append(Self.creditsSection(for: pulse))
@@ -256,7 +256,7 @@ extension ResearchPulseMenuModel {
 
         if pulse.profileStatus == .industryProfile {
             sections.append(ResearchMenuSection(title: "Research", rows: [
-                ResearchMenuRow(label: "Publication metrics are not tracked for this profile", kind: .notice),
+                ResearchMenuRow(label: "Metrics not tracked", kind: .notice),
             ]))
         } else {
             if let metrics = Self.citationSection(for: pulse) {
@@ -345,7 +345,7 @@ extension ResearchPulseMenuModel {
             ])
         case .tracked, .notYetTracked:
             return ResearchMenuSection(title: "Trend", rows: [
-                ResearchMenuRow(label: "Citation tracking will begin shortly", kind: .notice),
+                ResearchMenuRow(label: "Tracking starts soon", kind: .notice),
             ])
         }
     }
@@ -358,7 +358,7 @@ extension ResearchPulseMenuModel {
     }
 
     private static func actionsSection(for state: State, profileLinks _: [ProfileLink]) -> ResearchMenuSection {
-        var actions: [ResearchBarMenuAction] = switch state {
+        let actions: [ResearchBarMenuAction] = switch state {
         case .notConnected:
             [.connect, .openSettings, .quit]
         case .invalidCredential:

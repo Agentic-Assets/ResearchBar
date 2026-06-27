@@ -31,7 +31,7 @@ Usage source picker:
 - Preferences → Providers → Claude → Usage source (Auto/OAuth/Web/CLI).
 
 Admin API key setup:
-- Preferences → Providers → Claude → Admin API key, stored in `~/.codexbar/config.json`.
+- Preferences → Providers → Claude → Admin API key, stored in `~/.config/researchbar/config.json`.
 - CLI/env: `printf '%s' "$ANTHROPIC_ADMIN_KEY" | codexbar config set-api-key --provider claude --stdin`.
 - Token accounts can also hold `sk-ant-admin...` keys; they route to the Admin API instead of cookie/OAuth usage.
 - Environment fallback: `ANTHROPIC_ADMIN_KEY`.
@@ -85,7 +85,7 @@ Admin API key setup:
 ## Web API (cookies)
 - Preferences → Providers → Claude → Cookie source (Automatic or Manual).
 - Manual mode accepts a `Cookie:` header from a claude.ai request.
-- Multi-account manual tokens: add entries to `~/.codexbar/config.json` (`tokenAccounts`) and set Claude cookies to
+- Multi-account manual tokens: add entries to `~/.config/researchbar/config.json` (`tokenAccounts`) and set Claude cookies to
   Manual. The menu can show all accounts stacked or a switcher bar (Preferences → Advanced → Display).
 - Claude token accounts accept either `sessionKey` cookies or OAuth access tokens (`sk-ant-oat...`). OAuth-token
   accounts route to the OAuth path and disable cookie mode; session-key or cookie-header accounts stay in manual
@@ -98,7 +98,7 @@ Admin API key setup:
 - Domain: `claude.ai`.
 - Cookie name required:
   - `sessionKey` (value prefix `sk-ant-...`).
-- Cached cookies: Keychain cache `com.steipete.codexbar.cache` (account `cookie.claude`, source + timestamp).
+- Cached cookies: Keychain cache `com.corbis.researchbar.cache` (account `cookie.claude`, source + timestamp).
   Reused before re-importing from browsers.
 - API calls (all include `Cookie: sessionKey=<value>`):
   - `GET https://claude.ai/api/organizations` → org UUID.
@@ -114,7 +114,7 @@ Admin API key setup:
 ## CLI PTY (fallback)
 - Runs `claude` in a PTY session (`ClaudeCLISession`).
 - Default behavior: exit after each probe; Debug → "Keep CLI sessions alive" keeps it running between probes.
-- Probe working directory: `~/Library/Application Support/CodexBar/ClaudeProbe` with local Claude settings that disable
+- Probe working directory: `~/Library/Application Support/ResearchBar/ClaudeProbe` with local Claude settings that disable
   deep-link URL handler registration during headless probes.
 - After transient probes exit, CodexBar removes Claude Code `.jsonl` session artifacts for that dedicated
   `ClaudeProbe` project directory so background `/usage` polling does not clutter the user's Claude project history.

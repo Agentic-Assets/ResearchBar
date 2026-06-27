@@ -6,6 +6,16 @@ import Foundation
 /// drive it with a mocked `ProviderHTTPTransport` and never touch the network. The bearer
 /// token is used only to build the `Authorization` header; it is never decoded into, or
 /// echoed by, any thrown `CorbisMCPError`.
+public struct CorbisMCPResearchPulseResult: Equatable, Sendable {
+    public let pulse: ResearchPulse
+    public let rawJSON: Data
+
+    public init(pulse: ResearchPulse, rawJSON: Data) {
+        self.pulse = pulse
+        self.rawJSON = rawJSON
+    }
+}
+
 public struct CorbisMCPClient: Sendable {
     private let baseURL: URL
     private let transport: any ProviderHTTPTransport
@@ -24,6 +34,12 @@ public struct CorbisMCPClient: Sendable {
     /// Fetch and validate the research pulse. One billed call; failures throw a leak-safe
     /// `CorbisMCPError` and are refunded server-side. Never tight-loops.
     public func fetchResearchPulse(token: String) async throws -> ResearchPulse {
+        try await self.fetchResearchPulseResult(token: token).pulse
+    }
+
+    /// Fetch and validate the research pulse, preserving the validated structured-content JSON
+    /// for cache storage so future schema fields are not dropped by typed re-encoding.
+    public func fetchResearchPulseResult(token: String) async throws -> CorbisMCPResearchPulseResult {
         let body = CorbisMCPRequestBody.toolCall(id: UUID().uuidString, toolName: "get_research_pulse")
         let request = try self.makeRequest(token: token, body: body)
         let response = try await self.transport.response(for: request, retryPolicy: .disabled)
@@ -75,7 +91,7 @@ public struct CorbisMCPClient: Sendable {
         guard pulse.isSemanticallyValid else {
             throw CorbisMCPError.semanticInvalid
         }
-        return pulse
+        return CorbisMCPResearchPulseResult(pulse: pulse, rawJSON: structuredData)
     }
 
     // MARK: - tools/list
@@ -128,6 +144,8 @@ public struct CorbisMCPClient: Sendable {
             throw CorbisMCPError.malformedResponse
         case 401:
             throw CorbisMCPError.invalidCredential
+        case 402:
+            throw CorbisMCPError.creditLimited
         case 429:
             throw CorbisMCPError.rateLimited
         default:

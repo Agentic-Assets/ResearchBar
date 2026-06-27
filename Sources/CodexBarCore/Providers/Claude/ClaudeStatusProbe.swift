@@ -440,12 +440,14 @@ public struct ClaudeStatusProbe: Sendable {
             }
             if let folderHint {
                 return """
-                Claude CLI is waiting for a folder trust prompt (\(folderHint)). CodexBar tries to auto-accept this, \
-                but if it keeps appearing run: `cd "\(folderHint)" && claude` and choose “Yes, proceed”, then retry.
+                Claude CLI is waiting for a folder trust prompt (\(
+                    folderHint)). ResearchBar tries to auto-accept this, \
+                but if it keeps appearing run: `cd "\(folderHint)" && claude` and choose “Yes, proceed”, \
+                then retry.
                 """
             }
             return """
-            Claude CLI is waiting for a folder trust prompt. CodexBar tries to auto-accept this, but if it keeps \
+            Claude CLI is waiting for a folder trust prompt. ResearchBar tries to auto-accept this, but if it keeps \
             appearing open `claude` once, choose “Yes, proceed”, then retry.
             """
         }
@@ -837,7 +839,7 @@ public struct ClaudeStatusProbe: Sendable {
         let fm = FileManager.default
         let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory
         let dir = base
-            .appendingPathComponent("CodexBar", isDirectory: true)
+            .appendingPathComponent(AppIdentity.applicationSupportDirectoryName, isDirectory: true)
             .appendingPathComponent("ClaudeProbe", isDirectory: true)
         do {
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)

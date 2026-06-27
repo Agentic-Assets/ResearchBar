@@ -54,7 +54,7 @@ flowchart TD
     G -- "no" --> H["Use access token directly"]
     G -- "yes" --> I["POST /v1/oauth/token refresh_token grant"]
     I --> J{"Refresh status"}
-    J -- "200" --> K["Save refreshed creds to CodexBar keychain cache + memory"]
+    J -- "200" --> K["Save refreshed creds to ResearchBar keychain cache + memory"]
     J -- "400/401 + invalid_grant" --> L["Record terminal auth failure; block refresh until auth fingerprint changes"]
     J -- "400/401 other" --> M["Record transient failure; exponential backoff"]
     K --> H
@@ -70,7 +70,7 @@ flowchart TD
 flowchart TD
     A["load(...)"] --> B["Environment token (CODEXBAR_CLAUDE_OAUTH_TOKEN)"]
     B -->|miss| C["Memory cache (valid + unexpired)"]
-    C -->|miss| D["CodexBar keychain cache: com.steipete.codexbar.cache/oauth.claude"]
+    C -->|miss| D["ResearchBar keychain cache: com.corbis.researchbar.cache/oauth.claude"]
     D -->|miss| E["~/.claude/.credentials.json"]
     E -->|miss| F{"allowKeychainPrompt && prompt gate open?"}
     F -- "yes" --> G["Claude keychain service: Claude Code-credentials (promptable fallback)"]

@@ -1,6 +1,6 @@
 # 10b. Track B distribution decisions (captured)
 
-Companion to [`10-track-b-distribution-plan.md`](10-track-b-distribution-plan.md). The plan says *what to decide and when*; this file *captures the decisions and the concrete migration surface* so that, once Cayman approves, the rename and first signed release are a checklist rather than a discovery exercise. Nothing here is executed yet: the package is still named `CodexBar` and still carries upstream signing metadata by design.
+Companion to [`10-track-b-distribution-plan.md`](10-track-b-distribution-plan.md). The plan says *what to decide and when*; this file *captures the decisions and the concrete migration surface*. As of 2026-06-27, the user-facing macOS app identity is ResearchBar with bundle id `com.corbis.researchbar`. SwiftPM target/module names still carry inherited `CodexBar*` names for upstream-sync stability.
 
 Grounded in the live release config at the 2026-06-27 audit: `.mac-release.env`, `Scripts/package_app.sh`, `docs/RELEASING.md`, `version.env` (marketing `0.36.2`, build `89`).
 
@@ -9,31 +9,31 @@ Grounded in the live release config at the 2026-06-27 audit: `.mac-release.env`,
 1. Slice 06 fixture pulse tests pass. **Met.**
 2. Slice 08 live MCP client is behind a validated Corbis Phase 0 gate. **Met** (Phase 0 live smoke passed 2026-06-26; client code is fixture-tested and gated).
 3. Slice 09 menu renders all v0 states from real or captured-clean pulse data. **Met at the model/factory level.**
-4. **Cayman approves the public product name and bundle identity.** *Open founder decision.*
+4. **Cayman approves the public product name and bundle identity.** **Met for client identity:** `ResearchBar`, `com.corbis.researchbar`.
 5. The team decides whether inherited CodexBar AI-usage code is hidden, optional, or removed for the first beta. *Open founder decision.*
 
-Items 4 and 5 block a public launch, not further client code.
+Item 5 blocks a public launch, not further client code.
 
-## Current upstream values vs ResearchBar values needed
+## Current upstream values vs ResearchBar values
 
-Everything below is an upstream `steipete/CodexBar` value that a ResearchBar build must replace with an Agentic Assets value. None should be reused for a ResearchBar public release (a ResearchBar build must never publish to CodexBar's update feed).
+Everything below is an upstream `steipete/CodexBar` value that a ResearchBar build must replace. None should be reused for a ResearchBar public release (a ResearchBar build must never publish to CodexBar's update feed).
 
 | Item | Current (upstream CodexBar) | ResearchBar value needed | Source to change |
 |---|---|---|---|
-| App name | `CodexBar` | TBD (`ResearchBar` or a Corbis-branded name) | `.mac-release.env` `MAC_RELEASE_APP_NAME` |
-| Bundle id | `com.steipete.codexbar` | TBD (for example `ai.agenticassets.researchbar`) | `Scripts/package_app.sh:186,190`; `.mac-release.env` `MAC_RELEASE_BUNDLE_ID` |
-| App group | `<team>.com.steipete.codexbar` | matches the new bundle id | `Scripts/package_app.sh:200,202` |
+| App name | `CodexBar` | `ResearchBar` | `.mac-release.env` `MAC_RELEASE_APP_NAME`; generated `Info.plist` |
+| Bundle id | `com.steipete.codexbar` | `com.corbis.researchbar` (`.debug` for debug builds) | `Scripts/package_app.sh`; `.mac-release.env` `MAC_RELEASE_BUNDLE_ID` |
+| App group | `<team>.com.steipete.codexbar` | `<team>.com.corbis.researchbar` (`.debug` for debug builds) | `Scripts/package_app.sh`; `AppIdentity` |
 | GitHub repo | `steipete/CodexBar` | `Agentic-Assets/ResearchBar` | `.mac-release.env` `MAC_RELEASE_REPO` |
-| Sparkle feed URL | `raw.githubusercontent.com/steipete/CodexBar/main/appcast.xml` | a ResearchBar feed (or private beta feed) | `.mac-release.env` `MAC_RELEASE_FEED_URL`, `MAC_RELEASE_DOWNLOAD_URL_PREFIX` |
+| Sparkle feed URL | `raw.githubusercontent.com/steipete/CodexBar/main/appcast.xml` | disabled until a ResearchBar feed is approved | `.mac-release.env` `MAC_RELEASE_FEED_URL`, `MAC_RELEASE_DOWNLOAD_URL_PREFIX` |
 | Code-sign identity | `Developer ID Application: Peter Steinberger (Y5PE65HELJ)` | Agentic Assets Developer ID | `.mac-release.env` `MAC_RELEASE_CODESIGN_IDENTITY` |
 | Notary credentials | Steinberger ASC keys (`APP_STORE_CONNECT_*`) | Agentic Assets ASC keys | release env, `docs/RELEASING.md` prereqs |
 | Sparkle signing key | shared legacy AGCY key | ResearchBar key decision | `.mac-release.env` signing-key path |
-| Artifact prefixes | `CodexBar-macos-...`, `CodexBarCLI-...` | ResearchBar-named artifacts | `.mac-release.env` `MAC_RELEASE_ARTIFACT_PREFIX`, asset patterns |
+| Artifact prefixes | `CodexBar-macos-...`, `CodexBarCLI-...` | `ResearchBar-macos-...`; no CodexBar CLI asset wait | `.mac-release.env` `MAC_RELEASE_ARTIFACT_PREFIX`, asset patterns |
 
 ## Founder decisions required (none are mine to make)
 
-- **Product name** (gate item 4). Keep all brand strings configurable so a rename is a small, contained change, not a sweep.
-- **Bundle identifier + app group** (gate item 4). A new identity, or a temporary CodexBar id for an internal-only beta.
+- **Product name** (gate item 4). Decided for client identity: `ResearchBar`.
+- **Bundle identifier + app group** (gate item 4). Decided for client identity: `com.corbis.researchbar` and `<team>.com.corbis.researchbar`.
 - **Code-sign identity + notary credentials.** ResearchBar needs Agentic Assets' Developer ID and App Store Connect keys. Notarization cannot run without them; do not reuse the upstream identity for a public artifact.
 - **Sparkle feed + signing key.** A ResearchBar appcast URL and key; never the CodexBar public feed.
 - **Homebrew cask.** New cask, or none for a private beta.
@@ -52,18 +52,19 @@ Everything below is an upstream `steipete/CodexBar` value that a ResearchBar bui
 
 Direct distribution stays primary because later agent launch may spawn local tools.
 
-## Rename migration checklist (run only after gate items 4 and 5 clear)
+## Identity migration checklist
 
-Treat as a release migration, not a search-and-replace. Read each script before editing; some bundle metadata is script-generated.
+Treat identity work as a release migration, not a search-and-replace. Read each script before editing; some bundle metadata is script-generated.
 
-1. `Scripts/package_app.sh`: bundle id (`:186,190`), app group (`:200,202`), bundle/output names.
-2. `.mac-release.env`: app name, repo, bundle id, feed URL, download prefix, code-sign identity, artifact prefixes, asset patterns.
-3. `Sources/CodexBar/Resources` plist path: bundle name, identifier, `LSUIElement`, update metadata.
-4. `Sources/CodexBar/About.swift`, `CodexbarApp.swift`: product name strings, logging subsystem.
-5. `Sources/CodexBar/StatusItemController.swift`: accessibility title and autosave names.
+1. `Scripts/package_app.sh`: bundle id, app group, generated bundle name, and output bundle name. **Done for ResearchBar.**
+2. `.mac-release.env`: app name, repo, bundle id, feed URL, download prefix, artifact prefixes, asset patterns. **Done for ResearchBar; signing identity remains environment-controlled until Agentic Assets certs are available.**
+3. `Sources/CodexBarCore/AppIdentity.swift`: app group, Keychain service, config namespace, support/cache/log directories. **Done for ResearchBar.**
+4. `Sources/CodexBar/Resources` plist path: bundle name, identifier, `LSUIElement`, update metadata. **Generated by `Scripts/package_app.sh`; no static app plist.**
+5. `Sources/CodexBar/About.swift`, `CodexbarApp.swift`: remaining human-visible strings. **Partially deferred while inherited AI-provider surface remains optional/internal.**
+6. `Sources/CodexBar/StatusItemController.swift`: accessibility title and autosave names. **ResearchBar tooltip/accessibility now overlays the status item; full status-item autosave rename is deferred with the menu-surface decision.**
 6. `docs/RELEASING.md`: ResearchBar prereqs (certs, ASC keys, feed).
 7. `README.md`: user-facing install instructions.
-8. Optional `Package.swift`: only if the executable product is renamed (high churn; weigh keeping the SwiftPM target name `CodexBar` while changing only user-facing identity).
+8. Optional `Package.swift`: only if the executable product is renamed (high churn; keep SwiftPM target names `CodexBar`, `CodexBarCore`, and `CodexBarCLI` stable through the first beta unless a later branch takes the full module rename).
 
 Keep the SwiftPM target/module names (`CodexBar`, `CodexBarCore`) stable through the first beta if possible; user-facing identity (display name, bundle id, feed) is what must change. This keeps upstream syncs cheap.
 

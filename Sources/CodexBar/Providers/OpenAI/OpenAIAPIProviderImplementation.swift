@@ -30,7 +30,7 @@ struct OpenAIAPIProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "openai-api-key",
                 title: "Admin API key",
-                subtitle: "Stored in ~/.codexbar/config.json. OPENAI_ADMIN_KEY is preferred; " +
+                subtitle: "Stored in ~/.config/researchbar/config.json. OPENAI_ADMIN_KEY is preferred; " +
                     "OPENAI_API_KEY still works.",
                 kind: .secure,
                 placeholder: "sk-admin-...",

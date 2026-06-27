@@ -10,11 +10,11 @@ read_when:
 z.ai is API-token based. No browser cookies.
 
 ## Token sources (fallback order)
-1) Config token (`~/.codexbar/config.json` → `providers[].apiKey`).
+1) Config token (`~/.config/researchbar/config.json` → `providers[].apiKey`).
 2) Environment variable `Z_AI_API_KEY`.
 
 ### Config location
-- `~/.codexbar/config.json`
+- `~/.config/researchbar/config.json`
 
 ## API endpoint
 - `GET https://api.z.ai/api/monitor/usage/quota/limit`

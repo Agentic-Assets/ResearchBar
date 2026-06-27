@@ -25,7 +25,7 @@ The Xiaomi MiMo provider tracks your current balance from the Xiaomi MiMo consol
 
 CodexBar imports cookies from these browsers in order: **Safari**, **Chrome** / **Chrome Beta** / **Chrome Canary**, **Firefox**, and **Microsoft Edge**. Switch to **Manual** and paste a `Cookie:` header if your active MiMo session lives in Arc, Brave, or another browser profile CodexBar does not auto-detect.
 
-Safari cookie import may require granting CodexBar Full Disk Access in **System Settings → Privacy & Security**.
+Safari cookie import may require granting ResearchBar Full Disk Access in **System Settings → Privacy & Security**.
 
 ### Manual cookie import (optional)
 

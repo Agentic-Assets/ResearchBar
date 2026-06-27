@@ -1,10 +1,10 @@
-# Captured smoke fixtures
+# Redacted smoke examples
 
 ## `research-pulse-v0-clean.example.json`
 
 A redacted, schema-valid example of a clean `get_research_pulse`
-`structuredContent` payload, used as the build-plan `08` "captured smoke
-payload" gate artifact.
+`structuredContent` payload, used as the build-plan `08` clean wire-shape
+artifact.
 
 ### Provenance
 
@@ -31,6 +31,6 @@ representative `creditsRemaining`). The metric values are illustrative, not a
 live capture. No backend provider names or internal author ids appear, matching
 the guide §8 redaction rules.
 
-This file is documentation and a leak-clean shape reference; it is not a test
-fixture. The XCTest backbone uses
+This file is documentation and a leak-clean shape reference, not a
+provenance-backed live capture and not a test fixture. The XCTest backbone uses
 `Tests/CodexBarTests/Fixtures/ResearchBar/pulse-*.json`.

@@ -51,8 +51,8 @@ swiftlint --strict
 ./Scripts/package_app.sh
 
 # Restart app after rebuild
-pkill -x CodexBar || pkill -f CodexBar.app || true
-cd /Users/steipete/Projects/codexbar && open -n /Users/steipete/Projects/codexbar/CodexBar.app
+pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/CodexBar" || true
+cd /Users/steipete/Projects/codexbar && open -n /Users/steipete/Projects/codexbar/ResearchBar.app
 ```
 
 ### Release
@@ -121,7 +121,7 @@ git push origin feature/my-feature
 
 ### Debugging Augment Issues
 1. Enable debug logging: `export CODEXBAR_LOG_LEVEL=debug`
-2. Check Console.app for "com.steipete.codexbar"
+2. Check Console.app for "com.corbis.researchbar"
 3. Use Settings → Debug → Augment → Show Debug Info
 4. Check `docs/augment.md` troubleshooting section
 
@@ -150,7 +150,7 @@ swift test --filter AugmentTests
 ### App Won't Launch
 ```bash
 # Kill all instances
-pkill -x CodexBar || pkill -f CodexBar.app || true
+pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/CodexBar" || true
 
 # Rebuild and relaunch
 ./Scripts/compile_and_run.sh

@@ -6,7 +6,7 @@ Date: 2026-06-18. This is the single entry point for implementing ResearchBar or
 
 ## Verdict
 
-**BUILD WITH CHANGES.** Corbis APIs first, thin macOS client second. **Update 2026-06-27: Corbis Phase 0 (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so the client is now UNBLOCKED.** Build the Swift client against fixtures first, then switch to live calls (the Phase 0 done-when gate is met). See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for remaining (founder/product) items and [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) for the contract.
+**BUILD WITH CHANGES.** Corbis APIs first, thin macOS client second. **Update 2026-06-27: Corbis Phase 0 payload/redaction smoke is shipped, the Track B client is fixture-tested and live-MCP-capable behind safe seams, and the app identity is now ResearchBar (`com.corbis.researchbar`).** The remaining live cutover risk is billing/credit policy validation, not basic client shape. See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for remaining founder/product items and [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) for the contract.
 
 ## Fork strategy
 
@@ -38,7 +38,7 @@ product naming, and upstream sync strategy are proven.
 10. [`build/09-track-b-menu-rendering-plan.md`](build/09-track-b-menu-rendering-plan.md): menu states, settings, status icon, and descriptor tests.
 11. [`build/10-track-b-distribution-plan.md`](build/10-track-b-distribution-plan.md): naming, bundle ids, Sparkle, Homebrew, notarization, and Tahoe checks.
 
-Build against fixtures until Phase 0 passes its done-when gate in `build/03`.
+Keep fixtures as the stable regression source. Use live MCP only through the client seams and credit-safe refresh path.
 
 ### Track A: Corbis backend (sibling repo)
 

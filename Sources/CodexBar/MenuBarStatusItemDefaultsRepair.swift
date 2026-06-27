@@ -3,7 +3,7 @@ import Foundation
 enum MenuBarStatusItemDefaultsRepair {
     static let didRepairKey = "hasRepairedHiddenStatusItemVisibilityDefaults"
     private static let visibilityPrefix = "NSStatusItem VisibleCC "
-    private static let legacyAutosavePrefix = "codexbar-"
+    private static let repairableAutosavePrefixes = ["codexbar-", "researchbar-"]
 
     static func repairHiddenVisibilityDefaultsIfNeeded(defaults: UserDefaults) -> [String] {
         guard !defaults.bool(forKey: self.didRepairKey) else { return [] }
@@ -24,7 +24,8 @@ enum MenuBarStatusItemDefaultsRepair {
     static func shouldRepair(key: String, value: Any?) -> Bool {
         guard key.hasPrefix(self.visibilityPrefix), self.isFalse(value) else { return false }
         let itemName = String(key.dropFirst(self.visibilityPrefix.count))
-        return itemName.hasPrefix(self.legacyAutosavePrefix) || self.isDefaultStatusItemName(itemName)
+        return self.repairableAutosavePrefixes.contains { itemName.hasPrefix($0) }
+            || self.isDefaultStatusItemName(itemName)
     }
 
     private static func isDefaultStatusItemName(_ itemName: String) -> Bool {

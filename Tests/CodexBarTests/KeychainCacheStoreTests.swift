@@ -193,7 +193,7 @@ struct KeychainCacheStoreTests {
 
     @Test
     func `cache ACL trusts bundled app and CLI helper`() {
-        let root = URL(fileURLWithPath: "/Applications/CodexBar.app")
+        let root = URL(fileURLWithPath: "/Applications/ResearchBar.app")
         let executable = root.appendingPathComponent("Contents/MacOS/CodexBar")
         let helper = root.appendingPathComponent("Contents/Helpers/CodexBarCLI")
         let existing = Set([

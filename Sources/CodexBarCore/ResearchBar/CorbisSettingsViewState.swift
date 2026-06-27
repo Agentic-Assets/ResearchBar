@@ -65,14 +65,11 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
             return "Not connected"
         case .connecting:
             return "Connecting…"
-        case let .connected(identity):
+        case .connected:
             if let email = self.displayEmail, !email.isEmpty {
                 return "Connected as \(email)"
             }
-            if let accountID = identity.accountID, !accountID.isEmpty {
-                return "Connected (\(accountID))"
-            }
-            return "Connected"
+            return "Connected to Corbis"
         case .invalid:
             return "Connection needs attention"
         }

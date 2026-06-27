@@ -8,7 +8,7 @@ Last updated: 2026-06-27. Living tracker for ResearchBar. Corbis evidence-backed
 
 ## Critical path (blocks a working menu panel)
 
-**RESOLVED 2026-06-27.** Corbis **Phase 0** (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so Track B is unblocked and can build the real pulse panel. Evidence: Corbis `_recon/2026-06-26-live-smoke.md`; contract: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
+**PARTIALLY RESOLVED 2026-06-27.** Corbis **Phase 0** payload and redaction behavior (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so Track B can build the real pulse panel. Billing-delta proof is still open: the 0.5-credit charge must be observed with a finite-credit free-tier token before the live gate is fully closed. Evidence: Corbis `_recon/2026-06-26-live-smoke.md`; contract: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
 
 | # | Work item | Owner | Status |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Last updated: 2026-06-27. Living tracker for ResearchBar. Corbis evidence-backed
 | 4 | **0.D `get_research_pulse` v0**: static pulse, null trends, `citationHistoryStatus` | Corbis | **Done** (registered, tier1, `read:profile`) |
 | 5 | **0.E Tests + smoke tests**: tool-count tripwire, redaction regression, ORCID confirm | Corbis | **Done** (offline + live; `tools/list` authed = 41, anon = 31) |
 
-**Phase 0 done when (MET 2026-06-26):** `get_research_pulse` appears in `tools/list`; live `tools/call` returns a public-anchor-aware payload with no leaks; trend fields null with `not_yet_tracked`. Verified over real HTTP plus the Playwright route contract (9/9). Curl commands in [`build/02`](build/02-mcp-contract-get-research-pulse.md), the contract guide, and Corbis [`05`](../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md). Remaining live gap: the per-call 0.5-credit delta needs a finite-credit free-tier token to observe (reservation/refund is unit-covered).
+**Phase 0 payload/redaction gate (MET 2026-06-26):** `get_research_pulse` appears in `tools/list`; live `tools/call` returns a public-anchor-aware payload with no leaks; trend fields null with `not_yet_tracked`. Verified over real HTTP plus the Playwright route contract (9/9). Curl commands in [`build/02`](build/02-mcp-contract-get-research-pulse.md), the contract guide, and Corbis [`05`](../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md). **Billing gate remains unverified:** the per-call 0.5-credit delta needs a finite-credit free-tier token to observe (reservation/refund is unit-covered).
 
 ---
 
@@ -57,14 +57,14 @@ Last updated: 2026-06-27. Living tracker for ResearchBar. Corbis evidence-backed
 
 ## Track B: client (slices 06-10 implemented 2026-06-27 on branch `feat/researchbar-track-b-client`)
 
-Implemented as a Core/app split: pure logic in `Sources/CodexBarCore/ResearchBar/`, SwiftUI/AppKit in `Sources/CodexBar/ResearchBar/`. Full `make test` and `make check` green; ~85 ResearchBar tests across 10 suites; no new dependencies; no token/internal-id/backend-name ever surfaced; no `CodexBar`->`ResearchBar` rename yet.
+Implemented as a Core/app split: pure logic in `Sources/CodexBarCore/ResearchBar/`, SwiftUI/AppKit in `Sources/CodexBar/ResearchBar/`. Full `make test` and `make check` green; no new dependencies; no token/internal-id/backend-name ever surfaced. User-facing app identity is now ResearchBar with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.
 
 | Item | Status |
 |---|---|
 | Fixture pulse model, fixtures, redaction, menu model | **Done** (slice 06; `ResearchPulse`/`ResearchPulseRedactor`/`ResearchPulseMenuModel`, 9 fixtures, 22 tests) |
 | Corbis auth in Keychain and account-keyed cache | **Done** (slice 07; `KeychainCorbisCredentialStore` + `ResearchPulseCaching` file/in-memory, account-keyed via token SHA-256, hashed filenames) |
 | Thin ORCID confirm UI (ORCID display only) | **Scaffolded** (slice 09; `CorbisSettingsViewState` + `CorbisSettingsView`); full identity-handshake UI is a follow-up |
-| Render `get_research_pulse` in one menu panel | **Done, fixture-driven** (slice 09; `ResearchPulseMenuFactory` + `ResearchPulseStatusIconModel` cover all 11 states); live status-item wiring is the remaining integration step |
+| Render `get_research_pulse` in one menu panel | **Done** (slice 09; `ResearchPulseMenuFactory` + `ResearchPulseStatusIconModel` cover all 11 states; status-item menu now renders the ResearchBar section before inherited provider content) |
 | Live JSON-RPC call to Corbis MCP | **Done, mock-tested behind the Phase 0 gate** (slice 08; `CorbisMCPClient` + `ResearchPulseRefreshCoordinator`); live cutover needs a real `corbis_mcp_` token |
 | GRDB cache keyed by account; respect `staleAfter`/`etag` | **Resolved**: ships file + in-memory cache behind the `ResearchPulseCaching` swap seam honoring `staleAfter`/`etag`; GRDB still deferred pending Cayman sign-off |
 | Notarized DMG + Sparkle + Homebrew | Deferred; decisions captured in [`build/10-track-b-distribution-decisions.md`](build/10-track-b-distribution-decisions.md) |

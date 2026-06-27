@@ -35,11 +35,17 @@ public enum CorbisMCPError: Error, Equatable, Sendable {
         guard
             let raw = rawMessage,
             !raw.isEmpty,
+            !self.looksSensitiveCredential(raw),
             !ResearchPulseRedactor.containsInternalAuthorID(raw),
             ResearchPulseRedactor.backendSourceNames(in: raw).isEmpty
         else {
             return .toolError(message: self.genericToolMessage)
         }
         return .toolError(message: raw)
+    }
+
+    private static func looksSensitiveCredential(_ raw: String) -> Bool {
+        let lower = raw.lowercased()
+        return lower.contains("corbis_mcp_") || lower.contains("bearer ")
     }
 }

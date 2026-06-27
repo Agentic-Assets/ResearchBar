@@ -156,6 +156,8 @@ extension CodexBarCLI {
 
     static func resetTimeDisplayStyleFromDefaults() -> ResetTimeDisplayStyle {
         let domains = [
+            AppIdentity.bundleIdentifierBase,
+            "\(AppIdentity.bundleIdentifierBase).debug",
             "com.steipete.codexbar",
             "com.steipete.codexbar.debug",
         ]

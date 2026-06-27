@@ -14,7 +14,7 @@ public enum SubprocessRunnerError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case let .binaryNotFound(binary):
-            return "Missing CLI '\(binary)'. Install it and restart CodexBar."
+            return "Missing CLI '\(binary)'. Install it and restart ResearchBar."
         case let .launchFailed(details):
             return "Failed to launch process: \(details)"
         case let .timedOut(label):
@@ -37,7 +37,7 @@ public struct SubprocessResult: Sendable {
 public enum SubprocessRunner {
     private static let log = CodexBarLog.logger(LogCategories.subprocess)
     private static let timeoutQueue = DispatchQueue(
-        label: "com.steipete.codexbar.subprocess.timeout",
+        label: "\(AppIdentity.logSubsystemBase).subprocess.timeout",
         qos: .userInitiated,
         attributes: .concurrent)
 

@@ -79,4 +79,4 @@ small, reviewable slices:
 
 ## Status
 
-Concept exploration plus code-grounded build spec (2026-06-17 audit). **No Swift client or Corbis Phase 0 shipped yet.** Corbis Track A Phase 0 (`get_research_pulse` v0 + ORCID anchor + redaction) blocks a working menu panel.
+Track B client implementation is underway in this repo. The ResearchBar pulse model, Corbis credential/cache seams, live MCP client, settings tab, and status-menu section are implemented behind safe test seams. Corbis Phase 0 payload/redaction live smoke has passed; the remaining live gate is observing the 0.5-credit billing delta with a finite-credit token. The user-facing macOS app identity is now `ResearchBar` with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.

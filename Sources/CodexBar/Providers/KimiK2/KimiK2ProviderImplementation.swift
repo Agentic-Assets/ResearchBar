@@ -16,7 +16,8 @@ struct KimiK2ProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "kimi-k2-api-token",
                 title: "API key",
-                subtitle: "Stored in ~/.codexbar/config.json. For the official Kimi API, use Moonshot / Kimi API.",
+                subtitle: "Stored in ~/.config/researchbar/config.json. "
+                    + "For the official Kimi API, use Moonshot / Kimi API.",
                 kind: .secure,
                 placeholder: "Paste API key…",
                 binding: context.stringBinding(\.kimiK2APIToken),

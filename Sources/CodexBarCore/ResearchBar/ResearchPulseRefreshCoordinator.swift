@@ -126,11 +126,13 @@ public actor ResearchPulseRefreshCoordinator {
         // created per account; concurrent callers observe it and await the same value.
         let task = Task<FetchOutcome, Never> { [client, cache] in
             do {
-                let pulse = try await client.fetchResearchPulse(token: session.credential.token)
-                let rawJSON = (try? pulse.makeRawJSON()) ?? Data()
-                let entry = ResearchPulseCacheEntry(pulse: pulse, rawJSON: rawJSON, identity: session.identity)
+                let result = try await client.fetchResearchPulseResult(token: session.credential.token)
+                let entry = ResearchPulseCacheEntry(
+                    pulse: result.pulse,
+                    rawJSON: result.rawJSON,
+                    identity: session.identity)
                 try? await cache.store(entry, for: session.key)
-                return .success(pulse)
+                return .success(result.pulse)
             } catch let error as CorbisMCPError {
                 return .failure(error)
             } catch {

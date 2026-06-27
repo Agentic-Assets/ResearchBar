@@ -24,7 +24,7 @@ separate cleanup so existing user settings are not silently repointed.
 
 ## Data sources
 
-1. **API key** stored in `~/.codexbar/config.json` or supplied via `MOONSHOT_API_KEY` / `MOONSHOT_KEY`.
+1. **API key** stored in `~/.config/researchbar/config.json` or supplied via `MOONSHOT_API_KEY` / `MOONSHOT_KEY`.
    CodexBar stores the key in config after you paste it in Settings → Providers → Moonshot / Kimi API.
 2. **Region**
    - International: `https://api.moonshot.ai/v1/users/me/balance`

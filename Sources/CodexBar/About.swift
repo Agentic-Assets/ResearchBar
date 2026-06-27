@@ -1,4 +1,5 @@
 import AppKit
+import CodexBarCore
 
 @MainActor
 func showAbout() {
@@ -22,7 +23,7 @@ func showAbout() {
     }
 
     let credits = NSMutableAttributedString(string: "Peter Steinberger — MIT License\n")
-    credits.append(makeLink("GitHub", urlString: "https://github.com/steipete/CodexBar"))
+    credits.append(makeLink("GitHub", urlString: "https://github.com/Agentic-Assets/ResearchBar"))
     credits.append(separator)
     credits.append(makeLink("Website", urlString: "https://codexbar.app"))
     credits.append(separator)
@@ -45,7 +46,7 @@ func showAbout() {
     }
 
     let options: [NSApplication.AboutPanelOptionKey: Any] = [
-        .applicationName: "CodexBar",
+        .applicationName: AppIdentity.displayName,
         .applicationVersion: versionString,
         .version: versionString,
         .credits: credits,

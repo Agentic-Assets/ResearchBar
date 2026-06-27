@@ -140,8 +140,10 @@ struct StatusMenuPersistentRefreshTests {
         let menu = controller.makeMenu(for: .codex)
         controller.menuWillOpen(menu)
 
-        for title in ["Update ready, restart now?", "Refresh", "Settings...", "About CodexBar", "Quit"] {
-            let item = try #require(menu.items.first { $0.title == title })
+        for title in ["Update ready, restart now?", "Refresh", "Settings...", "About ResearchBar", "Quit"] {
+            let item = try #require(menu.items.first {
+                $0.title == title && $0.view is PersistentMenuActionItemView
+            })
             #expect(item.view is PersistentMenuActionItemView)
             #expect(item.view?.frame.height == PersistentMenuActionItemView.rowHeight)
             if title == "Refresh" {
@@ -170,7 +172,7 @@ struct StatusMenuPersistentRefreshTests {
                 width: 320,
                 onClick: {}),
             PersistentMenuActionItemView(
-                title: "About CodexBar",
+                title: "About ResearchBar",
                 systemImageName: "info.circle",
                 shortcutText: nil,
                 width: 320,

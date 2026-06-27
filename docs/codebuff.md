@@ -20,7 +20,7 @@ weekly rate limits next to your other AI providers.
   `weeklyLimit`) when CodexBar is using the CLI credentials-file session token.
 
 Both endpoints use a Bearer token. Codebuff credentials come from the
-environment, the normal CodexBar config file, or the official CLI credentials
+environment, the normal ResearchBar config file, or the official CLI credentials
 file; the Codebuff provider does not write a separate Keychain credential.
 
 ## Authentication
@@ -30,7 +30,7 @@ CodexBar resolves the Codebuff API token in this order:
 1. `CODEBUFF_API_KEY` environment variable (takes precedence so CI overrides
    work). API-key tokens fetch credit balance only.
 2. The per-provider API key stored in Settings → Providers → Codebuff (saved
-   in `~/.codexbar/config.json` via the normal CodexBar config flow). API-key
+   in `~/.config/researchbar/config.json` via the normal ResearchBar config flow). API-key
    tokens fetch credit balance only.
 3. `~/.config/manicode/credentials.json` — the file the official `codebuff`
    CLI (formerly `manicode`) writes after `codebuff login`. CodexBar reads

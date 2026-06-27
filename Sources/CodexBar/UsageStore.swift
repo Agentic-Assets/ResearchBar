@@ -888,7 +888,7 @@ extension UsageStore {
             browserDetection: self.browserDetection,
             keepCLISessionsAlive: self.settings.debugKeepCLISessionsAlive)
         let output = await fetcher.debugRawProbe(model: "sonnet")
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("codexbar-claude-probe.txt")
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("researchbar-claude-probe.txt")
         try? output.write(to: url, atomically: true, encoding: .utf8)
         await MainActor.run {
             let snippet = String(output.prefix(180)).replacingOccurrences(of: "\n", with: " ")

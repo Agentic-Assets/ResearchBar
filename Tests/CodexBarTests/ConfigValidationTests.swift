@@ -117,7 +117,16 @@ struct ConfigValidationTests {
     @Test
     func `config store default url honors environment override`() {
         let url = CodexBarConfigStore.defaultURL(environment: [
-            CodexBarConfigStore.pathEnvironmentKey: "~/tmp/codexbar-test-config.json",
+            CodexBarConfigStore.pathEnvironmentKey: "~/tmp/researchbar-test-config.json",
+        ])
+
+        #expect(url.path.hasSuffix("/tmp/researchbar-test-config.json"))
+    }
+
+    @Test
+    func `config store default url honors legacy codexbar environment override only when explicit`() {
+        let url = CodexBarConfigStore.defaultURL(environment: [
+            CodexBarConfigStore.legacyPathEnvironmentKey: "~/tmp/codexbar-test-config.json",
         ])
 
         #expect(url.path.hasSuffix("/tmp/codexbar-test-config.json"))
@@ -155,7 +164,7 @@ struct ConfigValidationTests {
             ],
             fileManager: fileManager)
 
-        #expect(url == legacy)
+        #expect(url == Self.configURL(in: home.appendingPathComponent(".config", isDirectory: true)))
     }
 
     @Test
@@ -170,7 +179,7 @@ struct ConfigValidationTests {
     }
 
     @Test
-    func `config store default url keeps existing legacy config`() throws {
+    func `config store default url ignores existing codexbar legacy config`() throws {
         let fileManager = FileManager.default
         let home = try Self.makeTemporaryHome()
         defer { try? fileManager.removeItem(at: home) }
@@ -179,7 +188,7 @@ struct ConfigValidationTests {
 
         let url = CodexBarConfigStore.defaultURL(home: home, environment: [:], fileManager: fileManager)
 
-        #expect(url == legacy)
+        #expect(url == Self.configURL(in: home.appendingPathComponent(".config", isDirectory: true)))
     }
 
     @Test
@@ -211,7 +220,7 @@ struct ConfigValidationTests {
 
     private static func configURL(in directory: URL) -> URL {
         directory
-            .appendingPathComponent("codexbar", isDirectory: true)
+            .appendingPathComponent("researchbar", isDirectory: true)
             .appendingPathComponent("config.json")
     }
 

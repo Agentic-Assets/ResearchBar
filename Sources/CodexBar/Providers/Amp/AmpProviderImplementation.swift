@@ -85,7 +85,7 @@ struct AmpProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "amp-api-token",
                 title: "Access token",
-                subtitle: "Stored in ~/.codexbar/config.json. You can also set AMP_API_KEY.",
+                subtitle: "Stored in ~/.config/researchbar/config.json. You can also set AMP_API_KEY.",
                 kind: .secure,
                 placeholder: "sgamp_...",
                 binding: context.stringBinding(\.ampAPIToken),
