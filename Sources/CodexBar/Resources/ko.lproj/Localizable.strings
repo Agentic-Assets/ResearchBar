@@ -304,7 +304,7 @@
 "Subscription Utilization" = "구독 사용률";
 "Surprise me" = "랜덤으로 선택";
 "Switcher shows icons" = "전환기에 아이콘 표시";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "ResearchBarCLI를 codexbar로 /usr/local/bin 및 /opt/homebrew/bin에 심볼릭 링크합니다.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "ResearchBarCLI를 researchbar로 /usr/local/bin 및 /opt/homebrew/bin에 심볼릭 링크합니다.";
 "System" = "시스템";
 "Temporarily shows the loading animation after the next refresh." = "다음 새로 고침 후 불러오는 중 애니메이션을 일시적으로 표시합니다.";
 "terminal_app_subtitle" = "터미널 열기 동작에서 사용하는 터미널";
@@ -520,7 +520,7 @@
 "open_menu_shortcut_title" = "메뉴 열기";
 "open_menu_shortcut_subtitle" = "어디서나 메뉴 막대 메뉴를 실행합니다.";
 "install_cli" = "CLI 설치";
-"install_cli_subtitle" = "ResearchBarCLI를 codexbar로 /usr/local/bin 및 /opt/homebrew/bin에 심볼릭 링크합니다.";
+"install_cli_subtitle" = "ResearchBarCLI를 researchbar로 /usr/local/bin 및 /opt/homebrew/bin에 심볼릭 링크합니다.";
 "cli_not_found" = "앱 번들에서 ResearchBarCLI를 찾을 수 없습니다.";
 "no_writable_bin_dirs" = "쓰기 가능한 bin 디렉터리를 찾을 수 없습니다.";
 "show_debug_settings_title" = "디버그 설정 표시";

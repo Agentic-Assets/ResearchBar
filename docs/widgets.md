@@ -38,7 +38,7 @@ registration, signing, or daemon caching (not SwiftUI code).
 ### 1) Verify the extension bundle exists where macOS expects it
 ```
 APP="/Applications/ResearchBar.app"
-WAPPEX="$APP/Contents/PlugIns/CodexBarWidget.appex"
+WAPPEX="$APP/Contents/PlugIns/ResearchBarWidget.appex"
 WIDGET_ID="com.corbis.researchbar.widget" # debug builds use com.corbis.researchbar.debug.widget
 
 ls -la "$WAPPEX" "$WAPPEX/Contents" "$WAPPEX/Contents/MacOS"
@@ -67,7 +67,7 @@ Widgets are loaded by system daemons. Any signing failure can hide the widget.
 ```
 codesign --verify --deep --strict --verbose=4 /Applications/ResearchBar.app
 codesign --verify --strict --verbose=4 "$WAPPEX"
-codesign --verify --strict --verbose=4 "$WAPPEX/Contents/MacOS/CodexBarWidget"
+codesign --verify --strict --verbose=4 "$WAPPEX/Contents/MacOS/ResearchBarWidget"
 spctl --assess --type execute --verbose=4 /Applications/ResearchBar.app
 ```
 
@@ -86,7 +86,7 @@ log stream --style compact --predicate '(process == "pkd" OR process == "chronod
 ### 6) Packaging sanity checks
 - Widget bundle id should be `com.corbis.researchbar.widget` for release and `com.corbis.researchbar.debug.widget` for debug.
 - `NSExtensionPointIdentifier` must be `com.apple.widgetkit-extension`.
-- Bundle folder name should match: `CodexBarWidget.appex`.
+- Bundle folder name should match: `ResearchBarWidget.appex`.
 
 Optional: re-seed LaunchServices (rarely helps, but low risk):
 ```

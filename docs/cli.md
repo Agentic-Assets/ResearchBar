@@ -12,25 +12,22 @@ A lightweight Commander-based CLI that mirrors the menu bar app’s provider fet
 Use it when you need usage numbers in scripts, CI, or dashboards without UI.
 
 ## Install
-- In the app: **Preferences → Advanced → Install CLI**. This symlinks `CodexBarCLI` to `/usr/local/bin/codexbar` and `/opt/homebrew/bin/codexbar`.
-- From the repo, after installing `ResearchBar.app` in `/Applications`: `./bin/install-codexbar-cli.sh` (same symlink targets).
-- Manual: `ln -sf "/Applications/ResearchBar.app/Contents/Helpers/CodexBarCLI" /usr/local/bin/codexbar`.
+- In the app: **Preferences → Advanced → Install CLI**. This symlinks `ResearchBarCLI` to `/usr/local/bin/researchbar` and `/opt/homebrew/bin/researchbar`.
+- From the repo, after installing `ResearchBar.app` in `/Applications`: `./bin/install-researchbar-cli.sh` (same symlink targets).
+- Manual: `ln -sf "/Applications/ResearchBar.app/Contents/Helpers/ResearchBarCLI" /usr/local/bin/researchbar`.
 
 ### Release tarball install (macOS/Linux)
-- Homebrew formula (Linux today): `brew install steipete/tap/codexbar`.
-- Download release tarballs from GitHub Releases:
-  - macOS: `CodexBarCLI-v<tag>-macos-arm64.tar.gz`, `CodexBarCLI-v<tag>-macos-x86_64.tar.gz`
-  - Linux: `CodexBarCLI-v<tag>-linux-aarch64.tar.gz`, `CodexBarCLI-v<tag>-linux-x86_64.tar.gz`
-- Extract and run `./codexbar` (symlink) or `./CodexBarCLI`.
+- ResearchBar CLI release tarballs are deferred until the ResearchBar release channel is approved.
+- The inherited upstream CodexBar tarballs remain a reference for packaging shape, but they install the `codexbar` command and should not be used as ResearchBar builds.
 
 ```
-tar -xzf CodexBarCLI-v0.17.0-macos-x86_64.tar.gz
-./codexbar --version
-./codexbar usage --format json --pretty
+./bin/install-researchbar-cli.sh
+researchbar --version
+researchbar usage --format json --pretty
 ```
 
 ## Build
-- `./Scripts/package_app.sh` (or `./Scripts/compile_and_run.sh`) bundles `CodexBarCLI` into `ResearchBar.app/Contents/Helpers/CodexBarCLI`.
+- `./Scripts/package_app.sh` (or `./Scripts/compile_and_run.sh`) bundles the internal `CodexBarCLI` product as `ResearchBar.app/Contents/Helpers/ResearchBarCLI`.
 - Standalone: `swift build -c release --product CodexBarCLI` (binary at `./.build/release/CodexBarCLI`).
 - Dependencies: Swift 6.2+, Commander package (`https://github.com/steipete/Commander`).
 
@@ -41,12 +38,12 @@ ResearchBar reads the resolved config file for provider settings, secrets, and o
 See `docs/configuration.md` for the schema.
 
 ## Command
-- `codexbar` defaults to the `usage` command.
+- `researchbar` defaults to the `usage` command.
   - `--format text|json` (default: text).
-- `codexbar cost` prints local token cost usage for Claude + Codex without web/CLI access.
+- `researchbar cost` prints local token cost usage for Claude + Codex without web/CLI access.
   - `--format text|json` (default: text).
   - `--refresh` ignores cached scans.
-- `codexbar serve` starts a foreground localhost-only HTTP server for usage and cost JSON.
+- `researchbar serve` starts a foreground localhost-only HTTP server for usage and cost JSON.
   - `--port <port>` defaults to `8080`.
   - `--refresh-interval <seconds>` defaults to `60` and controls the in-memory response cache TTL.
   - `--request-timeout <seconds>` defaults to `30` and bounds each request before returning `504 Gateway Timeout`; use `0` to keep waiting indefinitely.
@@ -55,7 +52,7 @@ See `docs/configuration.md` for the schema.
   - v1 binds to `127.0.0.1` only and rejects non-loopback `Host` headers. It does not expose remote bind, auth, CORS, TLS, or daemon mode.
   - Endpoints: `GET /health`, `GET /usage`, `GET /usage?provider=<id|both|all>`, `GET /cost`, `GET /cost?provider=<id|both|all>`.
   - Codex usage responses include every visible Codex account, matching the menu bar switcher.
-- `codexbar cache clear` clears local ResearchBar caches.
+- `researchbar cache clear` clears local ResearchBar caches.
   - `--cookies` removes cached browser-cookie headers from the ResearchBar Keychain cache.
   - `--cookies --provider <id>` removes browser-cookie cache entries for that provider, including managed Codex account scopes.
   - `--cost` removes local cost-usage scan caches.
@@ -86,10 +83,10 @@ See `docs/configuration.md` for the schema.
 - Global flags: `-h/--help`, `-V/--version`, `-v/--verbose`, `--no-color`, `--log-level <trace|verbose|debug|info|warning|error|critical>`, `--json-output`, `--json-only`.
   - `--json-output`: JSONL logs on stderr (machine-readable).
   - `--json-only`: suppress non-JSON output; errors become JSON payloads.
-- `codexbar config validate` checks the resolved config file for invalid fields.
+- `researchbar config validate` checks the resolved config file for invalid fields.
   - `--format text|json`, `--pretty`, and `--json-only` are supported.
   - Warnings keep exit code 0; errors exit non-zero.
-- `codexbar config dump` prints the normalized config JSON.
+- `researchbar config dump` prints the normalized config JSON.
 
 ### Token accounts
 The CLI reads multi-account tokens from the same resolved config file as the app.
@@ -101,13 +98,13 @@ For Claude, token accounts accept either `sessionKey` cookies or OAuth access to
 OAuth usage requires the `user:profile` scope; inference-only tokens will return an error.
 
 ### Codex accounts
-For Codex, `--all-accounts` and `codexbar serve` enumerate the same visible accounts as the app switcher:
+For Codex, `--all-accounts` and `researchbar serve` enumerate the same visible accounts as the app switcher:
 managed Codex accounts from `managed-codex-accounts.json` plus the live system account when present.
 Each fetch is scoped to that account's Codex home before the normal Codex web/OAuth/CLI strategy runs, and JSON
 payloads include the visible account label in `account`.
 
 ### Cost JSON payload
-`codexbar cost --format json` emits an array of payloads (one per provider).
+`researchbar cost --format json` emits an array of payloads (one per provider).
 - `provider`, `source`, `updatedAt`
 - `sessionTokens`, `sessionCostUSD`
 - `last30DaysTokens`, `last30DaysCostUSD`
@@ -116,34 +113,34 @@ payloads include the visible account label in `account`.
 
 ## Example usage
 ```
-codexbar                          # text, respects app toggles
-codexbar --provider claude        # force Claude
-codexbar --provider all           # query all registered providers
-codexbar --format json --pretty   # machine output
-codexbar --format json --provider both
-codexbar cost                     # local cost usage (default 30-day window + today)
-codexbar cost --days 90           # choose a 1...365 day cost window
-codexbar cost --provider claude --format json --pretty
-codexbar serve --port 8080        # localhost HTTP JSON server
-codexbar serve --request-timeout 0 # disable serve request deadlines
-COPILOT_API_TOKEN=... codexbar --provider copilot --format json --pretty
-codexbar --status                 # include status page indicator/description
-codexbar --provider codex --source oauth --format json --pretty
-codexbar --provider codex --source web --format json --pretty
-codexbar --provider codex --all-accounts --format json --pretty
-codexbar --provider claude --account steipete@gmail.com
-codexbar --provider claude --all-accounts --format json --pretty
-codexbar --json-only --format json --pretty
-codexbar --provider gemini --source api --format json --pretty
-KILO_API_KEY=... codexbar --provider kilo --source api --format json --pretty
-MOONSHOT_API_KEY=... codexbar --provider moonshot --source api --format json --pretty
-codexbar config validate --format json --pretty
-codexbar config dump --pretty
-printf '%s' "$OPENAI_ADMIN_KEY" | codexbar config set-api-key --provider openai --stdin
-codexbar config enable --provider grok
-codexbar cache clear --cookies
-codexbar cache clear --cookies --provider claude
-codexbar cache clear --all --format json --pretty
+researchbar                          # text, respects app toggles
+researchbar --provider claude        # force Claude
+researchbar --provider all           # query all registered providers
+researchbar --format json --pretty   # machine output
+researchbar --format json --provider both
+researchbar cost                     # local cost usage (default 30-day window + today)
+researchbar cost --days 90           # choose a 1...365 day cost window
+researchbar cost --provider claude --format json --pretty
+researchbar serve --port 8080        # localhost HTTP JSON server
+researchbar serve --request-timeout 0 # disable serve request deadlines
+COPILOT_API_TOKEN=... researchbar --provider copilot --format json --pretty
+researchbar --status                 # include status page indicator/description
+researchbar --provider codex --source oauth --format json --pretty
+researchbar --provider codex --source web --format json --pretty
+researchbar --provider codex --all-accounts --format json --pretty
+researchbar --provider claude --account steipete@gmail.com
+researchbar --provider claude --all-accounts --format json --pretty
+researchbar --json-only --format json --pretty
+researchbar --provider gemini --source api --format json --pretty
+KILO_API_KEY=... researchbar --provider kilo --source api --format json --pretty
+MOONSHOT_API_KEY=... researchbar --provider moonshot --source api --format json --pretty
+researchbar config validate --format json --pretty
+researchbar config dump --pretty
+printf '%s' "$OPENAI_ADMIN_KEY" | researchbar config set-api-key --provider openai --stdin
+researchbar config enable --provider grok
+researchbar cache clear --cookies
+researchbar cache clear --cookies --provider claude
+researchbar cache clear --all --format json --pretty
 ```
 
 ### Sample output (text)

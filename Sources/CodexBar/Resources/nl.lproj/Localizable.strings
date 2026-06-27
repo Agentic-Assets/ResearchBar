@@ -304,7 +304,7 @@
 "Subscription Utilization" = "Abonnementsgebruik";
 "Surprise me" = "Verras mij";
 "Switcher shows icons" = "Switcher toont pictogrammen";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlink ResearchBarCLI naar /usr/local/bin en /opt/homebrew/bin als codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlink ResearchBarCLI naar /usr/local/bin en /opt/homebrew/bin als researchbar.";
 "System" = "Systeem";
 "Temporarily shows the loading animation after the next refresh." = "Toont tijdelijk de laadanimatie na de volgende vernieuwing.";
 "Tertiary (\\(label))" = "Tertiair (\\(label))";
@@ -531,7 +531,7 @@
 "open_menu_shortcut_title" = "Menu openen";
 "open_menu_shortcut_subtitle" = "Activeer het menubalkmenu vanaf elke locatie.";
 "install_cli" = "Installeer CLI";
-"install_cli_subtitle" = "Symlink ResearchBarCLI naar /usr/local/bin en /opt/homebrew/bin als codexbar.";
+"install_cli_subtitle" = "Symlink ResearchBarCLI naar /usr/local/bin en /opt/homebrew/bin als researchbar.";
 "cli_not_found" = "ResearchBarCLI niet gevonden in appbundel.";
 "no_writable_bin_dirs" = "Geen beschrijfbare mapmap gevonden.";
 "show_debug_settings_title" = "Toon foutopsporingsinstellingen";

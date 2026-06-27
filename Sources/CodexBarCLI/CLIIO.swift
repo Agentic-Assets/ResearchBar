@@ -3,6 +3,7 @@ import Darwin
 #else
 import Glibc
 #endif
+import CodexBarCore
 import Foundation
 
 extension CodexBarCLI {
@@ -13,9 +14,9 @@ extension CodexBarCLI {
 
     static func printVersion() -> Never {
         if let version = currentVersion() {
-            print("CodexBar \(version)")
+            print("\(AppIdentity.displayName) \(version)")
         } else {
-            print("CodexBar")
+            print(AppIdentity.displayName)
         }
         Self.platformExit(0)
     }

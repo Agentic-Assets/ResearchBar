@@ -202,8 +202,8 @@ if [[ "$BUNDLE_ID" == *".debug"* ]]; then
   APP_GROUP_ID="${APP_TEAM_ID}.com.corbis.researchbar.debug"
 fi
 ENTITLEMENTS_DIR="$ROOT/.build/entitlements"
-APP_ENTITLEMENTS="${ENTITLEMENTS_DIR}/CodexBar.entitlements"
-WIDGET_ENTITLEMENTS="${ENTITLEMENTS_DIR}/CodexBarWidget.entitlements"
+APP_ENTITLEMENTS="${ENTITLEMENTS_DIR}/ResearchBar.entitlements"
+WIDGET_ENTITLEMENTS="${ENTITLEMENTS_DIR}/ResearchBarWidget.entitlements"
 mkdir -p "$ENTITLEMENTS_DIR"
 if [[ "$ALLOW_LLDB" == "1" && "$LOWER_CONF" != "debug" ]]; then
   echo "ERROR: CODEXBAR_ALLOW_LLDB requires debug configuration" >&2
@@ -247,7 +247,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key><string>ResearchBar</string>
     <key>CFBundleDisplayName</key><string>ResearchBar</string>
     <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
-    <key>CFBundleExecutable</key><string>CodexBar</string>
+    <key>CFBundleExecutable</key><string>ResearchBar</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${MARKETING_VERSION}</string>
     <key>CFBundleVersion</key><string>${BUILD_NUMBER}</string>
@@ -347,8 +347,9 @@ build_widget_extension() {
   local timeout_seconds="${CODEXBAR_WIDGET_EXTENSION_TIMEOUT_SECONDS:-900}"
   local archs="${ARCH_LIST[*]}"
 
+  rm -rf "$derived_dir"
   mkdir -p "$derived_dir"
-  echo "Building CodexBarWidget Xcode extension (${xcode_conf}, ${archs})." >&2
+  echo "Building ResearchBarWidget Xcode extension (${xcode_conf}, ${archs})." >&2
   xcodebuild \
     -project "$project_dir" \
     -scheme CodexBarWidgetExtension \
@@ -375,24 +376,29 @@ build_widget_extension() {
       kill "$xcodebuild_pid" 2>/dev/null || true
       wait "$xcodebuild_pid" 2>/dev/null || true
       tail -80 "$build_log" >&2 || true
-      echo "ERROR: Timed out building CodexBarWidget extension after ${timeout_seconds}s" >&2
+      echo "ERROR: Timed out building ResearchBarWidget extension after ${timeout_seconds}s" >&2
       exit 1
     fi
     sleep 5
     elapsed=$((elapsed + 5))
     if (( elapsed > 0 && elapsed % 60 == 0 )); then
-      echo "Still building CodexBarWidget extension (${elapsed}s)..." >&2
+      echo "Still building ResearchBarWidget extension (${elapsed}s)..." >&2
     fi
   done
   if ! wait "$xcodebuild_pid"; then
     tail -120 "$build_log" >&2 || true
-    echo "ERROR: Failed to build CodexBarWidget extension" >&2
+    echo "ERROR: Failed to build ResearchBarWidget extension" >&2
     exit 1
   fi
 
-  local appex="$derived_dir/Build/Products/${xcode_conf}/CodexBarWidget.appex"
-  if [[ ! -f "$appex/Contents/MacOS/CodexBarWidget" ]]; then
-    echo "ERROR: Missing Xcode-built CodexBarWidget.appex at ${appex}" >&2
+  local appex="$derived_dir/Build/Products/${xcode_conf}/ResearchBarWidget.appex"
+  local binary="$appex/Contents/MacOS/ResearchBarWidget"
+  if [[ ! -f "$binary" ]]; then
+    appex="$derived_dir/Build/Products/${xcode_conf}/CodexBarWidget.appex"
+    binary="$appex/Contents/MacOS/CodexBarWidget"
+  fi
+  if [[ ! -f "$binary" ]]; then
+    echo "ERROR: Missing Xcode-built ResearchBarWidget.appex at ${appex}" >&2
     exit 1
   fi
   echo "$appex"
@@ -401,18 +407,23 @@ build_widget_extension() {
 install_widget_extension() {
   local src_appex
   src_appex="$(build_widget_extension)"
-  local widget_app="$APP/Contents/PlugIns/CodexBarWidget.appex"
+  local widget_app="$APP/Contents/PlugIns/ResearchBarWidget.appex"
   rm -rf "$widget_app"
   mkdir -p "$APP/Contents/PlugIns"
   cp -R "$src_appex" "$widget_app"
-  verify_binary_arches "$widget_app/Contents/MacOS/CodexBarWidget" "${ARCH_LIST[@]}"
+  if [[ -f "$widget_app/Contents/MacOS/CodexBarWidget" ]]; then
+    mv "$widget_app/Contents/MacOS/CodexBarWidget" "$widget_app/Contents/MacOS/ResearchBarWidget"
+  fi
+  /usr/libexec/PlistBuddy -c 'Set :CFBundleExecutable ResearchBarWidget' "$widget_app/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c 'Set :CFBundleName ResearchBarWidget' "$widget_app/Contents/Info.plist"
+  verify_binary_arches "$widget_app/Contents/MacOS/ResearchBarWidget" "${ARCH_LIST[@]}"
 }
 
-install_binary "CodexBar" "$APP/Contents/MacOS/CodexBar"
-# Ship CodexBarCLI alongside the app for easy symlinking.
-install_binary "CodexBarCLI" "$APP/Contents/Helpers/CodexBarCLI"
-# Watchdog helper: ensures `claude` probes die when CodexBar crashes/gets killed.
-install_binary "CodexBarClaudeWatchdog" "$APP/Contents/Helpers/CodexBarClaudeWatchdog"
+install_binary "CodexBar" "$APP/Contents/MacOS/ResearchBar"
+# Ship the internal CodexBarCLI target under the ResearchBarCLI name for collision-free symlinking.
+install_binary "CodexBarCLI" "$APP/Contents/Helpers/ResearchBarCLI"
+# Watchdog helper: ensures `claude` probes die when ResearchBar crashes/gets killed.
+install_binary "CodexBarClaudeWatchdog" "$APP/Contents/Helpers/ResearchBarClaudeWatchdog"
 install_widget_extension
 
 swiftpm_bin_path "${ARCH_LIST[0]}" PREFERRED_BUILD_DIR
@@ -421,7 +432,7 @@ swiftpm_bin_path "${ARCH_LIST[0]}" PREFERRED_BUILD_DIR
 SPARKLE_SOURCE=$(codexbar_require_product_directory "$PREFERRED_BUILD_DIR" Sparkle.framework packaging)
 cp -R "$SPARKLE_SOURCE" "$APP/Contents/Frameworks/"
 chmod -R a+rX "$APP/Contents/Frameworks/Sparkle.framework"
-install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/CodexBar"
+install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/ResearchBar"
 # Re-sign Sparkle and all nested components with Developer ID + timestamp
 SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 if [[ "$SIGNING_MODE" == "adhoc" ]]; then
@@ -479,21 +490,21 @@ xattr -cr "$APP"
 find "$APP" -name '._*' -delete
 
 # Sign helper binaries if present
-if [[ -f "${APP}/Contents/Helpers/CodexBarCLI" ]]; then
-  codesign "${CODESIGN_ARGS[@]}" "${APP}/Contents/Helpers/CodexBarCLI"
+if [[ -f "${APP}/Contents/Helpers/ResearchBarCLI" ]]; then
+  codesign "${CODESIGN_ARGS[@]}" "${APP}/Contents/Helpers/ResearchBarCLI"
 fi
-if [[ -f "${APP}/Contents/Helpers/CodexBarClaudeWatchdog" ]]; then
-  codesign "${CODESIGN_ARGS[@]}" "${APP}/Contents/Helpers/CodexBarClaudeWatchdog"
+if [[ -f "${APP}/Contents/Helpers/ResearchBarClaudeWatchdog" ]]; then
+  codesign "${CODESIGN_ARGS[@]}" "${APP}/Contents/Helpers/ResearchBarClaudeWatchdog"
 fi
 
 # Sign widget extension if present
-if [[ -d "${APP}/Contents/PlugIns/CodexBarWidget.appex" ]]; then
+if [[ -d "${APP}/Contents/PlugIns/ResearchBarWidget.appex" ]]; then
   codesign "${CODESIGN_ARGS[@]}" \
     --entitlements "$WIDGET_ENTITLEMENTS" \
-    "$APP/Contents/PlugIns/CodexBarWidget.appex/Contents/MacOS/CodexBarWidget"
+    "$APP/Contents/PlugIns/ResearchBarWidget.appex/Contents/MacOS/ResearchBarWidget"
   codesign "${CODESIGN_ARGS[@]}" \
     --entitlements "$WIDGET_ENTITLEMENTS" \
-    "$APP/Contents/PlugIns/CodexBarWidget.appex"
+    "$APP/Contents/PlugIns/ResearchBarWidget.appex"
 fi
 
 # Finally sign the app bundle itself

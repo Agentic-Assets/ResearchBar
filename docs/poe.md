@@ -22,7 +22,7 @@ export POE_API_KEY="..."
 Or configure it through the CLI:
 
 ```bash
-printf '%s' "$POE_API_KEY" | codexbar config set-api-key --provider poe --stdin
+printf '%s' "$POE_API_KEY" | researchbar config set-api-key --provider poe --stdin
 ```
 
 ## Data Source
@@ -41,5 +41,5 @@ The provider shows the current point balance in the menu and menu bar. When avai
 ## CLI Usage
 
 ```bash
-codexbar --provider poe
+researchbar --provider poe
 ```

@@ -286,7 +286,8 @@ actor ClaudeCLISession {
         let disableWatchdog = ProcessInfo.processInfo.environment["CODEXBAR_DISABLE_CLAUDE_WATCHDOG"] == "1"
         if !disableWatchdog,
            resolvedURL.lastPathComponent == "claude",
-           let watchdog = TTYCommandRunner.locateBundledHelper("CodexBarClaudeWatchdog")
+           let watchdog = TTYCommandRunner.locateBundledHelper("ResearchBarClaudeWatchdog")
+           ?? TTYCommandRunner.locateBundledHelper("CodexBarClaudeWatchdog")
         {
             proc.executableURL = URL(fileURLWithPath: watchdog)
             proc.arguments = ["--", binary, "--allowed-tools", ""]

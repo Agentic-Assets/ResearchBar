@@ -15,7 +15,7 @@ start-release:
 restart: start
 
 stop:
-	pkill -f "$(CURDIR)/ResearchBar.app/Contents/MacOS/CodexBar" || true
+	pkill -f "$(CURDIR)/ResearchBar.app/Contents/MacOS/ResearchBar" || true
 	pkill -f "$(CURDIR)/.build/debug/CodexBar" || true
 	pkill -f "$(CURDIR)/.build/release/CodexBar" || true
 

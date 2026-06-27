@@ -75,8 +75,8 @@ The AWS identity (from either mode) must have permission to call Cost Explorer A
 ## CLI
 
 ```bash
-codexbar --provider bedrock --source api
-codexbar --provider bedrock --format json --pretty
+researchbar --provider bedrock --source api
+researchbar --provider bedrock --format json --pretty
 ```
 
 ## Troubleshooting

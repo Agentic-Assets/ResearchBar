@@ -43,7 +43,7 @@ In `../homebrew-tap`, update the formula at `Formula/codexbar.rb`:
 brew uninstall --cask codexbar || true
 brew untap steipete/tap || true
 brew tap steipete/tap
-brew install --cask steipete/tap/codexbar
+brew install --cask steipete/tap/researchbar
 open -a CodexBar
 ```
 

@@ -304,7 +304,7 @@
 "Subscription Utilization" = "استخدام الاشتراكات";
 "Surprise me" = "فاجئني";
 "Switcher shows icons" = "المحول يعرض الأيقونات";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlink ResearchBarCLI إلى /usr/local/bin و /opt/homebrew/bin ك codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlink ResearchBarCLI إلى /usr/local/bin و /opt/homebrew/bin ك researchbar.";
 "System" = "النظام";
 "Temporarily shows the loading animation after the next refresh." = "يعرض مؤقتا حركة التحميل بعد التحديث التالي.";
 "terminal_app_subtitle" = "الطرفية المستخدمة في إجراء الطرفية المفتوحة";
@@ -531,7 +531,7 @@
 "open_menu_shortcut_title" = "قائمة مفتوحة";
 "open_menu_shortcut_subtitle" = "فعل قائمة شريط القوائم من أي مكان.";
 "install_cli" = "تثبيت CLI";
-"install_cli_subtitle" = "Symlink ResearchBarCLI إلى /usr/local/bin و /opt/homebrew/bin ك codexbar.";
+"install_cli_subtitle" = "Symlink ResearchBarCLI إلى /usr/local/bin و /opt/homebrew/bin ك researchbar.";
 "cli_not_found" = "ResearchBarCLI غير موجود في حزمة التطبيقات.";
 "no_writable_bin_dirs" = "لم يتم العثور على أي سجلات قابلة للكتابة.";
 "show_debug_settings_title" = "عرض إعدادات التصحيح";

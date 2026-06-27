@@ -32,7 +32,7 @@ Usage source picker:
 
 Admin API key setup:
 - Preferences → Providers → Claude → Admin API key, stored in `~/.config/researchbar/config.json`.
-- CLI/env: `printf '%s' "$ANTHROPIC_ADMIN_KEY" | codexbar config set-api-key --provider claude --stdin`.
+- CLI/env: `printf '%s' "$ANTHROPIC_ADMIN_KEY" | researchbar config set-api-key --provider claude --stdin`.
 - Token accounts can also hold `sk-ant-admin...` keys; they route to the Admin API instead of cookie/OAuth usage.
 - Environment fallback: `ANTHROPIC_ADMIN_KEY`.
 

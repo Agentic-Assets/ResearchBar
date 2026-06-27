@@ -25,9 +25,9 @@ struct KeychainPromptCoordinatorTests {
     @Test
     func `keeps packaged app keychain behavior`() {
         #expect(!KeychainPromptCoordinator.isUnbundledCodexBarExecutable(
-            "/Applications/CodexBar.app/Contents/MacOS/CodexBar"))
+            "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar"))
         #expect(!KeychainPromptCoordinator.isUnbundledCodexBarExecutable(
-            "/Users/me/CodexBar/.build/package/CodexBar.app/Contents/MacOS/CodexBar"))
+            "/Users/me/CodexBar/.build/package/ResearchBar.app/Contents/MacOS/ResearchBar"))
     }
 
     @Test

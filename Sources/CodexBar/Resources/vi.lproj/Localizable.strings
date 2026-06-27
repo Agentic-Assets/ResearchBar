@@ -304,7 +304,7 @@
 "Subscription Utilization" = "Gói đăng ký Mức sử dụng";
 "Surprise me" = "Làm tôi ngạc nhiên";
 "Switcher shows icons" = "Trình chuyển đổi hiển thị các biểu tượng";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlink ResearchBarCLI tới /usr/local/bin và /opt/homebrew/bin dưới dạng codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlink ResearchBarCLI tới /usr/local/bin và /opt/homebrew/bin dưới dạng researchbar.";
 "System" = "Hệ thống";
 "Temporarily shows the loading animation after the next refresh." = "Tạm thời hiển thị hoạt ảnh đang tải sau lần làm mới tiếp theo.";
 "Tertiary (\\(label))" = "Cấp ba (\\(label))";
@@ -527,7 +527,7 @@
 "open_menu_shortcut_title" = "Mở menu";
 "open_menu_shortcut_subtitle" = "Kích hoạt menu thanh menu từ mọi nơi.";
 "install_cli" = "Cài đặt CLI";
-"install_cli_subtitle" = "Liên kết tượng trưng ResearchBarCLI tới /usr/local/bin và /opt/homebrew/bin dưới dạng codexbar.";
+"install_cli_subtitle" = "Liên kết tượng trưng ResearchBarCLI tới /usr/local/bin và /opt/homebrew/bin dưới dạng researchbar.";
 "cli_not_found" = "Không tìm thấy ResearchBarCLI trong gói ứng dụng.";
 "no_writable_bin_dirs" = "Không tìm thấy thư mục bin có thể ghi.";
 "show_debug_settings_title" = "Hiển thị gỡ lỗi Cài đặt";

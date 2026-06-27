@@ -305,7 +305,7 @@
 "Subscription Utilization" = "Abonnemangsutnyttjande";
 "Surprise me" = "Överraska mig";
 "Switcher shows icons" = "Växlaren visar ikoner";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlänka ResearchBarCLI till /usr/local/bin och /opt/homebrew/bin som codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlänka ResearchBarCLI till /usr/local/bin och /opt/homebrew/bin som researchbar.";
 "System" = "System";
 "Temporarily shows the loading animation after the next refresh." = "Visar tillfälligt laddningsanimationen efter nästa uppdatering.";
 "Tertiary (\\(label))" = "Tertiär (\\(label))";
@@ -530,7 +530,7 @@
 "open_menu_shortcut_title" = "Öppna meny";
 "open_menu_shortcut_subtitle" = "Öppna menyradsmenyn var du än är.";
 "install_cli" = "Installera CLI";
-"install_cli_subtitle" = "Symlänka ResearchBarCLI till /usr/local/bin och /opt/homebrew/bin som codexbar.";
+"install_cli_subtitle" = "Symlänka ResearchBarCLI till /usr/local/bin och /opt/homebrew/bin som researchbar.";
 "cli_not_found" = "ResearchBarCLI hittades inte i apppaketet.";
 "no_writable_bin_dirs" = "Inga skrivbara bin-kataloger hittades.";
 "show_debug_settings_title" = "Visa felsökningsinställningar";

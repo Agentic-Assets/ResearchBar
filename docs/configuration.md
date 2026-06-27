@@ -95,21 +95,21 @@ Example placeholder config:
 Validate after editing:
 
 ```bash
-codexbar config validate
-codexbar usage --provider example-provider --verbose
+researchbar config validate
+researchbar usage --provider example-provider --verbose
 ```
 
 CLI shortcuts:
 
 ```bash
-codexbar config providers
-codexbar config enable --provider grok
-codexbar config disable --provider cursor
-printf '%s' "$ELEVENLABS_API_KEY" | codexbar config set-api-key --provider elevenlabs --stdin
-printf '%s' "$OPENAI_ADMIN_KEY" | codexbar config set-api-key --provider openai --stdin
-printf '%s' "$GROQ_API_KEY" | codexbar config set-api-key --provider groq --stdin
-printf '%s' "$LLM_PROXY_API_KEY" | codexbar config set-api-key --provider llmproxy --stdin
-printf '%s' "$LITELLM_API_KEY" | codexbar config set-api-key --provider litellm --stdin
+researchbar config providers
+researchbar config enable --provider grok
+researchbar config disable --provider cursor
+printf '%s' "$ELEVENLABS_API_KEY" | researchbar config set-api-key --provider elevenlabs --stdin
+printf '%s' "$OPENAI_ADMIN_KEY" | researchbar config set-api-key --provider openai --stdin
+printf '%s' "$GROQ_API_KEY" | researchbar config set-api-key --provider groq --stdin
+printf '%s' "$LLM_PROXY_API_KEY" | researchbar config set-api-key --provider llmproxy --stdin
+printf '%s' "$LITELLM_API_KEY" | researchbar config set-api-key --provider litellm --stdin
 ```
 
 OpenAI API project scoping uses `workspaceID` in config. This maps to `OPENAI_PROJECT_ID` for Admin API usage and is
@@ -179,4 +179,4 @@ The order of `providers` controls display/order in the app and CLI. Reorder the 
 - Fields not relevant to a provider are ignored.
 - Omitted providers are appended with defaults during normalization.
 - Keep the file private; it contains secrets.
-- Validate the file with `codexbar config validate` (JSON output available with `--format json`).
+- Validate the file with `researchbar config validate` (JSON output available with `--format json`).

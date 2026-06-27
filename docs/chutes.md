@@ -22,7 +22,7 @@ export CHUTES_API_KEY="cpk_..."
 Or configure it through the CLI:
 
 ```bash
-printf '%s' "$CHUTES_API_KEY" | codexbar config set-api-key --provider chutes --stdin
+printf '%s' "$CHUTES_API_KEY" | researchbar config set-api-key --provider chutes --stdin
 ```
 
 ## Data Source
@@ -42,7 +42,7 @@ The provider prefers the rolling four-hour window as the primary meter and month
 ## CLI Usage
 
 ```bash
-codexbar --provider chutes
+researchbar --provider chutes
 ```
 
 ## Troubleshooting

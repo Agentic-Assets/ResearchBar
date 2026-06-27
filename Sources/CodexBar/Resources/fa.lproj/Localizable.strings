@@ -304,7 +304,7 @@
 "Subscription Utilization" = "استفاده از اشتراک";
 "Surprise me" = "سورپرایزم کن";
 "Switcher shows icons" = "سوئیچر آیکون ها را نشان می دهد";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlink ResearchBarCLI به /usr/local/bin و /opt/homebrew/bin به عنوان codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlink ResearchBarCLI به /usr/local/bin و /opt/homebrew/bin به عنوان researchbar.";
 "System" = "سیستم";
 "Temporarily shows the loading animation after the next refresh." = "انیمیشن بارگذاری پس از تازه سازی بعدی به طور موقت نمایش داده می شود.";
 "terminal_app_subtitle" = "ترمینال مورد استفاده در عملکرد ترمینال باز";
@@ -531,7 +531,7 @@
 "open_menu_shortcut_title" = "منوی باز";
 "open_menu_shortcut_subtitle" = "منوی نوار منو را از هر جایی فعال کنید.";
 "install_cli" = "نصب CLI";
-"install_cli_subtitle" = "Symlink ResearchBarCLI به /usr/local/bin و /opt/homebrew/bin به عنوان codexbar.";
+"install_cli_subtitle" = "Symlink ResearchBarCLI به /usr/local/bin و /opt/homebrew/bin به عنوان researchbar.";
 "cli_not_found" = "ResearchBarCLI در بسته برنامه ها یافت نمی شود.";
 "no_writable_bin_dirs" = "هیچ سطل قابل نوشتاری پیدا نشد.";
 "show_debug_settings_title" = "نمایش تنظیمات اشکال زدایی";

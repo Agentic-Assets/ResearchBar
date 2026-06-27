@@ -73,7 +73,7 @@ Uploads not handled automatically—commit/publish appcast + zip to the feed loc
 ResearchBar does not currently ship a public Homebrew cask. If a cask is added later, ResearchBar should disable Sparkle and the app
 must be updated via `brew`.
 
-The inherited `CodexBarCLI` binary name may remain for beta builds, but public distribution should use ResearchBar release assets and a ResearchBar-specific tap if Homebrew is enabled later.
+The internal SwiftPM CLI product may remain `CodexBarCLI`, but packaged builds ship it as `ResearchBarCLI` and install the `researchbar` command. The packaged WidgetKit extension ships as `ResearchBarWidget.appex` with executable `ResearchBarWidget`. Public distribution should use ResearchBar release assets and a ResearchBar-specific tap if Homebrew is enabled later.
 
 ## Checklist (quick)
 - [ ] Read both this file and `~/Projects/agent-scripts/docs/RELEASING-MAC.md`; resolve any conflicts toward ResearchBar’s specifics.

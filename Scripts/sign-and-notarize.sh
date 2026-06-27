@@ -2,7 +2,8 @@
 set -euo pipefail
 
 APP_NAME="ResearchBar"
-APP_EXECUTABLE="CodexBar"
+APP_EXECUTABLE="ResearchBar"
+SWIFTPM_APP_PRODUCT="CodexBar"
 APP_IDENTITY="${APP_IDENTITY:-Developer ID Application: Peter Steinberger (Y5PE65HELJ)}"
 APP_BUNDLE="ResearchBar.app"
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -37,25 +38,25 @@ ARCH_LIST=( ${ARCHES_VALUE} )
 ARCHES="${ARCHES_VALUE}" ./Scripts/package_app.sh release
 
 ENTITLEMENTS_DIR="$ROOT/.build/entitlements"
-APP_ENTITLEMENTS="${ENTITLEMENTS_DIR}/CodexBar.entitlements"
-WIDGET_ENTITLEMENTS="${ENTITLEMENTS_DIR}/CodexBarWidget.entitlements"
+APP_ENTITLEMENTS="${ENTITLEMENTS_DIR}/ResearchBar.entitlements"
+WIDGET_ENTITLEMENTS="${ENTITLEMENTS_DIR}/ResearchBarWidget.entitlements"
 
 echo "Signing with $APP_IDENTITY"
-if [[ -f "$APP_BUNDLE/Contents/Helpers/CodexBarCLI" ]]; then
+if [[ -f "$APP_BUNDLE/Contents/Helpers/ResearchBarCLI" ]]; then
   codesign --force --timestamp --options runtime --sign "$APP_IDENTITY" \
-    "$APP_BUNDLE/Contents/Helpers/CodexBarCLI"
+    "$APP_BUNDLE/Contents/Helpers/ResearchBarCLI"
 fi
-if [[ -f "$APP_BUNDLE/Contents/Helpers/CodexBarClaudeWatchdog" ]]; then
+if [[ -f "$APP_BUNDLE/Contents/Helpers/ResearchBarClaudeWatchdog" ]]; then
   codesign --force --timestamp --options runtime --sign "$APP_IDENTITY" \
-    "$APP_BUNDLE/Contents/Helpers/CodexBarClaudeWatchdog"
+    "$APP_BUNDLE/Contents/Helpers/ResearchBarClaudeWatchdog"
 fi
-if [[ -d "$APP_BUNDLE/Contents/PlugIns/CodexBarWidget.appex" ]]; then
+if [[ -d "$APP_BUNDLE/Contents/PlugIns/ResearchBarWidget.appex" ]]; then
   codesign --force --timestamp --options runtime --sign "$APP_IDENTITY" \
     --entitlements "$WIDGET_ENTITLEMENTS" \
-    "$APP_BUNDLE/Contents/PlugIns/CodexBarWidget.appex/Contents/MacOS/CodexBarWidget"
+    "$APP_BUNDLE/Contents/PlugIns/ResearchBarWidget.appex/Contents/MacOS/ResearchBarWidget"
   codesign --force --timestamp --options runtime --sign "$APP_IDENTITY" \
     --entitlements "$WIDGET_ENTITLEMENTS" \
-    "$APP_BUNDLE/Contents/PlugIns/CodexBarWidget.appex"
+    "$APP_BUNDLE/Contents/PlugIns/ResearchBarWidget.appex"
 fi
 codesign --force --timestamp --options runtime --sign "$APP_IDENTITY" \
   --entitlements "$APP_ENTITLEMENTS" \
@@ -87,20 +88,20 @@ echo "Packaging dSYM"
 DSYM_STAGE_ROOT="$ROOT/.build/package-products/release"
 DSYM_PATHS=()
 for ARCH in "${ARCH_LIST[@]}"; do
-  STAGED_DSYM="$DSYM_STAGE_ROOT/$ARCH/${APP_EXECUTABLE}.dSYM"
+  STAGED_DSYM="$DSYM_STAGE_ROOT/$ARCH/${SWIFTPM_APP_PRODUCT}.dSYM"
   if [[ -d "$STAGED_DSYM" ]]; then
     DSYM_PATHS+=("$STAGED_DSYM")
     continue
   fi
   BIN_DIR=$(codexbar_swiftpm_bin_path release "$ARCH")
-  DSYM_PATHS+=("$(codexbar_resolve_dsym_path "$DSYM_STAGE_ROOT" "$BIN_DIR" "$APP_EXECUTABLE" "$ARCH")")
+  DSYM_PATHS+=("$(codexbar_resolve_dsym_path "$DSYM_STAGE_ROOT" "$BIN_DIR" "$SWIFTPM_APP_PRODUCT" "$ARCH")")
 done
 
 DSYM_PATH="${DSYM_PATHS[0]}"
 DSYM_DWARF_PATHS=()
 for ((index = 0; index < ${#ARCH_LIST[@]}; index++)); do
   ARCH="${ARCH_LIST[$index]}"
-  if ! ARCH_DSYM=$(codexbar_require_dsym_dwarf_for_arch "${DSYM_PATHS[$index]}" "$APP_EXECUTABLE" "$ARCH"); then
+  if ! ARCH_DSYM=$(codexbar_require_dsym_dwarf_for_arch "${DSYM_PATHS[$index]}" "$SWIFTPM_APP_PRODUCT" "$ARCH"); then
     exit 1
   fi
   DSYM_DWARF_PATHS+=("$ARCH_DSYM")
@@ -113,8 +114,18 @@ if [[ ${#ARCH_LIST[@]} -gt 1 ]]; then
   mkdir -p "$MERGED_DSYM_ROOT"
   cp -R "$DSYM_PATH" "$MERGED_DSYM"
   DWARF_PATH="${MERGED_DSYM}/Contents/Resources/DWARF/${APP_EXECUTABLE}"
+  mv "${MERGED_DSYM}/Contents/Resources/DWARF/${SWIFTPM_APP_PRODUCT}" "$DWARF_PATH"
   lipo -create "${DSYM_DWARF_PATHS[@]}" -output "$DWARF_PATH"
   DSYM_PATH="$MERGED_DSYM"
+else
+  RENAMED_DSYM_ROOT="${DSYM_STAGE_ROOT}/${APP_EXECUTABLE}.dSYM-single"
+  RENAMED_DSYM="${RENAMED_DSYM_ROOT}/${APP_EXECUTABLE}.dSYM"
+  rm -rf "$RENAMED_DSYM_ROOT"
+  mkdir -p "$RENAMED_DSYM_ROOT"
+  cp -R "$DSYM_PATH" "$RENAMED_DSYM"
+  mv "${RENAMED_DSYM}/Contents/Resources/DWARF/${SWIFTPM_APP_PRODUCT}" \
+    "${RENAMED_DSYM}/Contents/Resources/DWARF/${APP_EXECUTABLE}"
+  DSYM_PATH="$RENAMED_DSYM"
 fi
 if [[ ! -d "$DSYM_PATH" ]]; then
   echo "Missing dSYM at SwiftPM-reported path: $DSYM_PATH" >&2

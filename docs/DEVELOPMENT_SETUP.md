@@ -145,7 +145,7 @@ swift build  # defaults to debug
 The compile_and_run script should kill old instances, but if it doesn't:
 
 ```bash
-pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/CodexBar" || true
+pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/ResearchBar" || true
 ```
 
 ### "Permission denied" when accessing keychain
@@ -174,6 +174,6 @@ Or manually:
 
 ```bash
 ./Scripts/package_app.sh
-pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/CodexBar" || true
+pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/ResearchBar" || true
 open -n ResearchBar.app
 ```

@@ -304,7 +304,7 @@
 "Subscription Utilization" = "Wykorzystanie subskrypcji";
 "Surprise me" = "Zaskocz mnie";
 "Switcher shows icons" = "Przełącznik pokazuje ikony";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Dowiąż symbolicznie ResearchBarCLI do /usr/local/bin i /opt/homebrew/bin jako codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Dowiąż symbolicznie ResearchBarCLI do /usr/local/bin i /opt/homebrew/bin jako researchbar.";
 "System" = "System";
 "Temporarily shows the loading animation after the next refresh." = "Tymczasowo pokazuje animację ładowania po następnym odświeżeniu.";
 "terminal_app_subtitle" = "Terminal używany przez akcję Otwórz terminal";
@@ -533,7 +533,7 @@
 "open_menu_shortcut_title" = "Skrót otwierania menu";
 "open_menu_shortcut_subtitle" = "Skrót klawiaturowy do otwierania menu ResearchBar.";
 "install_cli" = "Zainstaluj CLI";
-"install_cli_subtitle" = "Utwórz dowiązanie symboliczne ResearchBarCLI do /usr/local/bin i /opt/homebrew/bin jako codexbar.";
+"install_cli_subtitle" = "Utwórz dowiązanie symboliczne ResearchBarCLI do /usr/local/bin i /opt/homebrew/bin jako researchbar.";
 "cli_not_found" = "Nie znaleziono ResearchBarCLI w pakiecie aplikacji.";
 "no_writable_bin_dirs" = "Nie znaleziono zapisywalnych katalogów bin.";
 "show_debug_settings_title" = "Pokaż ustawienia debugowania";

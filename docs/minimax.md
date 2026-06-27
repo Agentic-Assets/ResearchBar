@@ -70,7 +70,7 @@ for issue reporting and verification. MiniMax adds a provider-specific `details`
 
 ### Usage
 ```
-codexbar diagnose --provider minimax --format json --pretty
+researchbar diagnose --provider minimax --format json --pretty
 ```
 
 ### Output

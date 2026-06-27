@@ -433,7 +433,7 @@ public enum KeychainCacheStore {
             ?? executableURL.flatMap(self.appBundleURL(containing:))
         if let appBundle {
             append(appBundle.path)
-            append(appBundle.appendingPathComponent("Contents/Helpers/CodexBarCLI").path)
+            append(appBundle.appendingPathComponent("Contents/Helpers/ResearchBarCLI").path)
         }
         if let executableURL {
             append(executableURL.path)

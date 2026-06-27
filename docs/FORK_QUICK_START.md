@@ -51,8 +51,8 @@ swiftlint --strict
 ./Scripts/package_app.sh
 
 # Restart app after rebuild
-pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/CodexBar" || true
-cd /Users/steipete/Projects/codexbar && open -n /Users/steipete/Projects/codexbar/ResearchBar.app
+pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/ResearchBar" || true
+open -n ResearchBar.app
 ```
 
 ### Release
@@ -150,7 +150,7 @@ swift test --filter AugmentTests
 ### App Won't Launch
 ```bash
 # Kill all instances
-pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/CodexBar" || true
+pkill -f "$(pwd)/ResearchBar.app/Contents/MacOS/ResearchBar" || true
 
 # Rebuild and relaunch
 ./Scripts/compile_and_run.sh

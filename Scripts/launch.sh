@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_PATH="$PROJECT_ROOT/ResearchBar.app"
-APP_PROCESS_PATTERN="$PROJECT_ROOT/ResearchBar.app/Contents/MacOS/CodexBar"
+APP_PROCESS_PATTERN="$PROJECT_ROOT/ResearchBar.app/Contents/MacOS/ResearchBar"
 
 echo "==> Killing existing ResearchBar instances from this repo"
 pkill -f "$APP_PROCESS_PATTERN" || true

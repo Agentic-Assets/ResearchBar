@@ -304,7 +304,7 @@
 "Subscription Utilization" = "Abonelik Kullanımı";
 "Surprise me" = "Beni şaşırt";
 "Switcher shows icons" = "Değiştirici simgeleri gösterir";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "ResearchBarCLI'yi codexbar olarak /usr/local/bin ve /opt/homebrew/bin dizinlerine sembolik bağlayın.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "ResearchBarCLI'yi researchbar olarak /usr/local/bin ve /opt/homebrew/bin dizinlerine sembolik bağlayın.";
 "System" = "Sistem";
 "Temporarily shows the loading animation after the next refresh." = "Sonraki yenilemeden sonra yükleme animasyonunu geçici olarak gösterir.";
 "Tertiary (\\(label))" = "Üçüncül (\\(label))";
@@ -531,7 +531,7 @@
 "open_menu_shortcut_title" = "Menüyü aç";
 "open_menu_shortcut_subtitle" = "Menü çubuğu menüsünü herhangi bir yerden tetikleyin.";
 "install_cli" = "CLI Kur";
-"install_cli_subtitle" = "ResearchBarCLI'yi codexbar olarak /usr/local/bin ve /opt/homebrew/bin dizinlerine sembolik bağlayın.";
+"install_cli_subtitle" = "ResearchBarCLI'yi researchbar olarak /usr/local/bin ve /opt/homebrew/bin dizinlerine sembolik bağlayın.";
 "cli_not_found" = "ResearchBarCLI uygulama paketinde bulunamadı.";
 "no_writable_bin_dirs" = "Yazılabilir bin dizini bulunamadı.";
 "show_debug_settings_title" = "Hata Ayıklama Ayarlarını Göster";

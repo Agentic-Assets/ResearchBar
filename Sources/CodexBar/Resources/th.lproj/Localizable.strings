@@ -304,7 +304,7 @@
 "Subscription Utilization" = "การใช้การสมัครสมาชิก";
 "Surprise me" = "ทําให้ฉันประหลาดใจ";
 "Switcher shows icons" = "ตัวสลับแสดงไอคอน";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlink ResearchBarCLI เป็น /usr/local/bin และ /opt/homebrew/bin เป็น codexbar";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlink ResearchBarCLI เป็น /usr/local/bin และ /opt/homebrew/bin เป็น researchbar";
 "System" = "ระบบ";
 "Temporarily shows the loading animation after the next refresh." = "แสดงภาพเคลื่อนไหวการโหลดชั่วคราวหลังจากการรีเฟรชครั้งถัดไป";
 "terminal_app_subtitle" = "เทอร์มินัลที่ใช้โดยการดําเนินการ Open Terminal";
@@ -531,7 +531,7 @@
 "open_menu_shortcut_title" = "เปิดเมนู";
 "open_menu_shortcut_subtitle" = "ทริกเกอร์เมนูแถบเมนูได้จากทุกที่";
 "install_cli" = "ติดตั้ง CLI";
-"install_cli_subtitle" = "Symlink ResearchBarCLI เป็น /usr/local/bin และ /opt/homebrew/bin เป็น codexbar";
+"install_cli_subtitle" = "Symlink ResearchBarCLI เป็น /usr/local/bin และ /opt/homebrew/bin เป็น researchbar";
 "cli_not_found" = "ไม่พบ ResearchBarCLI ใน App Bundle";
 "no_writable_bin_dirs" = "ไม่พบ bin dirs ที่เขียนได้";
 "show_debug_settings_title" = "แสดงการตั้งค่าการดีบัก";

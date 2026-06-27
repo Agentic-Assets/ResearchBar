@@ -304,7 +304,7 @@
 "Subscription Utilization" = "Pemanfaatan Langganan";
 "Surprise me" = "Kejutkan saya";
 "Switcher shows icons" = "Pengalih tampilkan ikon";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Symlink ResearchBarCLI ke /usr/local/bin dan /opt/homebrew/bin sebagai codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Symlink ResearchBarCLI ke /usr/local/bin dan /opt/homebrew/bin sebagai researchbar.";
 "System" = "Sistem";
 "Temporarily shows the loading animation after the next refresh." = "Sementara menampilkan animasi pemuatan setelah penyegaran berikutnya.";
 "terminal_app_subtitle" = "Terminal yang digunakan oleh tindakan Buka Terminal";
@@ -533,7 +533,7 @@
 "open_menu_shortcut_title" = "Buka menu";
 "open_menu_shortcut_subtitle" = "Picu menu bar dari mana saja.";
 "install_cli" = "Pasang CLI";
-"install_cli_subtitle" = "Symlink ResearchBarCLI ke /usr/local/bin dan /opt/homebrew/bin sebagai codexbar.";
+"install_cli_subtitle" = "Symlink ResearchBarCLI ke /usr/local/bin dan /opt/homebrew/bin sebagai researchbar.";
 "cli_not_found" = "ResearchBarCLI tidak ditemukan di bundel aplikasi.";
 "no_writable_bin_dirs" = "Tidak ada direktori bin yang dapat ditulis.";
 "show_debug_settings_title" = "Tampilkan Pengaturan Debug";

@@ -5,7 +5,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="${ROOT_DIR}/ResearchBar.app"
-APP_PROCESS_PATTERN="${ROOT_DIR}/ResearchBar.app/Contents/MacOS/CodexBar"
+APP_PROCESS_PATTERN="${ROOT_DIR}/ResearchBar.app/Contents/MacOS/ResearchBar"
 DEBUG_PROCESS_PATTERN="${ROOT_DIR}/.build/debug/CodexBar"
 RELEASE_PROCESS_PATTERN="${ROOT_DIR}/.build/release/CodexBar"
 LOCK_KEY="$(printf '%s' "${ROOT_DIR}" | shasum -a 256 | cut -c1-8)"
@@ -307,7 +307,7 @@ fi
 log "==> launch app"
 if ! open "${APP_BUNDLE}"; then
   log "WARN: launch app returned non-zero; falling back to direct binary launch."
-  "${APP_BUNDLE}/Contents/MacOS/CodexBar" >/dev/null 2>&1 &
+  "${APP_BUNDLE}/Contents/MacOS/ResearchBar" >/dev/null 2>&1 &
   disown
 fi
 

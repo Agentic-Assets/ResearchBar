@@ -7,7 +7,7 @@
 
 ResearchBar is the Agentic Assets fork of CodexBar for academic and industry research workflows. The public product identity is **ResearchBar** with bundle id `com.corbis.researchbar`, app group `<team>.com.corbis.researchbar`, config at `~/.config/researchbar/config.json`, Keychain services under `com.corbis.researchbar`, and local logs under `~/Library/Logs/ResearchBar/`.
 
-The inherited SwiftPM package, executable, helper, widget target, and source folders still use `CodexBar*` names where that keeps upstream sync and avoids a broad risky module rename. The shipped app bundle, bundle id, menu bar accessibility identity, storage roots, scripts, and guides are ResearchBar-owned.
+The inherited SwiftPM package, target names, and source folders still use `CodexBar*` names where that keeps upstream sync and avoids a broad risky module rename. The shipped app bundle, executable, CLI helper, widget extension, bundle id, menu bar accessibility identity, storage roots, scripts, and guides are ResearchBar-owned.
 
 Start with [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). The Corbis backend contract lives in `agentic-assets-app/docs/researchbar-evaluation/`.
 
@@ -19,9 +19,9 @@ ResearchBar currently builds from this fork with:
 
 - `ResearchBar.app`
 - `CFBundleIdentifier=com.corbis.researchbar`
-- `CFBundleExecutable=CodexBar`
-- `CodexBarCLI` bundled at `ResearchBar.app/Contents/Helpers/CodexBarCLI`
-- `CodexBarWidget.appex` bundled with widget id `com.corbis.researchbar.widget`
+- `CFBundleExecutable=ResearchBar`
+- `ResearchBarCLI` bundled at `ResearchBar.app/Contents/Helpers/ResearchBarCLI`
+- `ResearchBarWidget.appex` bundled with widget id `com.corbis.researchbar.widget`
 
 ## Install
 
@@ -41,15 +41,15 @@ Provider toggles and API keys live in the resolved ResearchBar config file. New 
 script the same provider list that Settings → Providers uses:
 
 ```bash
-codexbar config providers
-codexbar config enable --provider grok
-codexbar config disable --provider cursor
+researchbar config providers
+researchbar config enable --provider grok
+researchbar config disable --provider cursor
 ```
 
 For API-key providers, store a key without opening Settings:
 
 ```bash
-printf '%s' "$ELEVENLABS_API_KEY" | codexbar config set-api-key --provider elevenlabs --stdin
+printf '%s' "$ELEVENLABS_API_KEY" | researchbar config set-api-key --provider elevenlabs --stdin
 ```
 
 `set-api-key` trims the piped value, stores it with restrictive config-file permissions, and enables the provider by default. Use `--no-enable` to only save the key, or `--api-key <key>` for one-off local scripts where shell history is not a concern.
@@ -128,21 +128,21 @@ show an incident indicator.
 - Merge Icons mode to combine providers into one status item + switcher.
 - Display controls for provider icons, labels, bars, reset-time style, and highest-usage auto-selection.
 - Refresh cadence presets (manual, 1m, 2m, 5m, 15m).
-- Bundled CLI (`codexbar`) for scripts and CI (including `codexbar cost --provider codex`, `claude`, or `both` for local cost usage); macOS and Linux CLI builds available.
+- Bundled CLI (`researchbar`) for scripts and CI (including `researchbar cost --provider codex`, `claude`, or `both` for local cost usage); macOS and Linux CLI builds available.
 - WidgetKit widgets for supported providers.
 - Localized app and website with a shared 21-language catalog, automatic website detection, persistent pickers, and RTL support.
 - Optional session quota notifications and weekly-reset confetti.
 - Privacy-first: on-device parsing by default; browser cookies are opt-in and reused (no passwords stored).
 
 ## Privacy note
-Wondering if CodexBar scans your disk? It doesn’t crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, provider config files, local JSONL logs) when the related features are enabled. Provider tokens and token-account settings live in the ResearchBar config file with restrictive file permissions. See the discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
+Wondering if ResearchBar scans your disk? It doesn’t crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, provider config files, local JSONL logs) when the related features are enabled. Provider tokens and token-account settings live in the ResearchBar config file with restrictive file permissions. See the upstream CodexBar discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
 
 ## macOS permissions (why they’re needed)
 - **Full Disk Access (optional)**: only required to read Safari cookies/local storage for web-based providers. If you don’t grant it, use another supported browser, manual cookies/API keys, OAuth, or CLI/local sources where that provider supports them.
 - **Keychain access (prompted by macOS)**:
   - Chromium cookie import needs the browser “Safe Storage” key to decrypt cookies.
-  - Claude OAuth bootstrap may read the Claude CLI Keychain item when CodexBar has no usable cached credentials.
-  - CodexBar may use Keychain for browser cookie decryption, cached cookie headers, and OAuth/device-flow credentials where those sources require it.
+  - Claude OAuth bootstrap may read the Claude CLI Keychain item when ResearchBar has no usable cached credentials.
+  - ResearchBar may use Keychain for browser cookie decryption, cached cookie headers, and OAuth/device-flow credentials where those sources require it.
   - **How do I prevent those keychain alerts?**
     - Open **Keychain Access.app** → login keychain → search the prompted item (for Claude OAuth, usually “Claude Code-credentials”).
     - Open the item → **Access Control** → add `ResearchBar.app` under “Always allow access by these applications”.
@@ -154,7 +154,7 @@ Wondering if CodexBar scans your disk? It doesn’t crawl your filesystem; it re
     - Open the item → **Access Control** → add `ResearchBar.app` under “Always allow access by these applications”.
     - This removes the prompt when ResearchBar decrypts cookies for that browser.
   - **Last resort: stop all Keychain reads entirely**: if "Always Allow" does not stick (for example, macOS resets the ACL after a Chromium update or a `partition_id` reset), open **ResearchBar → Settings → Advanced → Keychain access** and enable **Disable Keychain access**. ResearchBar will no longer touch the Keychain. Browser-cookie-based providers will be skipped, but Claude/Codex OAuth via the CLI still works because it reads `~/.codex` / `~/.claude` config files, not the Keychain.
-- **Files & Folders prompts (folder/volume access)**: CodexBar launches provider CLIs and local probes for some providers. If those helpers read a project directory or external drive, macOS may ask CodexBar for that folder/volume (e.g., Desktop or an external volume). This is driven by the helper’s working directory, not background disk scanning.
+- **Files & Folders prompts (folder/volume access)**: ResearchBar launches provider CLIs and local probes for some providers. If those helpers read a project directory or external drive, macOS may ask ResearchBar for that folder/volume (e.g., Desktop or an external volume). This is driven by the helper’s working directory, not background disk scanning.
 - **What we do not request in the background**: no Screen Recording or Accessibility permissions; user-triggered helper actions may ask macOS for Automation permission to open Terminal. No passwords are stored (browser cookies are reused when you opt in).
 
 ## Docs
@@ -201,7 +201,7 @@ make docs-list                       # list docs with frontmatter summaries
 CLI install:
 ```bash
 # after installing ResearchBar.app in /Applications
-./bin/install-codexbar-cli.sh
+./bin/install-researchbar-cli.sh
 ```
 
 ## Related
@@ -219,7 +219,7 @@ CLI install:
 
 
 ## Status bar & terminal integration
-- [showy-quota](https://github.com/enieuwy/showy-quota) — always-on AI plan quota strips for SketchyBar, tmux, and Zellij (standalone WASM plugin), built on `codexbar serve` / the bundled CLI.
+- [showy-quota](https://github.com/enieuwy/showy-quota) — always-on AI plan quota strips for SketchyBar, tmux, and Zellij (standalone WASM plugin), built on `researchbar serve` / the bundled CLI.
 
 ## Credits
 Inspired by [ccusage](https://github.com/ryoppippi/ccusage) (MIT), specifically the cost usage tracking.

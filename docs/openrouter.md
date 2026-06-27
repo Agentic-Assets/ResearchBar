@@ -29,7 +29,7 @@ You can also configure the API key in CodexBar Settings → Providers → OpenRo
 ### CLI config
 
 ```bash
-printf '%s' "$OPENROUTER_API_KEY" | codexbar config set-api-key --provider openrouter --stdin
+printf '%s' "$OPENROUTER_API_KEY" | researchbar config set-api-key --provider openrouter --stdin
 ```
 
 ## Data Source
@@ -52,7 +52,7 @@ The OpenRouter menu card shows:
 ## CLI Usage
 
 ```bash
-codexbar --provider openrouter
+researchbar --provider openrouter
 codexbar -p or  # alias
 ```
 

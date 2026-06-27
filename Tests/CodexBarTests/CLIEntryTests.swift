@@ -44,7 +44,7 @@ final class CLIEntryTests: XCTestCase {
             .appendingPathComponent("codexbar-cli-version-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
 
-        let appURL = root.appendingPathComponent("CodexBar.app", isDirectory: true)
+        let appURL = root.appendingPathComponent("ResearchBar.app", isDirectory: true)
         let contentsURL = appURL.appendingPathComponent("Contents", isDirectory: true)
         let helpersURL = contentsURL.appendingPathComponent("Helpers", isDirectory: true)
         try FileManager.default.createDirectory(at: helpersURL, withIntermediateDirectories: true)
@@ -54,7 +54,7 @@ final class CLIEntryTests: XCTestCase {
         let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
         try data.write(to: infoURL)
 
-        let helperURL = helpersURL.appendingPathComponent("CodexBarCLI")
+        let helperURL = helpersURL.appendingPathComponent("ResearchBarCLI")
         try Data().write(to: helperURL)
 
         XCTAssertEqual(CodexBarCLI.containingAppVersion(for: helperURL), "9.8.7")
@@ -65,7 +65,7 @@ final class CLIEntryTests: XCTestCase {
             .appendingPathComponent("codexbar-cli-version-symlink-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
 
-        let appURL = root.appendingPathComponent("CodexBar.app", isDirectory: true)
+        let appURL = root.appendingPathComponent("ResearchBar.app", isDirectory: true)
         let contentsURL = appURL.appendingPathComponent("Contents", isDirectory: true)
         let helpersURL = contentsURL.appendingPathComponent("Helpers", isDirectory: true)
         let binURL = root.appendingPathComponent("bin", isDirectory: true)
@@ -77,10 +77,10 @@ final class CLIEntryTests: XCTestCase {
         let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
         try data.write(to: infoURL)
 
-        let helperURL = helpersURL.appendingPathComponent("CodexBarCLI")
+        let helperURL = helpersURL.appendingPathComponent("ResearchBarCLI")
         try Data().write(to: helperURL)
 
-        let symlinkURL = binURL.appendingPathComponent("codexbar")
+        let symlinkURL = binURL.appendingPathComponent("researchbar")
         try FileManager.default.createSymbolicLink(at: symlinkURL, withDestinationURL: helperURL)
 
         XCTAssertEqual(CodexBarCLI.currentVersion(bundleVersion: nil, executablePath: symlinkURL.path), "2.4.6")
@@ -100,7 +100,7 @@ final class CLIEntryTests: XCTestCase {
         let binURL = root.appendingPathComponent("bin", isDirectory: true)
         try FileManager.default.createDirectory(at: binURL, withIntermediateDirectories: true)
 
-        let helperURL = binURL.appendingPathComponent("CodexBarCLI")
+        let helperURL = binURL.appendingPathComponent("ResearchBarCLI")
         try Data().write(to: helperURL)
         try "4.5.6\n".write(
             to: binURL.appendingPathComponent("VERSION"),
@@ -120,7 +120,7 @@ final class CLIEntryTests: XCTestCase {
         let binURL = root.appendingPathComponent("bin", isDirectory: true)
         try FileManager.default.createDirectory(at: binURL, withIntermediateDirectories: true)
 
-        let helperURL = binURL.appendingPathComponent("CodexBarCLI")
+        let helperURL = binURL.appendingPathComponent("ResearchBarCLI")
         try Data().write(to: helperURL)
         try raw.write(
             to: binURL.appendingPathComponent("VERSION"),

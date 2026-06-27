@@ -304,7 +304,7 @@
 "Subscription Utilization" = "Використання підписки";
 "Surprise me" = "Здивуйте мене";
 "Switcher shows icons" = "Перемикач показує значки";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "Символьне посилання ResearchBarCLI на /usr/local/bin і /opt/homebrew/bin як codexbar.";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "Символьне посилання ResearchBarCLI на /usr/local/bin і /opt/homebrew/bin як researchbar.";
 "System" = "Система";
 "Temporarily shows the loading animation after the next refresh." = "Тимчасово показує анімацію завантаження після наступного оновлення.";
 "Tertiary (\\(label))" = "Вищий (\\(label))";
@@ -531,7 +531,7 @@
 "open_menu_shortcut_title" = "Відкрити меню";
 "open_menu_shortcut_subtitle" = "Викликати меню панелі меню з будь-якого місця.";
 "install_cli" = "Встановіть CLI";
-"install_cli_subtitle" = "Символьне посилання ResearchBarCLI на /usr/local/bin і /opt/homebrew/bin як codexbar.";
+"install_cli_subtitle" = "Символьне посилання ResearchBarCLI на /usr/local/bin і /opt/homebrew/bin як researchbar.";
 "cli_not_found" = "ResearchBarCLI не знайдено в пакеті програм.";
 "no_writable_bin_dirs" = "Не знайдено записуваних каталогів кошика.";
 "show_debug_settings_title" = "Показати налаштування налагодження";

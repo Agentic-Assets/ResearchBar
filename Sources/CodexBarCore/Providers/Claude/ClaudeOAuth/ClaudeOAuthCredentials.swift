@@ -1101,7 +1101,7 @@ public enum ClaudeOAuthCredentialsStore {
 
     /// Async version of load that handles expired tokens based on credential ownership.
     /// - Claude CLI-owned credentials delegate refresh to Claude CLI.
-    /// - CodexBar-owned credentials refresh directly via token endpoint.
+    /// - App-owned credentials refresh directly via token endpoint.
     public static func loadWithAutoRefresh(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         allowKeychainPrompt: Bool = true,

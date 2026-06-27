@@ -304,7 +304,7 @@
 "Subscription Utilization" = "サブスクリプション利用率";
 "Surprise me" = "サプライズ";
 "Switcher shows icons" = "切替バーにアイコンを表示";
-"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as codexbar." = "ResearchBarCLI を codexbar として /usr/local/bin と /opt/homebrew/bin にシンボリックリンクします。";
+"Symlink ResearchBarCLI to /usr/local/bin and /opt/homebrew/bin as researchbar." = "ResearchBarCLI を researchbar として /usr/local/bin と /opt/homebrew/bin にシンボリックリンクします。";
 "System" = "システム";
 "Temporarily shows the loading animation after the next refresh." = "次回の更新後に読み込みアニメーションを一時的に表示します。";
 "Tertiary (\\(label))" = "第3（\\(label)）";
@@ -528,7 +528,7 @@
 "open_menu_shortcut_title" = "メニューを開く";
 "open_menu_shortcut_subtitle" = "どこからでもメニューバーのメニューを開きます。";
 "install_cli" = "CLI をインストール";
-"install_cli_subtitle" = "ResearchBarCLI を codexbar として /usr/local/bin と /opt/homebrew/bin にシンボリックリンクします。";
+"install_cli_subtitle" = "ResearchBarCLI を researchbar として /usr/local/bin と /opt/homebrew/bin にシンボリックリンクします。";
 "cli_not_found" = "アプリバンドル内に ResearchBarCLI が見つかりません。";
 "no_writable_bin_dirs" = "書き込み可能な bin ディレクトリが見つかりません。";
 "show_debug_settings_title" = "デバッグ設定を表示";

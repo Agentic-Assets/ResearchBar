@@ -26,7 +26,7 @@ Choose one of three authentication methods:
 Create an API key in the [Kimi Code Console](https://www.kimi.com/code/console), then save it in CodexBar:
 
 ```bash
-codexbar config set-api-key --provider kimi --api-key "kimi-api-key-here"
+researchbar config set-api-key --provider kimi --api-key "kimi-api-key-here"
 ```
 
 Or provide it through the environment:
