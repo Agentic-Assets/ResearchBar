@@ -1,0 +1,28 @@
+{
+  "profileStatus": "linked_researcher",
+  "displayName": "Dr. Rhea Calloway",
+  "affiliation": "University of Tulsa",
+  "role": null,
+  "sector": null,
+  "companyName": null,
+  "plan": "academic",
+  "creditsRemaining": 80.0,
+  "orcid": "0000-0002-1825-0097",
+  "googleScholarId": "abcDEF123",
+  "googleScholarUrl": "https://scholar.google.com/citations?user=abcDEF123",
+  "totalCitations": 1284,
+  "hIndex": 12,
+  "trackedPaperCount": 19,
+  "citationDelta7d": 7,
+  "citationDelta52w": 182,
+  "sparkline52w": [1102, 1110, 1118, 1121, 1129, 1133, 1140, 1148, 1151, 1159, 1162, 1170, 1176, 1181, 1185, 1190, 1194, 1199, 1203, 1207, 1210, 1214, 1219, 1223, 1228, 1230, 1234, 1238, 1240, 1244, 1248, 1250, 1254, 1257, 1259, 1261, 1263, 1265, 1267, 1269, 1271, 1272, 1274, 1275, 1276, 1278, 1279, 1280, 1281, 1282, 1283, 1284],
+  "citationHistoryStatus": "tracked",
+  "lowConfidence": { "identity": false, "citations": false, "reason": null },
+  "profileLinks": [
+    { "label": "ORCID", "url": "https://orcid.org/0000-0002-1825-0097" },
+    { "label": "Google Scholar", "url": "https://scholar.google.com/citations?user=abcDEF123" }
+  ],
+  "fetchedAt": "2026-06-24T16:00:00.512Z",
+  "staleAfter": "2026-06-24T22:00:00.512Z",
+  "etag": "sha256:1c4f8a90"
+}

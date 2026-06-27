@@ -1,0 +1,28 @@
+{
+  "profileStatus": "linked_researcher",
+  "displayName": "Dr. Sam Rivera A5012345678",
+  "affiliation": "University of Tulsa",
+  "role": null,
+  "sector": null,
+  "companyName": null,
+  "plan": "academic",
+  "creditsRemaining": 70.0,
+  "orcid": "0000-0003-1111-2222",
+  "googleScholarId": null,
+  "googleScholarUrl": null,
+  "totalCitations": 800,
+  "hIndex": 9,
+  "trackedPaperCount": 14,
+  "citationDelta7d": null,
+  "citationDelta52w": null,
+  "sparkline52w": null,
+  "citationHistoryStatus": "not_yet_tracked",
+  "lowConfidence": { "identity": false, "citations": false, "reason": "Resolved via semantic scholar backend" },
+  "profileLinks": [
+    { "label": "ORCID", "url": "https://orcid.org/0000-0003-1111-2222" },
+    { "label": "Source", "url": "https://openalex.org/A5012345678" }
+  ],
+  "fetchedAt": "2026-06-19T11:00:00Z",
+  "staleAfter": "2026-06-19T17:00:00Z",
+  "etag": "sha256:dead00beef"
+}

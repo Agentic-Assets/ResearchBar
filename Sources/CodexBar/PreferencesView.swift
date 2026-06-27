@@ -5,6 +5,7 @@ import SwiftUI
 enum PreferencesTab: String, CaseIterable, Hashable {
     case general
     case providers
+    case research
     case display
     case advanced
     case about
@@ -18,6 +19,8 @@ enum PreferencesTab: String, CaseIterable, Hashable {
         switch self {
         case .general: L("tab_general")
         case .providers: L("tab_providers")
+        // ResearchBar Corbis tab: a literal title avoids touching the localization catalogs.
+        case .research: "Research"
         case .display: L("tab_display")
         case .advanced: L("tab_advanced")
         case .about: L("tab_about")
@@ -46,6 +49,7 @@ struct PreferencesView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var contentWidth: CGFloat = PreferencesTab.general.preferredWidth
     @State private var contentHeight: CGFloat = PreferencesTab.general.preferredHeight
+    @State private var corbisSettingsModel = CorbisSettingsModel()
 
     init(
         settings: SettingsStore,
@@ -83,6 +87,10 @@ struct PreferencesView: View {
                 runProviderLoginFlow: self.runProviderLoginFlow)
                 .tabItem { Label(L("tab_providers"), systemImage: "square.grid.2x2") }
                 .tag(PreferencesTab.providers)
+
+            CorbisSettingsView(model: self.corbisSettingsModel)
+                .tabItem { Label("Research", systemImage: "graduationcap") }
+                .tag(PreferencesTab.research)
 
             DisplayPane(settings: self.settings, store: self.store)
                 .tabItem { Label(L("tab_display"), systemImage: "eye") }
