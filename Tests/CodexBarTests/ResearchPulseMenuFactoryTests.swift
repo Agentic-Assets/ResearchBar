@@ -124,6 +124,30 @@ struct ResearchPulseMenuFactoryTests {
         }
     }
 
+    // MARK: Host-menu injection (merged status menu already provides app-level Quit)
+
+    @Test
+    func hostMenuSectionsDropQuitToAvoidDuplicateInMergedMenu() throws {
+        for (state, input) in try Self.inputsByState() {
+            let sections = ResearchPulseMenuFactory.makeHostMenuSections(from: input)
+            #expect(
+                !Self.actions(sections).contains(.quit),
+                "host menu for \(state) must not duplicate the app-level Quit")
+            #expect(!Self.allItems(sections).isEmpty, "host menu for \(state) should still have content")
+        }
+    }
+
+    @Test
+    func hostMenuSectionsPreserveNonQuitActions() {
+        // .notConnected exposes [.connect, .openSettings, .quit]; the host variant keeps the
+        // research-specific actions and only drops the duplicate Quit.
+        let sections = ResearchPulseMenuFactory.makeHostMenuSections(from: .notConnected)
+        let actions = Self.actions(sections)
+        #expect(actions.contains(.connect))
+        #expect(actions.contains(.openSettings))
+        #expect(!actions.contains(.quit))
+    }
+
     // MARK: Helpers
 
     private static func inputsByState() throws -> [(ResearchPulseMenuModel.State, ResearchPulseMenuInput)] {

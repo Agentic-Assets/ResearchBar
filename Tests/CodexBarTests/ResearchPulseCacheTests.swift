@@ -126,33 +126,20 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func makeRawJSONReEncodePreservesFractionalSecondTimestamps() throws {
-        // The refresh coordinator re-encodes a live pulse via `makeRawJSON()` before
-        // caching, and the pulse is reconstructed from that rawJSON on read. The encoder
-        // must keep fractional-second precision, otherwise `fetchedAt`/`staleAfter` round
-        // to the nearest second and break pulse equality across a cache round-trip.
-        let data = try ResearchBarFixtures.data("pulse-linked-tracked")
-        let original = try ResearchPulse.decode(data)
-
-        let reEncoded = try original.makeRawJSON()
-        let roundTripped = try ResearchPulse.decode(reEncoded)
-
-        #expect(roundTripped == original)
-        #expect(roundTripped.fetchedAt == original.fetchedAt)
-        #expect(roundTripped.staleAfter == original.staleAfter)
-    }
-
-    @Test
-    func fileCacheReEncodedPulseRoundTripsExactly() async throws {
+    func fileCacheRoundTripsServerBytesPulseExactly() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
         let identity = CorbisAccountIdentity.make(accountID: "acct-reenc", token: "tok-reenc")
+        // pulse-linked-tracked.json uses fractional-second ISO-8601 ("...:00.512Z"). The
+        // refresh coordinator caches the server's validated structured-content bytes
+        // (CorbisMCPClient.fetchResearchPulseResult.rawJSON); the fixture bytes stand in for
+        // those here. On read FileResearchPulseCache reconstructs the pulse via
+        // ResearchPulse.decode(rawJSON), so it must equal the original with exact
+        // fetchedAt/staleAfter and no fractional-second loss.
         let data = try ResearchBarFixtures.data("pulse-linked-tracked")
         let pulse = try ResearchPulse.decode(data)
-        // Build the entry the way the coordinator does: rawJSON from makeRawJSON(), not the
-        // original fixture bytes.
-        let entry = try ResearchPulseCacheEntry(pulse: pulse, rawJSON: pulse.makeRawJSON(), identity: identity)
+        let entry = ResearchPulseCacheEntry(pulse: pulse, rawJSON: data, identity: identity)
         let key = ResearchPulseCacheKey(identity: identity)
 
         let writer = FileResearchPulseCache(directory: directory)

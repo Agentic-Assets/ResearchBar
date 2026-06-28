@@ -44,6 +44,32 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
+    func detectsSensitiveCredential() {
+        #expect(ResearchPulseRedactor.containsSensitiveCredential("corbis_mcp_abc123def456"))
+        #expect(ResearchPulseRedactor.containsSensitiveCredential("Authorization: Bearer abc.def"))
+        #expect(ResearchPulseRedactor.containsSensitiveCredential("CORBIS_MCP_UPPER"))
+        #expect(!ResearchPulseRedactor.containsSensitiveCredential("Dr. Jane Researcher"))
+        #expect(!ResearchPulseRedactor.containsSensitiveCredential("bearings and gears"))
+    }
+
+    @Test
+    func scanFlagsCredentialLeakInRenderedField() throws {
+        // A clean pulse stays clean; a token smuggled into a rendered (typed) field trips the
+        // scan so the pulse never renders. The raw-JSON catch-all deliberately does not flag
+        // credentials (a tool-error message is sanitized instead), so this guarantee lives on
+        // the typed-field scan path.
+        let base = try ResearchBarFixtures.data("pulse-linked-tracked")
+        let clean = try ResearchPulse.decode(base)
+        #expect(ResearchPulseRedactor.scan(clean).isEmpty)
+
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["displayName"] = "Dr. Rhea corbis_mcp_leakedsecret"
+        let mutated = try JSONSerialization.data(withJSONObject: object)
+        let pulse = try ResearchPulse.decode(mutated)
+        #expect(ResearchPulseRedactor.scan(pulse).contains { $0.kind == .sensitiveCredential })
+    }
+
+    @Test
     func detectsBackendSourceNames() {
         #expect(ResearchPulseRedactor.backendSourceNames(in: "https://openalex.org/A5").contains("openalex"))
         #expect(ResearchPulseRedactor.backendSourceNames(in: "Resolved via Semantic Scholar")

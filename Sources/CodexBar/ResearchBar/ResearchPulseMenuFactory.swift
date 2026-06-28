@@ -46,6 +46,20 @@ enum ResearchPulseMenuFactory {
         }
     }
 
+    /// Sections suitable for injection into the host status-bar menu, which already provides
+    /// an app-level Quit item. The research section's own `.quit` action is dropped so the
+    /// merged menu does not show a duplicate Quit; sections left without items are pruned.
+    static func makeHostMenuSections(from input: ResearchPulseMenuInput) -> [ResearchBarMenuRenderSection] {
+        self.makeSections(from: input).compactMap { section in
+            let items = section.items.filter { item in
+                if case .action(.quit) = item.kind { return false }
+                return true
+            }
+            guard !items.isEmpty else { return nil }
+            return ResearchBarMenuRenderSection(title: section.title, items: items)
+        }
+    }
+
     // MARK: Row mapping
 
     private static func item(for row: ResearchMenuRow) -> ResearchBarMenuItem? {

@@ -8,15 +8,19 @@ import Foundation
 /// layer: a payload that trips a violation must never render. A leak-like
 /// fixture must fail tests; in release, the menu shows a safe error instead.
 ///
-/// Two leak classes are detected:
-/// 1. the internal author id pattern `^A\d+$` (and ids embedded in URLs/text), and
-/// 2. backend/provider/source names (`openalex`, `semantic scholar`, `ssrn`, ...).
+/// Three leak classes are detected:
+/// 1. the internal author id pattern `^A\d+$` (and ids embedded in URLs/text),
+/// 2. backend/provider/source names (`openalex`, `semantic scholar`, `ssrn`, ...), and
+/// 3. a leaked bearer credential (`corbis_mcp_` token or a `Bearer ` header echo).
 public enum ResearchPulseRedactor {
     public struct Violation: Equatable, Sendable {
         public enum Kind: Equatable, Sendable {
             case internalAuthorID
             /// Carries the matched name for debug logs only; never surface it to users.
             case backendSourceName(String)
+            /// A bearer credential leaked into a rendered field. Carries no payload so the
+            /// matched secret is never re-surfaced through the violation itself.
+            case sensitiveCredential
         }
 
         public let field: String
@@ -54,6 +58,9 @@ public enum ResearchPulseRedactor {
             for name in self.backendSourceNames(in: value) {
                 violations.append(Violation(field: field, kind: .backendSourceName(name)))
             }
+            if self.containsSensitiveCredential(value) {
+                violations.append(Violation(field: field, kind: .sensitiveCredential))
+            }
         }
 
         check(pulse.displayName, field: "displayName")
@@ -84,6 +91,11 @@ public enum ResearchPulseRedactor {
         for name in self.backendSourceNames(in: text) {
             violations.append(Violation(field: "rawJSON", kind: .backendSourceName(name)))
         }
+        // Credential detection is deliberately NOT applied here. The raw-JSON gate runs before
+        // the tool-error branch, where a `status: "error"` message carrying a token is meant to
+        // be sanitized to a generic string by `CorbisMCPError.safeToolError`, not rejected
+        // wholesale. The render-safety guarantee for credentials lives on the typed-field
+        // `scan(_:)` path and in `safeToolError`.
         return violations
     }
 
@@ -108,6 +120,15 @@ public enum ResearchPulseRedactor {
     public static func backendSourceNames(in string: String) -> [String] {
         let haystack = string.lowercased()
         return self.backendNames.filter { haystack.contains($0) }
+    }
+
+    /// True when the string contains a leaked bearer credential: a `corbis_mcp_` token or
+    /// an echoed `Bearer ` authorization header. The matched secret is never returned, only
+    /// a boolean, so callers cannot accidentally re-surface it. This is the single source of
+    /// truth for credential leak detection across the redactor and `CorbisMCPError`.
+    public static func containsSensitiveCredential(_ string: String) -> Bool {
+        let lower = string.lowercased()
+        return lower.contains("corbis_mcp_") || lower.contains("bearer ")
     }
 
     // MARK: Private

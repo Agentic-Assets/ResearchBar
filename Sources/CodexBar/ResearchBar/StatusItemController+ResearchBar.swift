@@ -2,6 +2,19 @@ import AppKit
 import CodexBarCore
 
 extension StatusItemController {
+    /// Seed the no-credit launch state so the always-visible status-item tooltip is correct
+    /// from launch and the first menu open builds with the right input instead of the
+    /// `.notConnected` default. `currentMenuInput()` reads only the credential and cache, so
+    /// this never spends a credit or touches the network.
+    func seedResearchPulseLaunchState() {
+        guard !SettingsStore.isRunningTests else { return }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let input = await self.researchPulseRefreshCoordinator.currentMenuInput()
+            self.applyResearchPulseMenuInput(input, openMenu: nil)
+        }
+    }
+
     func refreshResearchPulseForMenuOpen(_ menu: NSMenu) {
         Task { @MainActor [weak self, weak menu] in
             guard let self else { return }
@@ -37,7 +50,7 @@ extension StatusItemController {
     }
 
     func addResearchBarMenuContent(to menu: NSMenu, width _: CGFloat) {
-        let sections = ResearchPulseMenuFactory.makeSections(from: self.researchPulseMenuInput)
+        let sections = ResearchPulseMenuFactory.makeHostMenuSections(from: self.researchPulseMenuInput)
         guard !sections.isEmpty else { return }
 
         self.addResearchBarHeader(to: menu)

@@ -4,8 +4,9 @@ import Foundation
 ///
 /// Pure and testable: it holds the current connection state, the token field text, and an
 /// optional already-known display email, then derives token-format validity, the available
-/// intents, and a redacted account summary. The bearer token is never echoed back: the
-/// summary surfaces only `displayEmail` / `accountID`.
+/// intents, and a redacted account summary. The bearer token is never echoed back, and the
+/// server-provided `accountID` is never rendered: the summary surfaces only `displayEmail`
+/// when known, otherwise a fixed `Connected to Corbis` string.
 public struct CorbisSettingsViewState: Equatable, Sendable {
     /// Distinct user intents the settings surface can offer, gated by connection state.
     public enum Intent: Equatable, Sendable {
@@ -57,8 +58,9 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
 
     // MARK: Redacted summary
 
-    /// A render-safe connection summary. Never includes the bearer token, only the
-    /// display email or account id when known.
+    /// A render-safe connection summary. Never includes the bearer token or the
+    /// server-provided account id. Surfaces only the display email when known, otherwise a
+    /// fixed `Connected to Corbis` string.
     public var accountSummary: String {
         switch self.connectionState {
         case .notConnected:
