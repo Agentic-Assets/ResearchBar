@@ -8,7 +8,7 @@ Last updated: 2026-06-27. Living tracker for ResearchBar. Corbis evidence-backed
 
 ## Critical path (blocks a working menu panel)
 
-**RESOLVED 2026-06-27.** Corbis **Phase 0** (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so Track B is unblocked and can build the real pulse panel. Evidence: Corbis `_recon/2026-06-26-live-smoke.md`; contract: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
+**PARTIALLY RESOLVED 2026-06-27.** Corbis **Phase 0** payload and redaction behavior (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so Track B can build the real pulse panel. Billing-delta proof is still open: the 0.5-credit charge must be observed with a finite-credit free-tier token before the live gate is fully closed. Evidence: Corbis `_recon/2026-06-26-live-smoke.md`; contract: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
 
 | # | Work item | Owner | Status |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Last updated: 2026-06-27. Living tracker for ResearchBar. Corbis evidence-backed
 | 4 | **0.D `get_research_pulse` v0**: static pulse, null trends, `citationHistoryStatus` | Corbis | **Done** (registered, tier1, `read:profile`) |
 | 5 | **0.E Tests + smoke tests**: tool-count tripwire, redaction regression, ORCID confirm | Corbis | **Done** (offline + live; `tools/list` authed = 41, anon = 31) |
 
-**Phase 0 done when (MET 2026-06-26):** `get_research_pulse` appears in `tools/list`; live `tools/call` returns a public-anchor-aware payload with no leaks; trend fields null with `not_yet_tracked`. Verified over real HTTP plus the Playwright route contract (9/9). Curl commands in [`build/02`](build/02-mcp-contract-get-research-pulse.md), the contract guide, and Corbis [`05`](../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md). Remaining live gap: the per-call 0.5-credit delta needs a finite-credit free-tier token to observe (reservation/refund is unit-covered).
+**Phase 0 payload/redaction gate (MET 2026-06-26):** `get_research_pulse` appears in `tools/list`; live `tools/call` returns a public-anchor-aware payload with no leaks; trend fields null with `not_yet_tracked`. Verified over real HTTP plus the Playwright route contract (9/9). Curl commands in [`build/02`](build/02-mcp-contract-get-research-pulse.md), the contract guide, and Corbis [`05`](../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md). **Billing gate remains unverified:** the per-call 0.5-credit delta needs a finite-credit free-tier token to observe (reservation/refund is unit-covered).
 
 ---
 
@@ -55,20 +55,22 @@ Last updated: 2026-06-27. Living tracker for ResearchBar. Corbis evidence-backed
 
 ---
 
-## Track B: client (Phase 0 green light given 2026-06-27, build now)
+## Track B: client (slices 06-10 implemented 2026-06-27 on branch `feat/researchbar-track-b-client`)
+
+Implemented as a Core/app split: pure logic in `Sources/CodexBarCore/ResearchBar/`, SwiftUI/AppKit in `Sources/CodexBar/ResearchBar/`. Full `make test` and `make check` green; no new dependencies; no token/internal-id/backend-name ever surfaced. User-facing app identity is now ResearchBar with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.
 
 | Item | Status |
 |---|---|
-| Fixture pulse model, fixtures, redaction, menu model | **Next up (start here)**; not started; see [`build/06`](build/06-track-b-fixture-pulse-plan.md) |
-| Corbis auth in Keychain and account-keyed cache | Not started; see [`build/07`](build/07-track-b-auth-and-cache-plan.md) |
-| Thin ORCID confirm UI (ORCID display only) | **Unblocked** (Corbis 0.A shipped, migration `0162`); not started; see [`build/09`](build/09-track-b-menu-rendering-plan.md) |
-| Render `get_research_pulse` in one menu panel | **Unblocked** (Corbis 0.D shipped); start on fixtures via [`build/06`](build/06-track-b-fixture-pulse-plan.md), then live |
-| Live JSON-RPC call to Corbis MCP | **Unblocked** (Phase 0 live smoke passed 2026-06-26); not started; see [`build/08`](build/08-track-b-live-mcp-plan.md) |
-| GRDB cache keyed by account; respect `staleAfter`/`etag` | Decision needed; see [`build/07`](build/07-track-b-auth-and-cache-plan.md) |
-| Notarized DMG + Sparkle + Homebrew | Deferred until pulse path works; see [`build/10`](build/10-track-b-distribution-plan.md) |
-| Hide or demote inherited AI provider usage in the menu | Not started; keep code during Track B unless it blocks the research-first surface |
-| Test `NSStatusItem` on macOS 26 (Tahoe) | Not started |
-| Local git scanner + agent launch (later phases) | Not started |
+| Fixture pulse model, fixtures, redaction, menu model | **Done** (slice 06; `ResearchPulse`/`ResearchPulseRedactor`/`ResearchPulseMenuModel`, 9 fixtures, 22 tests) |
+| Corbis auth in Keychain and account-keyed cache | **Done** (slice 07; `KeychainCorbisCredentialStore` + `ResearchPulseCaching` file/in-memory, account-keyed via token SHA-256, hashed filenames) |
+| Thin ORCID confirm UI (ORCID display only) | **Scaffolded** (slice 09; `CorbisSettingsViewState` + `CorbisSettingsView`); full identity-handshake UI is a follow-up |
+| Render `get_research_pulse` in one menu panel | **Done** (slice 09; `ResearchPulseMenuFactory` + `ResearchPulseStatusIconModel` cover all 11 states; status-item menu now renders the ResearchBar section before inherited provider content) |
+| Live JSON-RPC call to Corbis MCP | **Done, mock-tested behind the Phase 0 gate** (slice 08; `CorbisMCPClient` + `ResearchPulseRefreshCoordinator`); live cutover needs a real `corbis_mcp_` token |
+| GRDB cache keyed by account; respect `staleAfter`/`etag` | **Resolved**: ships file + in-memory cache behind the `ResearchPulseCaching` swap seam honoring `staleAfter`/`etag`; GRDB still deferred pending Cayman sign-off |
+| Notarized DMG + Sparkle + Homebrew | Deferred; decisions captured in [`build/10-track-b-distribution-decisions.md`](build/10-track-b-distribution-decisions.md) |
+| Hide or demote inherited AI provider usage in the menu | Open founder decision; inherited menu untouched (research surface is self-contained) |
+| Test `NSStatusItem` on macOS 26 (Tahoe) | Pending (manual; checklist in [`build/10-track-b-distribution-decisions.md`](build/10-track-b-distribution-decisions.md)) |
+| Local git scanner + agent launch (later phases) | Not started (Phase 2+) |
 
 Full historical checklist: [`concept/open-questions-checklist.md`](concept/open-questions-checklist.md). Current Track B build guides: [`build/06`](build/06-track-b-fixture-pulse-plan.md) through [`build/10`](build/10-track-b-distribution-plan.md).
 

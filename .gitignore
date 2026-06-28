@@ -12,8 +12,11 @@ DerivedData
 # Bundles / artifacts
 # Main app bundle (any variation)
 CodexBar.app/
+ResearchBar.app/
 CodexBar *.app/
+ResearchBar *.app/
 CodexBar_*.app/
+ResearchBar_*.app/
 Codexbar.app/
 # Release artifacts
 *.ipa

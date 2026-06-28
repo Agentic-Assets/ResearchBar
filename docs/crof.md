@@ -14,7 +14,7 @@ Bearer token and displays the returned request quota and dollar credit balance.
 ## Data sources
 
 1. **API key** supplied via `CROF_API_KEY`, `CROFAI_API_KEY`, or Settings →
-   Providers → Crof. Settings values are stored in `~/.codexbar/config.json`.
+   Providers → Crof. Settings values are stored in `~/.config/researchbar/config.json`.
 2. **Usage endpoint**
    - `GET https://crof.ai/usage_api/`
    - Request headers: `Authorization: Bearer <api key>`, `Accept: application/json`

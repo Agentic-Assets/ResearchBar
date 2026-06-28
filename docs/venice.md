@@ -36,5 +36,5 @@ CodexBar shows:
 - Ensure your Venice account has an active balance
 
 **API rate limiting?**
-- CodexBar caches balance data and updates every 30 seconds
+- ResearchBar caches balance data and updates every 30 seconds
 - If you hit rate limits, wait a moment before refreshing

@@ -1,9 +1,9 @@
 ---
-summary: "WidgetKit snapshot pipeline + visibility troubleshooting for CodexBar widgets."
+summary: "WidgetKit snapshot pipeline + visibility troubleshooting for ResearchBar widgets."
 read_when:
   - Modifying WidgetKit extension behavior or snapshot format
   - Debugging widget update timing
-  - Widget gallery shows no CodexBar widgets
+  - Widget gallery shows no ResearchBar widgets
 ---
 
 # Widgets
@@ -20,10 +20,10 @@ read_when:
 - Keep data shape in sync with `WidgetSnapshot` in the main app.
 
 ## Widget types
-- **CodexBar Switcher** (`CodexBarSwitcherWidget`): static provider switcher widget, small/medium/large.
-- **CodexBar Usage** (`CodexBarUsageWidget`): configurable provider usage widget, small/medium/large.
-- **CodexBar History** (`CodexBarHistoryWidget`): configurable usage-history chart, medium/large.
-- **CodexBar Metric** (`CodexBarCompactWidget`): compact credits/today-cost/30-day-cost widget, small only.
+- **ResearchBar Switcher** (`CodexBarSwitcherWidget`): static provider switcher widget, small/medium/large.
+- **ResearchBar Usage** (`CodexBarUsageWidget`): configurable provider usage widget, small/medium/large.
+- **ResearchBar History** (`CodexBarHistoryWidget`): configurable usage-history chart, medium/large.
+- **ResearchBar Metric** (`CodexBarCompactWidget`): compact credits/today-cost/30-day-cost widget, small only.
 
 ## Provider picker support
 The configurable provider widgets currently expose:
@@ -37,16 +37,16 @@ registration, signing, or daemon caching (not SwiftUI code).
 
 ### 1) Verify the extension bundle exists where macOS expects it
 ```
-APP="/Applications/CodexBar.app"
-WAPPEX="$APP/Contents/PlugIns/CodexBarWidget.appex"
-WIDGET_ID="com.steipete.codexbar.widget" # debug builds use com.steipete.codexbar.debug.widget
+APP="/Applications/ResearchBar.app"
+WAPPEX="$APP/Contents/PlugIns/ResearchBarWidget.appex"
+WIDGET_ID="com.corbis.researchbar.widget" # debug builds use com.corbis.researchbar.debug.widget
 
 ls -la "$WAPPEX" "$WAPPEX/Contents" "$WAPPEX/Contents/MacOS"
 ```
 
 ### 2) PlugInKit registration (pkd)
 ```
-pluginkit -m -p com.apple.widgetkit-extension -v | grep -i codexbar || true
+pluginkit -m -p com.apple.widgetkit-extension -v | grep -i researchbar || true
 pluginkit -m -p com.apple.widgetkit-extension -i "$WIDGET_ID" -vv
 ```
 Notes:
@@ -65,10 +65,10 @@ If multiple paths appear, delete older installs and bump `CFBundleVersion`.
 ### 3) Code signing + Gatekeeper assessment
 Widgets are loaded by system daemons. Any signing failure can hide the widget.
 ```
-codesign --verify --deep --strict --verbose=4 /Applications/CodexBar.app
+codesign --verify --deep --strict --verbose=4 /Applications/ResearchBar.app
 codesign --verify --strict --verbose=4 "$WAPPEX"
-codesign --verify --strict --verbose=4 "$WAPPEX/Contents/MacOS/CodexBarWidget"
-spctl --assess --type execute --verbose=4 /Applications/CodexBar.app
+codesign --verify --strict --verbose=4 "$WAPPEX/Contents/MacOS/ResearchBarWidget"
+spctl --assess --type execute --verbose=4 /Applications/ResearchBar.app
 ```
 
 ### 4) Restart the right daemons (NotificationCenter alone is not enough)
@@ -84,9 +84,9 @@ log stream --style compact --predicate '(process == "pkd" OR process == "chronod
 ```
 
 ### 6) Packaging sanity checks
-- Widget bundle id should be `com.steipete.codexbar.widget` for release and `com.steipete.codexbar.debug.widget` for debug.
+- Widget bundle id should be `com.corbis.researchbar.widget` for release and `com.corbis.researchbar.debug.widget` for debug.
 - `NSExtensionPointIdentifier` must be `com.apple.widgetkit-extension`.
-- Bundle folder name should match: `CodexBarWidget.appex`.
+- Bundle folder name should match: `ResearchBarWidget.appex`.
 
 Optional: re-seed LaunchServices (rarely helps, but low risk):
 ```

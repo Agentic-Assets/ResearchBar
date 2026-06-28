@@ -253,7 +253,7 @@ extension StatusItemController: StatusItemMenuPersistentActionDelegate {
             self.presentLoginAlert(
                 title: L("Managed Codex accounts unavailable"),
                 message: L(
-                    "CodexBar could not read managed account storage. " +
+                    "ResearchBar could not read managed account storage. " +
                         "Recover the store before adding another account."))
             return
         }
@@ -313,6 +313,10 @@ extension StatusItemController: StatusItemMenuPersistentActionDelegate {
 
     @objc func showSettingsGeneral() {
         self.openSettings(tab: .general)
+    }
+
+    @objc func showSettingsResearch() {
+        self.openSettings(tab: .research)
     }
 
     @objc func showSettingsAbout() {

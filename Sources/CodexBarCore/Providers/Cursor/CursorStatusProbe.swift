@@ -690,12 +690,12 @@ public enum CursorStatusProbeError: LocalizedError, Sendable {
     case noSessionCookie
 
     static let safariFullDiskAccessHint =
-        "If you use Safari, grant CodexBar Full Disk Access in System Settings ▸ Privacy & Security."
+        "If you use Safari, grant ResearchBar Full Disk Access in System Settings ▸ Privacy & Security."
 
     public var errorDescription: String? {
         switch self {
         case .notLoggedIn:
-            "Not logged in to Cursor. Please log in via the CodexBar menu."
+            "Not logged in to Cursor. Please log in via the ResearchBar menu."
         case let .networkError(msg):
             "Cursor API error: \(msg)"
         case let .parseFailed(msg):
@@ -703,7 +703,7 @@ public enum CursorStatusProbeError: LocalizedError, Sendable {
         case .noSessionCookie:
             "No Cursor session found. \(Self.safariFullDiskAccessHint) "
                 + "Please log in to cursor.com in \(cursorCookieImportOrder.loginHint). "
-                + "You can also sign in to Cursor from the CodexBar menu (Add / switch account)."
+                + "You can also sign in to Cursor from the ResearchBar menu (Add / switch account)."
         }
     }
 }
@@ -721,7 +721,7 @@ public actor CursorSessionStore {
         let fm = FileManager.default
         let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fm.temporaryDirectory
-        let dir = appSupport.appendingPathComponent("CodexBar", isDirectory: true)
+        let dir = appSupport.appendingPathComponent(AppIdentity.applicationSupportDirectoryName, isDirectory: true)
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         self.fileURL = dir.appendingPathComponent("cursor-session.json")
 

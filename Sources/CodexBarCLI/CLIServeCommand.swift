@@ -450,7 +450,7 @@ extension CodexBarCLI {
 
         do {
             try await server.run {
-                Self.writeStderr("CodexBar server listening on http://127.0.0.1:\(port)\n")
+                Self.writeStderr("\(AppIdentity.displayName) server listening on http://127.0.0.1:\(port)\n")
             }
         } catch {
             await Self.shutdownServeSessions()

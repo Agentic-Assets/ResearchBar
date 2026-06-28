@@ -28,7 +28,7 @@ struct ChutesProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "chutes-api-key",
                 title: "API key",
-                subtitle: "Stored in ~/.codexbar/config.json. Paste a Chutes API key.",
+                subtitle: "Stored in ~/.config/researchbar/config.json. Paste a Chutes API key.",
                 kind: .secure,
                 placeholder: "chutes key...",
                 binding: context.stringBinding(\.chutesAPIKey),

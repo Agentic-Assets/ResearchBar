@@ -50,12 +50,12 @@ The response parser tolerates both a direct object and common envelope shapes (`
 
 ## Token accounts
 
-Manus supports multiple accounts via the standard token-account mechanism. Add entries to `~/.codexbar/config.json` (`tokenAccounts`) with the full `Cookie:` header (containing `session_id=...`), then switch between accounts from the menu.
+Manus supports multiple accounts via the standard token-account mechanism. Add entries to `~/.config/researchbar/config.json` (`tokenAccounts`) with the full `Cookie:` header (containing `session_id=...`), then switch between accounts from the menu.
 
 ## CLI
 
 ```bash
-codexbar usage --provider manus --verbose
+researchbar usage --provider manus --verbose
 ```
 
 ## Troubleshooting

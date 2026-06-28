@@ -28,9 +28,10 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     private static let defaultMenuRefreshEnabled = !SettingsStore.isRunningTests
     private(set) static var menuRefreshEnabled = !SettingsStore.isRunningTests
     static let quotaWarningFlashDuration: TimeInterval = 60
-    private nonisolated static let statusItemAccessibilityTitle = "CodexBar"
-    private nonisolated static let statusItemAccessibilityIdentifierPrefix = "CodexBar.StatusItem"
+    private nonisolated static let statusItemAccessibilityTitle = "ResearchBar"
+    private nonisolated static let statusItemAccessibilityIdentifierPrefix = "ResearchBar.StatusItem"
     private nonisolated static let mergedLegacyDefaultItemIndex = 0
+    private nonisolated static let corbisMCPBaseURL = URL(string: "https://www.corbis.ai")!
 
     enum StatusItemIdentity {
         case merged
@@ -39,9 +40,9 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         var autosaveName: String {
             switch self {
             case .merged:
-                "codexbar-merged"
+                "researchbar-merged"
             case let .provider(provider):
-                "codexbar-\(provider.rawValue)"
+                "researchbar-\(provider.rawValue)"
             }
         }
 
@@ -104,6 +105,9 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let updater: UpdaterProviding
     let managedCodexAccountCoordinator: ManagedCodexAccountCoordinator
     let codexAccountPromotionCoordinator: CodexAccountPromotionCoordinator
+    let corbisCredentialStore: KeychainCorbisCredentialStore
+    let researchPulseCache: FileResearchPulseCache
+    let researchPulseRefreshCoordinator: ResearchPulseRefreshCoordinator
     let statusBar: NSStatusBar
     let menuCardRenderingEnabledForController: Bool
     let menuRefreshEnabledForController: Bool
@@ -259,10 +263,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     var screenChangeVisibilityTask: Task<Void, Never>?
     let loginLogger = CodexBarLog.logger(LogCategories.login)
     let menuLogger = CodexBarLog.logger(LogCategories.app)
-    var selectedMenuProvider: UsageProvider? {
-        get { self.settings.selectedMenuProvider }
-        set { self.settings.selectedMenuProvider = newValue }
-    }
+    var researchPulseMenuInput: ResearchPulseMenuInput = .notConnected
 
     private static func makeStatusItem(
         statusBar: NSStatusBar,
@@ -389,6 +390,14 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
                     settingsStore: settings,
                     usageStore: store,
                     managedAccountCoordinator: managedCodexAccountCoordinator)
+        let corbisCredentialStore = KeychainCorbisCredentialStore()
+        let researchPulseCache = FileResearchPulseCache()
+        self.corbisCredentialStore = corbisCredentialStore
+        self.researchPulseCache = researchPulseCache
+        self.researchPulseRefreshCoordinator = ResearchPulseRefreshCoordinator(
+            credentialStore: corbisCredentialStore,
+            cache: researchPulseCache,
+            client: CorbisMCPClient(baseURL: Self.corbisMCPBaseURL))
         self.lastConfigRevision = settings.configRevision
         self.lastProviderOrder = settings.providerOrder
         self.lastMergeIcons = settings.mergeIcons
@@ -418,6 +427,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         self.wireBindings()
         self.updateVisibility()
         self.updateIcons()
+        self.updateResearchBarStatusAccessibility()
         self.scheduleCodexAccountMenuProjectionRevalidationIfNeeded(
             for: self.store.enabledProvidersForDisplay())
         self.scheduleStartupStatusItemVisibilityCheck()
@@ -706,6 +716,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         }
         self.updateAnimationState()
         self.updateBlinkingState()
+        self.updateResearchBarStatusAccessibility()
     }
 
     var isMergedMenuOpen: Bool {
@@ -965,6 +976,11 @@ extension StatusItemController {
 #endif
 
 extension StatusItemController {
+    var selectedMenuProvider: UsageProvider? {
+        get { self.settings.selectedMenuProvider }
+        set { self.settings.selectedMenuProvider = newValue }
+    }
+
     private func legacyDefaultItemIndex(forNewProvider provider: UsageProvider) -> Int? {
         let visibleProviders = self.settings.orderedProviders().filter { self.isVisible($0) }
         guard let providerOffset = visibleProviders.firstIndex(of: provider) else { return nil }

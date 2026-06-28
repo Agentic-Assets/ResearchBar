@@ -543,7 +543,8 @@ public struct TTYCommandRunner {
         let resolvedURL = URL(fileURLWithPath: resolved)
         let isClaudeCLI = Self.isClaudeBinary(requested: binary, resolved: resolved, environment: baseEnv)
         if isClaudeCLI,
-           let watchdog = Self.locateBundledHelper("CodexBarClaudeWatchdog")
+           let watchdog = Self.locateBundledHelper("ResearchBarClaudeWatchdog")
+           ?? Self.locateBundledHelper("CodexBarClaudeWatchdog")
         {
             proc.executableURL = URL(fileURLWithPath: watchdog)
             proc.arguments = ["--", resolved] + options.extraArgs

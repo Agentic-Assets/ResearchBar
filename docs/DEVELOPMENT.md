@@ -6,7 +6,7 @@ read_when:
   - Troubleshooting Keychain prompts in dev
 ---
 
-# CodexBar Development Guide
+# ResearchBar Development Guide
 
 ## Quick Start
 
@@ -30,9 +30,9 @@ read_when:
 
 1. **Make code changes** in `Sources/CodexBar/`
 2. **Run** `./Scripts/compile_and_run.sh --test` to test, rebuild, and launch
-3. **Check logs** in Console.app (filter by "codexbar")
+3. **Check logs** in Console.app (filter by "com.corbis.researchbar")
 4. **Optional file log**: enable Debug → Logging → "Enable file logging" to write
-   `~/Library/Logs/CodexBar/CodexBar.log` (verbosity defaults to "Verbose")
+   `~/Library/Logs/ResearchBar/ResearchBar.log` (verbosity defaults to "Verbose")
 
 ## Keychain Prompts (Development)
 
@@ -40,7 +40,7 @@ read_when:
 You'll see **one keychain prompt per stored credential** on the first launch. This is a **one-time migration** that converts existing keychain items to use `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`.
 
 ### Subsequent Rebuilds
-The migration flag is stored in UserDefaults, so migrated CodexBar-owned items should not prompt again. Ad-hoc
+The migration flag is stored in UserDefaults, so migrated ResearchBar-owned items should not prompt again. Ad-hoc
 signing can still prompt for other keychain surfaces; use `./Scripts/compile_and_run.sh --clear-adhoc-keychain`
 when you intentionally want to reset ad-hoc keychain state.
 
@@ -52,13 +52,13 @@ when you intentionally want to reset ad-hoc keychain state.
 
 ### Reset Migration (Testing)
 ```bash
-defaults delete com.steipete.codexbar KeychainMigrationV1Completed
+defaults delete com.corbis.researchbar KeychainMigrationV1Completed
 ```
 
 ## Augment Cookie Refresh
 
 ### How It Works
-CodexBar checks Augment through the provider fetch pipeline. Auto mode tries the Augment CLI first, then the
+ResearchBar checks Augment through the provider fetch pipeline. Auto mode tries the Augment CLI first, then the
 browser-cookie web path. The web path reuses cached cookies when possible and imports from supported browsers when
 the cache is missing or rejected.
 
@@ -79,7 +79,7 @@ If automatic import fails:
 ## Project Structure
 
 ```
-CodexBar/
+ResearchBar/
 ├── Sources/CodexBar/          # Main app (SwiftUI + AppKit)
 │   ├── CodexBarApp.swift      # App entry point
 │   ├── StatusItemController.swift  # Menu bar icon
@@ -110,7 +110,7 @@ CodexBar/
 1. Enable Debug → Logging → "Enable file logging" or raise verbosity in the app settings.
 2. Reproduce with `./Scripts/compile_and_run.sh`.
 3. Check logs in Console.app:
-   - Filter: `subsystem:com.steipete.codexbar category:augment`
+   - Filter: `subsystem:com.corbis.researchbar category:augment`
    - Importer messages include the `[augment-cookie]` prefix
 
 ### Run Tests Only
@@ -129,13 +129,13 @@ swiftlint --strict
 ### Local Development Build
 ```bash
 ./Scripts/package_app.sh
-# Creates: CodexBar.app (Developer ID by default; set CODEXBAR_SIGNING=adhoc for ad-hoc signing)
+# Creates: ResearchBar.app (Developer ID by default; set CODEXBAR_SIGNING=adhoc for ad-hoc signing)
 ```
 
 ### Release Build (Notarized)
 ```bash
 ./Scripts/sign-and-notarize.sh
-# Creates: CodexBar-<version>.zip and CodexBar-<version>.dSYM.zip
+# Creates: ResearchBar-<version>.zip and ResearchBar-<version>.dSYM.zip
 ```
 
 See `docs/RELEASING.md` for full release process.
@@ -145,16 +145,16 @@ See `docs/RELEASING.md` for full release process.
 ### App Won't Launch
 ```bash
 # Check crash logs
-ls -lt ~/Library/Logs/DiagnosticReports/CodexBar* | head -5
+ls -lt ~/Library/Logs/DiagnosticReports/ResearchBar* ~/Library/Logs/DiagnosticReports/CodexBar* 2>/dev/null | head -5
 
 # Check Console.app for errors
-# Filter: process:CodexBar
+# Filter: process:CodexBar or subsystem:com.corbis.researchbar
 ```
 
 ### Keychain Prompts Keep Appearing
 ```bash
 # Verify migration completed
-defaults read com.steipete.codexbar KeychainMigrationV1Completed
+defaults read com.corbis.researchbar KeychainMigrationV1Completed
 # Should output: 1
 
 # Check migration logs
@@ -170,17 +170,17 @@ log show --predicate 'category == "keychain-migration"' --last 5m
 ### Main-Thread Hangs
 
 Debug builds start the hang watchdog automatically. To diagnose a release build,
-enable it explicitly and restart CodexBar:
+enable it explicitly and restart ResearchBar:
 
 ```bash
-defaults write com.steipete.codexbar debugMainThreadHangWatchdog -bool true
+defaults write com.corbis.researchbar debugMainThreadHangWatchdog -bool true
 ```
 
 Hangs are written to the app log. Hangs over two seconds also request a process
-sample under `~/Library/Logs/CodexBar/`. Disable the release opt-in with:
+sample under `~/Library/Logs/ResearchBar/`. Disable the release opt-in with:
 
 ```bash
-defaults delete com.steipete.codexbar debugMainThreadHangWatchdog
+defaults delete com.corbis.researchbar debugMainThreadHangWatchdog
 ```
 
 ## Architecture Notes
@@ -194,7 +194,7 @@ defaults delete com.steipete.codexbar debugMainThreadHangWatchdog
 ### Cookie Management
 - Automatic browser import via SweetCookieKit
 - Keychain cache for some imported browser cookies and OAuth/device-flow credentials
-- `~/.codexbar/config.json` for provider settings, manual cookies, and stored API keys
+- `~/.config/researchbar/config.json` for provider settings, manual cookies, and stored API keys
 - Manual override for debugging
 - Browser-cookie import when cached sessions need refresh
 

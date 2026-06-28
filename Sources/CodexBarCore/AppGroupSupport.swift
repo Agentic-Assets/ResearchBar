@@ -4,10 +4,10 @@ import Security
 #endif
 
 public enum AppGroupSupport {
-    public static let defaultTeamID = "Y5PE65HELJ"
-    public static let teamIDInfoKey = "CodexBarTeamID"
-    public static let legacyReleaseGroupID = "group.com.steipete.codexbar"
-    public static let legacyDebugGroupID = "group.com.steipete.codexbar.debug"
+    public static let defaultTeamID = AppIdentity.defaultTeamID
+    public static let teamIDInfoKey = AppIdentity.teamIDInfoKey
+    public static let legacyReleaseGroupID = AppIdentity.legacyReleaseGroupID
+    public static let legacyDebugGroupID = AppIdentity.legacyDebugGroupID
     public static let widgetSnapshotFilename = "widget-snapshot.json"
     public static let migrationVersion = 1
     public static let migrationVersionKey = "appGroupMigrationVersion"
@@ -40,8 +40,7 @@ public enum AppGroupSupport {
     }
 
     static func currentGroupID(teamID: String, bundleID: String?) -> String {
-        let base = "\(teamID).com.steipete.codexbar"
-        return self.isDebugBundleID(bundleID) ? "\(base).debug" : base
+        AppIdentity.groupID(teamID: teamID, bundleID: bundleID)
     }
 
     public static func resolvedTeamID(bundle: Bundle = .main) -> String {
@@ -66,7 +65,7 @@ public enum AppGroupSupport {
     }
 
     public static func legacyGroupID(for bundleID: String? = Bundle.main.bundleIdentifier) -> String {
-        self.isDebugBundleID(bundleID) ? self.legacyDebugGroupID : self.legacyReleaseGroupID
+        AppIdentity.legacyGroupID(bundleID: bundleID)
     }
 
     public static func sharedDefaults(
@@ -111,7 +110,7 @@ public enum AppGroupSupport {
     {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
-        let directory = base.appendingPathComponent("CodexBar", isDirectory: true)
+        let directory = base.appendingPathComponent(AppIdentity.applicationSupportDirectoryName, isDirectory: true)
         try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory
     }
@@ -212,8 +211,7 @@ public enum AppGroupSupport {
     }
 
     private static func isDebugBundleID(_ bundleID: String?) -> Bool {
-        guard let bundleID, !bundleID.isEmpty else { return false }
-        return bundleID.contains(".debug")
+        AppIdentity.isDebugBundleID(bundleID)
     }
 
     private static func codeSignatureTeamID(bundleURL: URL?) -> String? {

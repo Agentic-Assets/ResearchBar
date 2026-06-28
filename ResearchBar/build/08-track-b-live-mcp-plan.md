@@ -135,7 +135,9 @@ curl -s -X POST "$BASE/api/mcp/universal" \
 rg -i 'openalex|semantic scholar|ssrn|backend|sourceId|authorId|openalexId' /tmp/research-pulse.json
 ```
 
-The final `rg` must return no matches.
+The final `rg` must return no matches. This payload smoke does not prove the
+billing gate by itself: record the before/after credit balance with a
+finite-credit free-tier token before marking the 0.5-credit delta complete.
 
 ## Done when
 

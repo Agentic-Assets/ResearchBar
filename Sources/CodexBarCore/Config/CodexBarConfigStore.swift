@@ -8,17 +8,18 @@ public enum CodexBarConfigStoreError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidURL:
-            "Invalid CodexBar config path."
+            "Invalid ResearchBar config path."
         case let .decodeFailed(details):
-            "Failed to decode CodexBar config: \(details)"
+            "Failed to decode ResearchBar config: \(details)"
         case let .encodeFailed(details):
-            "Failed to encode CodexBar config: \(details)"
+            "Failed to encode ResearchBar config: \(details)"
         }
     }
 }
 
 public struct CodexBarConfigStore: @unchecked Sendable {
-    public static let pathEnvironmentKey = "CODEXBAR_CONFIG"
+    public static let pathEnvironmentKey = AppIdentity.configPathEnvironmentKey
+    public static let legacyPathEnvironmentKey = AppIdentity.legacyConfigPathEnvironmentKey
     public static let xdgConfigHomeEnvironmentKey = "XDG_CONFIG_HOME"
 
     public let fileURL: URL
@@ -85,6 +86,13 @@ public struct CodexBarConfigStore: @unchecked Sendable {
             return URL(fileURLWithPath: expanded)
         }
 
+        if let override = environment[legacyPathEnvironmentKey]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !override.isEmpty
+        {
+            let expanded = (override as NSString).expandingTildeInPath
+            return URL(fileURLWithPath: expanded)
+        }
+
         if let xdgConfigHome = environment[xdgConfigHomeEnvironmentKey]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
             !xdgConfigHome.isEmpty
@@ -92,27 +100,15 @@ public struct CodexBarConfigStore: @unchecked Sendable {
             let expanded = (xdgConfigHome as NSString).expandingTildeInPath
             if (expanded as NSString).isAbsolutePath {
                 return URL(fileURLWithPath: expanded, isDirectory: true)
-                    .appendingPathComponent("codexbar", isDirectory: true)
+                    .appendingPathComponent(AppIdentity.xdgConfigDirectoryName, isDirectory: true)
                     .appendingPathComponent("config.json")
             }
         }
 
-        let xdgDefault = home
+        return home
             .appendingPathComponent(".config", isDirectory: true)
-            .appendingPathComponent("codexbar", isDirectory: true)
+            .appendingPathComponent(AppIdentity.xdgConfigDirectoryName, isDirectory: true)
             .appendingPathComponent("config.json")
-        if fileManager.fileExists(atPath: xdgDefault.path) {
-            return xdgDefault
-        }
-
-        let legacy = home
-            .appendingPathComponent(".codexbar", isDirectory: true)
-            .appendingPathComponent("config.json")
-        if fileManager.fileExists(atPath: legacy.path) {
-            return legacy
-        }
-
-        return xdgDefault
     }
 
     private func applySecurePermissionsIfNeeded() throws {

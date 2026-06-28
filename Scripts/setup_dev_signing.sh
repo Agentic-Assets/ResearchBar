@@ -9,7 +9,7 @@ echo "reducing keychain permission prompts."
 echo ""
 
 # Check if we already have a CodexBar development certificate
-CERT_NAME="CodexBar Development"
+CERT_NAME="ResearchBar Development"
 if security find-certificate -c "$CERT_NAME" >/dev/null 2>&1; then
     echo "✅ Certificate '$CERT_NAME' already exists!"
     echo ""
@@ -36,7 +36,7 @@ prompt = no
 
 [ req_distinguished_name ]
 CN = $CERT_NAME
-O = CodexBar Development
+O = ResearchBar Development
 C = US
 
 [ v3_req ]
@@ -77,4 +77,3 @@ echo ""
 echo "    export APP_IDENTITY='$CERT_NAME'"
 echo ""
 echo "Restart your terminal and rebuild with ./Scripts/compile_and_run.sh"
-

@@ -1,0 +1,28 @@
+{
+  "profileStatus": "linked_researcher",
+  "displayName": "Dr. Example Researcher",
+  "affiliation": "Example University",
+  "role": null,
+  "sector": null,
+  "companyName": null,
+  "plan": "free",
+  "creditsRemaining": 50.0,
+  "orcid": "0000-0000-0000-0000",
+  "googleScholarId": null,
+  "googleScholarUrl": null,
+  "totalCitations": 1284,
+  "hIndex": 11,
+  "trackedPaperCount": 18,
+  "citationDelta7d": null,
+  "citationDelta52w": null,
+  "sparkline52w": null,
+  "citationHistoryStatus": "not_yet_tracked",
+  "lowConfidence": { "identity": false, "citations": false, "reason": null },
+  "profileLinks": [
+    { "label": "ORCID", "url": "https://orcid.org/0000-0000-0000-0000" },
+    { "label": "Personal site", "url": "https://example.edu/~researcher" }
+  ],
+  "fetchedAt": "2026-06-26T16:00:00.000Z",
+  "staleAfter": "2026-06-26T22:00:00.000Z",
+  "etag": "sha256:redactedexampleetag"
+}

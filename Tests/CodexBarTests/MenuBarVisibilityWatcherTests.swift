@@ -67,9 +67,9 @@ struct MenuBarVisibilityWatcherTests {
     @Test
     func `window probe matches autosave name and reports display bounds`() {
         let snapshots = MenuBarStatusItemWindowProbe.snapshots(
-            matching: ["codexbar-merged"],
+            matching: ["researchbar-merged"],
             windowInfo: [[
-                kCGWindowName as String: "codexbar-merged",
+                kCGWindowName as String: "researchbar-merged",
                 kCGWindowOwnerName as String: "Control Center",
                 kCGWindowIsOnscreen as String: true,
                 kCGWindowBounds as String: [
@@ -82,7 +82,7 @@ struct MenuBarVisibilityWatcherTests {
             displayBounds: [CGRect(x: 0, y: 0, width: 2056, height: 1329)])
 
         #expect(snapshots.count == 1)
-        #expect(snapshots.first?.name == "codexbar-merged")
+        #expect(snapshots.first?.name == "researchbar-merged")
         #expect(snapshots.first?.ownerName == "Control Center")
         #expect(snapshots.first?.isOnscreen == true)
         #expect(snapshots.first?.isWithinDisplayBounds == true)
@@ -91,9 +91,9 @@ struct MenuBarVisibilityWatcherTests {
     @Test
     func `window probe detects offscreen status item by bounds`() {
         let snapshots = MenuBarStatusItemWindowProbe.snapshots(
-            matching: ["codexbar-merged"],
+            matching: ["researchbar-merged"],
             windowInfo: [[
-                kCGWindowName as String: "codexbar-merged",
+                kCGWindowName as String: "researchbar-merged",
                 kCGWindowOwnerName as String: "Control Center",
                 kCGWindowIsOnscreen as String: true,
                 kCGWindowBounds as String: [
@@ -113,7 +113,7 @@ struct MenuBarVisibilityWatcherTests {
     @Test
     func `window probe identifies Tahoe Control Center blocked proxy geometry`() {
         let snapshot = MenuBarStatusItemWindowSnapshot(
-            name: "codexbar-merged",
+            name: "researchbar-merged",
             ownerName: "Control Center",
             bounds: CGRect(x: 0, y: -22, width: 76, height: 22),
             isOnscreen: true,
@@ -125,7 +125,7 @@ struct MenuBarVisibilityWatcherTests {
     @Test
     func `window probe does not classify generic offscreen manager placement as Tahoe proxy`() {
         let snapshot = MenuBarStatusItemWindowSnapshot(
-            name: "codexbar-merged",
+            name: "researchbar-merged",
             ownerName: "Control Center",
             bounds: CGRect(x: 2023, y: 0, width: 71, height: 24),
             isOnscreen: true,
@@ -137,7 +137,7 @@ struct MenuBarVisibilityWatcherTests {
     @Test
     func `window probe does not classify stale hidden Control Center record as Tahoe proxy`() {
         let snapshot = MenuBarStatusItemWindowSnapshot(
-            name: "codexbar-merged",
+            name: "researchbar-merged",
             ownerName: "Control Center",
             bounds: CGRect(x: 0, y: -22, width: 76, height: 22),
             isOnscreen: false,
@@ -232,7 +232,7 @@ struct MenuBarVisibilityWatcherTests {
             isOnCurrentScreen: false,
             buttonWidth: 76)
         let blockedWindow = MenuBarStatusItemWindowSnapshot(
-            name: "codexbar-merged",
+            name: "researchbar-merged",
             ownerName: "Control Center",
             bounds: CGRect(x: 0, y: -22, width: 76, height: 22),
             isOnscreen: true,

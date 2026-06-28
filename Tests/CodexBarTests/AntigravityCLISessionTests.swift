@@ -916,13 +916,13 @@ struct AntigravityCLISessionTests {
             startEpoch: 42,
             processGroup: 777,
             ownerPID: 900,
-            ownerExecutablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            ownerExecutablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             ownerStartEpoch: 10))
         let fixture = self.makeFixture(store: store, currentProcessID: 901)
         fixture.identity.setIdentity(pid: 777, executablePath: "/bin/agy", startEpoch: 42)
         fixture.identity.setIdentity(
             pid: 900,
-            executablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            executablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             startEpoch: 10)
 
         await fixture.session.reset()
@@ -940,17 +940,17 @@ struct AntigravityCLISessionTests {
             startEpoch: 42,
             processGroup: 777,
             ownerPID: 900,
-            ownerExecutablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            ownerExecutablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             ownerStartEpoch: 10)
         let store = MemoryAntigravitySessionRecordStore(record: protectedRecord)
         let fixture = self.makeFixture(store: store, currentProcessID: 901)
         fixture.identity.setIdentity(pid: 777, executablePath: "/bin/agy", startEpoch: 42)
         fixture.identity.setIdentity(
             pid: 900,
-            executablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            executablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             startEpoch: 10)
         fixture.identity.setIdentity(pid: 10, executablePath: "/bin/agy", startEpoch: 100)
-        fixture.identity.setIdentity(pid: 901, executablePath: "/app/codexbar", startEpoch: 20)
+        fixture.identity.setIdentity(pid: 901, executablePath: "/app/researchbar", startEpoch: 20)
 
         _ = try await fixture.session.beginProbe(binary: "/bin/agy")
 
@@ -972,17 +972,17 @@ struct AntigravityCLISessionTests {
             startEpoch: 42,
             processGroup: 777,
             ownerPID: 900,
-            ownerExecutablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            ownerExecutablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             ownerStartEpoch: 10)
         let store = MemoryAntigravitySessionRecordStore(record: protectedRecord)
         let fixture = self.makeFixture(store: store, currentProcessID: 901)
         fixture.identity.setIdentity(pid: 777, executablePath: "/bin/agy", startEpoch: 42)
         fixture.identity.setIdentity(
             pid: 900,
-            executablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            executablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             startEpoch: 10)
         fixture.identity.setIdentity(pid: 10, executablePath: "/new/agy", startEpoch: 100)
-        fixture.identity.setIdentity(pid: 901, executablePath: "/app/codexbar", startEpoch: 20)
+        fixture.identity.setIdentity(pid: 901, executablePath: "/app/researchbar", startEpoch: 20)
 
         _ = try await fixture.session.beginProbe(binary: "/new/agy")
 
@@ -1004,7 +1004,7 @@ struct AntigravityCLISessionTests {
         identity.setIdentity(pid: 10, executablePath: "/bin/agy", startEpoch: 100)
         identity.setIdentity(pid: 20, executablePath: "/bin/agy", startEpoch: 200)
         identity.setIdentity(pid: 900, executablePath: "/app/CodexBar", startEpoch: 1)
-        identity.setIdentity(pid: 901, executablePath: "/app/codexbar", startEpoch: 2)
+        identity.setIdentity(pid: 901, executablePath: "/app/researchbar", startEpoch: 2)
         let first = self.makeFixture(
             launcher: firstLauncher,
             identity: identity,
@@ -1043,7 +1043,7 @@ extension AntigravityCLISessionTests {
         identity.setIdentity(pid: 10, executablePath: "/bin/agy", startEpoch: 100)
         identity.setIdentity(pid: 20, executablePath: "/bin/agy", startEpoch: 200)
         identity.setIdentity(pid: 900, executablePath: "/app/CodexBar", startEpoch: 1)
-        identity.setIdentity(pid: 901, executablePath: "/app/codexbar", startEpoch: 2)
+        identity.setIdentity(pid: 901, executablePath: "/app/researchbar", startEpoch: 2)
         let first = self.makeFixture(
             launcher: firstLauncher,
             identity: identity,
@@ -1098,7 +1098,7 @@ extension AntigravityCLISessionTests {
             startEpoch: 200,
             processGroup: 20,
             ownerPID: 901,
-            ownerExecutablePath: "/app/codexbar",
+            ownerExecutablePath: "/app/researchbar",
             ownerStartEpoch: 2)
         try store.save(second)
         #expect(try Set(store.load().map(\.pid)) == [10, 20])
@@ -1120,18 +1120,18 @@ extension AntigravityCLISessionTests {
             startEpoch: 42,
             processGroup: 777,
             ownerPID: 900,
-            ownerExecutablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            ownerExecutablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             ownerStartEpoch: 10)
         let store = MemoryAntigravitySessionRecordStore(record: protectedRecord)
         let fixture = self.makeFixture(store: store, currentProcessID: 901)
         fixture.identity.setIdentity(pid: 777, executablePath: "/bin/agy", startEpoch: 42)
         fixture.identity.setIdentity(
             pid: 900,
-            executablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            executablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             startEpoch: 10)
         fixture.identity.setIdentity(
             pid: 901,
-            executablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            executablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             startEpoch: 20)
         fixture.identity.setIdentity(pid: 10, executablePath: "/bin/agy", startEpoch: 100)
 
@@ -1156,13 +1156,13 @@ extension AntigravityCLISessionTests {
             startEpoch: 42,
             processGroup: 777,
             ownerPID: 900,
-            ownerExecutablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            ownerExecutablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             ownerStartEpoch: 10))
         let fixture = self.makeFixture(store: store, currentProcessID: 901)
         fixture.identity.setIdentity(pid: 777, executablePath: "/bin/agy", startEpoch: 42)
         fixture.identity.setIdentity(
             pid: 900,
-            executablePath: "/Applications/CodexBar.app/Contents/MacOS/CodexBar",
+            executablePath: "/Applications/ResearchBar.app/Contents/MacOS/ResearchBar",
             startEpoch: 10)
 
         await fixture.session.reset()

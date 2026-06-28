@@ -5,6 +5,7 @@ import SwiftUI
 enum PreferencesTab: String, CaseIterable, Hashable {
     case general
     case providers
+    case research
     case display
     case advanced
     case about
@@ -18,6 +19,8 @@ enum PreferencesTab: String, CaseIterable, Hashable {
         switch self {
         case .general: L("tab_general")
         case .providers: L("tab_providers")
+        // ResearchBar Corbis tab: a literal title avoids touching the localization catalogs.
+        case .research: "Research"
         case .display: L("tab_display")
         case .advanced: L("tab_advanced")
         case .about: L("tab_about")
@@ -43,9 +46,12 @@ struct PreferencesView: View {
     let managedCodexAccountCoordinator: ManagedCodexAccountCoordinator
     let codexAccountPromotionCoordinator: CodexAccountPromotionCoordinator
     let runProviderLoginFlow: @MainActor (UsageProvider) async -> Void
+    let corbisCredentialStore: KeychainCorbisCredentialStore
+    let researchPulseCache: FileResearchPulseCache
     @Environment(\.colorScheme) private var colorScheme
     @State private var contentWidth: CGFloat = PreferencesTab.general.preferredWidth
     @State private var contentHeight: CGFloat = PreferencesTab.general.preferredHeight
+    @State private var corbisSettingsModel = CorbisSettingsModel()
 
     init(
         settings: SettingsStore,
@@ -54,7 +60,9 @@ struct PreferencesView: View {
         selection: PreferencesSelection,
         managedCodexAccountCoordinator: ManagedCodexAccountCoordinator = ManagedCodexAccountCoordinator(),
         codexAccountPromotionCoordinator: CodexAccountPromotionCoordinator? = nil,
-        runProviderLoginFlow: @escaping @MainActor (UsageProvider) async -> Void = { _ in })
+        runProviderLoginFlow: @escaping @MainActor (UsageProvider) async -> Void = { _ in },
+        corbisCredentialStore: KeychainCorbisCredentialStore = KeychainCorbisCredentialStore(),
+        researchPulseCache: FileResearchPulseCache = FileResearchPulseCache())
     {
         self.settings = settings
         self.store = store
@@ -67,6 +75,8 @@ struct PreferencesView: View {
                 usageStore: store,
                 managedAccountCoordinator: managedCodexAccountCoordinator)
         self.runProviderLoginFlow = runProviderLoginFlow
+        self.corbisCredentialStore = corbisCredentialStore
+        self.researchPulseCache = researchPulseCache
     }
 
     var body: some View {
@@ -83,6 +93,10 @@ struct PreferencesView: View {
                 runProviderLoginFlow: self.runProviderLoginFlow)
                 .tabItem { Label(L("tab_providers"), systemImage: "square.grid.2x2") }
                 .tag(PreferencesTab.providers)
+
+            CorbisSettingsView(model: self.corbisSettingsModel)
+                .tabItem { Label("Research", systemImage: "graduationcap") }
+                .tag(PreferencesTab.research)
 
             DisplayPane(settings: self.settings, store: self.store)
                 .tabItem { Label(L("tab_display"), systemImage: "eye") }
@@ -111,6 +125,8 @@ struct PreferencesView: View {
                 .allowsHitTesting(false)
         }
         .onAppear {
+            self.configureCorbisSettingsModel()
+            self.loadCorbisConnectionState()
             self.updateLayout(for: self.selection.tab, animate: false)
             self.ensureValidTabSelection()
         }
@@ -160,6 +176,65 @@ struct PreferencesView: View {
         if !self.settings.debugMenuEnabled, self.selection.tab == .debug {
             self.selection.tab = .general
             self.updateLayout(for: .general, animate: true)
+        }
+    }
+
+    private func configureCorbisSettingsModel() {
+        self.corbisSettingsModel.onConnect = { [corbisCredentialStore, researchPulseCache, corbisSettingsModel] token in
+            Task { @MainActor in
+                corbisSettingsModel.connectionState = .connecting
+                let credential = CorbisCredential(
+                    token: token,
+                    accountID: nil,
+                    displayEmail: nil,
+                    createdAt: Date(),
+                    lastValidatedAt: nil)
+                do {
+                    try await corbisCredentialStore.saveCredential(credential)
+                    await researchPulseCache.clearAll()
+                    corbisSettingsModel.tokenField = ""
+                    corbisSettingsModel.displayEmail = credential.displayEmail
+                    corbisSettingsModel.connectionState = .connected(credential.accountIdentity())
+                } catch {
+                    corbisSettingsModel.connectionState = .invalid
+                }
+            }
+        }
+
+        self.corbisSettingsModel.onUnlink = { [corbisCredentialStore, researchPulseCache, corbisSettingsModel] in
+            Task { @MainActor in
+                do {
+                    try await corbisCredentialStore.deleteCredential()
+                    await researchPulseCache.clearAll()
+                    corbisSettingsModel.tokenField = ""
+                    corbisSettingsModel.displayEmail = nil
+                    corbisSettingsModel.connectionState = .notConnected
+                } catch {
+                    corbisSettingsModel.connectionState = .invalid
+                }
+            }
+        }
+
+        self.corbisSettingsModel.onClearCache = { [researchPulseCache] in
+            Task {
+                await researchPulseCache.clearAll()
+            }
+        }
+    }
+
+    private func loadCorbisConnectionState() {
+        Task { @MainActor in
+            do {
+                guard let credential = try await self.corbisCredentialStore.loadCredential() else {
+                    self.corbisSettingsModel.connectionState = .notConnected
+                    self.corbisSettingsModel.displayEmail = nil
+                    return
+                }
+                self.corbisSettingsModel.displayEmail = credential.displayEmail
+                self.corbisSettingsModel.connectionState = .connected(credential.accountIdentity())
+            } catch {
+                self.corbisSettingsModel.connectionState = .invalid
+            }
         }
     }
 }

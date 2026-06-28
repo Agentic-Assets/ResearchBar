@@ -27,7 +27,7 @@ struct LLMProxyProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "llmproxy-api-key",
                 title: "API key",
-                subtitle: "Stored in ~/.codexbar/config.json. Used for /v1/quota-stats.",
+                subtitle: "Stored in ~/.config/researchbar/config.json. Used for /v1/quota-stats.",
                 kind: .secure,
                 placeholder: "proxy key…",
                 binding: context.stringBinding(\.llmProxyAPIKey),

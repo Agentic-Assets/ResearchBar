@@ -113,7 +113,7 @@ struct MiniMaxProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "minimax-api-token",
                 title: "API token",
-                subtitle: "Stored in ~/.codexbar/config.json. Paste your MiniMax API key.",
+                subtitle: "Stored in ~/.config/researchbar/config.json. Paste your MiniMax API key.",
                 kind: .secure,
                 placeholder: "Paste API token…",
                 binding: context.stringBinding(\.minimaxAPIToken),

@@ -1063,7 +1063,7 @@ struct UsageStorePlanUtilizationTests {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         let directoryURL = root
-            .appendingPathComponent("com.steipete.codexbar", isDirectory: true)
+            .appendingPathComponent("com.corbis.researchbar", isDirectory: true)
             .appendingPathComponent("history", isDirectory: true)
         let providerURL = directoryURL.appendingPathComponent("codex.json")
         let store = PlanUtilizationHistoryStore(directoryURL: directoryURL)
@@ -1089,7 +1089,7 @@ struct UsageStorePlanUtilizationTests {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         let directoryURL = root
-            .appendingPathComponent("com.steipete.codexbar", isDirectory: true)
+            .appendingPathComponent("com.corbis.researchbar", isDirectory: true)
             .appendingPathComponent("history", isDirectory: true)
         let providerURL = directoryURL.appendingPathComponent("codex.json")
         let store = PlanUtilizationHistoryStore(directoryURL: directoryURL)
@@ -1147,7 +1147,7 @@ struct UsageStorePlanUtilizationTests {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         let directoryURL = root
-            .appendingPathComponent("com.steipete.codexbar", isDirectory: true)
+            .appendingPathComponent("com.corbis.researchbar", isDirectory: true)
             .appendingPathComponent("history", isDirectory: true)
         let store = PlanUtilizationHistoryStore(directoryURL: directoryURL)
         let buckets = PlanUtilizationHistoryBuckets(

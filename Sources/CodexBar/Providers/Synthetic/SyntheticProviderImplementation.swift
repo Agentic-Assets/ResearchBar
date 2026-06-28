@@ -30,7 +30,7 @@ struct SyntheticProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "synthetic-api-key",
                 title: "API key",
-                subtitle: "Stored in ~/.codexbar/config.json. Paste the key from the Synthetic dashboard.",
+                subtitle: "Stored in ~/.config/researchbar/config.json. Paste the key from the Synthetic dashboard.",
                 kind: .secure,
                 placeholder: "Paste key…",
                 binding: context.stringBinding(\.syntheticAPIToken),

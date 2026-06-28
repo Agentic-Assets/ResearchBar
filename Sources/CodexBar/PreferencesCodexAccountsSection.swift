@@ -152,7 +152,7 @@ struct CodexAccountsSectionView: View {
                         Spacer(minLength: 0)
                     }
 
-                    Text(L("Choose which Codex account CodexBar should follow."))
+                    Text(L("Choose which Codex account ResearchBar should follow."))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 

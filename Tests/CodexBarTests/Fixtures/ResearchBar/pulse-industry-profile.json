@@ -1,0 +1,27 @@
+{
+  "profileStatus": "industry_profile",
+  "displayName": "Morgan Reyes",
+  "affiliation": null,
+  "role": "VP of Research",
+  "sector": "Commercial Real Estate",
+  "companyName": "Meridian Capital Partners",
+  "plan": "free",
+  "creditsRemaining": 49.0,
+  "orcid": null,
+  "googleScholarId": null,
+  "googleScholarUrl": null,
+  "totalCitations": null,
+  "hIndex": null,
+  "trackedPaperCount": null,
+  "citationDelta7d": null,
+  "citationDelta52w": null,
+  "sparkline52w": null,
+  "citationHistoryStatus": "not_yet_tracked",
+  "lowConfidence": { "identity": false, "citations": true, "reason": "No publication metrics for an industry profile." },
+  "profileLinks": [
+    { "label": "Company site", "url": "https://meridiancapital.example.com/team/morgan-reyes" }
+  ],
+  "fetchedAt": "2026-06-23T14:00:00Z",
+  "staleAfter": "2026-06-23T20:00:00Z",
+  "etag": "sha256:5d2e10ff"
+}

@@ -17,7 +17,7 @@ Source labels (CLI/header): `openai-web`, `web`, `oauth`, `api`, `local`, `cli`,
 
 Cookie-based providers expose a Cookie source picker (Automatic or Manual) in Settings → Providers.
 Some browser cookie imports are cached in Keychain and reused until the session is invalid. API keys, manual cookie
-headers, source selection, provider ordering, and token accounts are stored in `~/.codexbar/config.json`.
+headers, source selection, provider ordering, and token accounts are stored in `~/.config/researchbar/config.json`.
 
 | Provider | Strategies (ordered for auto) |
 | --- | --- |
@@ -85,13 +85,13 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Details: `docs/codex.md`.
 
 ## OpenAI
-- API key from `~/.codexbar/config.json`, `OPENAI_ADMIN_KEY`, or `OPENAI_API_KEY`.
+- API key from `~/.config/researchbar/config.json`, `OPENAI_ADMIN_KEY`, or `OPENAI_API_KEY`.
 - Admin API keys are preferred and fetch organization costs plus completion usage for inline Today/7d/configured-window dashboards.
 - Normal API keys fall back to the legacy credit-grants balance endpoint when organization usage is unavailable.
 - Details: `docs/openai.md`.
 
 ## Azure OpenAI
-- API key, endpoint, and deployment from `~/.codexbar/config.json` or `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_DEPLOYMENT_NAME`.
+- API key, endpoint, and deployment from `~/.config/researchbar/config.json` or `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_DEPLOYMENT_NAME`.
 - Validates the configured deployment with a minimal chat-completions request; it does not expose Azure spend or quota history.
 - Use `AZURE_OPENAI_API_VERSION` to override the API version. Set it to `v1` for Azure's OpenAI-compatible v1 API path.
 - Status: Azure status page link.
@@ -106,7 +106,7 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Details: `docs/claude.md`.
 
 ## z.ai
-- API token from `~/.codexbar/config.json` (`providers[].apiKey`) or `Z_AI_API_KEY` env var.
+- API token from `~/.config/researchbar/config.json` (`providers[].apiKey`) or `Z_AI_API_KEY` env var.
 - Supports global and BigModel CN quota hosts; override with `Z_AI_API_HOST` or `Z_AI_QUOTA_URL`.
 - Status: none yet.
 - Details: `docs/zai.md`.
@@ -132,21 +132,21 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Details: `docs/minimax.md`.
 
 ## Kimi
-- Kimi Code API key via `~/.codexbar/config.json` or `KIMI_CODE_API_KEY`.
+- Kimi Code API key via `~/.config/researchbar/config.json` or `KIMI_CODE_API_KEY`.
 - Web fallback uses the JWT from `kimi-auth` cookie via manual entry or `KIMI_AUTH_TOKEN` env var.
 - Shows weekly quota and 5-hour rate limit (300 minutes).
 - Status: none yet.
 - Details: `docs/kimi.md`.
 
 ## Kilo
-- API token from `~/.codexbar/config.json` (`providers[].apiKey`) or `KILO_API_KEY`.
+- API token from `~/.config/researchbar/config.json` (`providers[].apiKey`) or `KILO_API_KEY`.
 - Auto mode tries API first and falls back to CLI auth when API credentials are missing or unauthorized.
 - CLI auth source: `~/.local/share/kilo/auth.json` (`kilo.access`), typically created by `kilo login`.
 - Status: none yet.
 - Details: `docs/kilo.md`.
 
 ## Kimi K2 (unofficial)
-- API key via `~/.codexbar/config.json` or `KIMI_K2_API_KEY`/`KIMI_API_KEY` env var.
+- API key via `~/.config/researchbar/config.json` or `KIMI_K2_API_KEY`/`KIMI_API_KEY` env var.
 - Shows credit usage from the legacy `kimi-k2.ai` consumed/remaining totals.
 - Use Moonshot / Kimi API for the official Kimi API account and billing surface.
 - Status: none yet.
@@ -179,7 +179,7 @@ headers, source selection, provider ordering, and token accounts are stored in `
 ## OpenCode Go
 - Web dashboard via browser cookies (`opencode.ai`).
 - Uses the workspace Go page/server data for rolling 5-hour, weekly, and optional monthly usage windows.
-- Optional workspace ID comes from `~/.codexbar/config.json` (`providers[].workspaceID`) or `CODEXBAR_OPENCODEGO_WORKSPACE_ID`.
+- Optional workspace ID comes from `~/.config/researchbar/config.json` (`providers[].workspaceID`) or `CODEXBAR_OPENCODEGO_WORKSPACE_ID`.
 - Status: none yet.
 - Details: `docs/opencode.md`.
 
@@ -281,12 +281,12 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Details: `docs/ollama.md`.
 
 ## Synthetic
-- API key from `~/.codexbar/config.json` (`providers[].apiKey`) or `SYNTHETIC_API_KEY`.
+- API key from `~/.config/researchbar/config.json` (`providers[].apiKey`) or `SYNTHETIC_API_KEY`.
 - Shows rolling five-hour, weekly token, search-hourly, and cost/credit quota lanes when present.
 - Status: none yet.
 
 ## OpenRouter
-- API token from `~/.codexbar/config.json` (`providers[].apiKey`) or `OPENROUTER_API_KEY` env var.
+- API token from `~/.config/researchbar/config.json` (`providers[].apiKey`) or `OPENROUTER_API_KEY` env var.
 - Reads credits and key rate-limit info from OpenRouter APIs.
 - Shows daily, weekly, and monthly API-key spend when `/api/v1/key` returns those fields.
 - Override base URL with `OPENROUTER_API_URL` env var.
@@ -347,7 +347,7 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Details: `docs/venice.md`.
 
 ## Codebuff
-- API token from `~/.codexbar/config.json`, `CODEBUFF_API_KEY`, or `~/.config/manicode/credentials.json` created by `codebuff login`.
+- API token from `~/.config/researchbar/config.json`, `CODEBUFF_API_KEY`, or `~/.config/manicode/credentials.json` created by `codebuff login`.
 - Reads usage and subscription data from Codebuff APIs.
 - Shows credit balance, weekly rate limit, reset timing, subscription status, and auto-top-up flag when present.
 - Override base URL with `CODEBUFF_API_URL`.
@@ -355,7 +355,7 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Details: `docs/codebuff.md`.
 
 ## Crof
-- API key from `~/.codexbar/config.json`, `CROF_API_KEY`, or `CROFAI_API_KEY`.
+- API key from `~/.config/researchbar/config.json`, `CROF_API_KEY`, or `CROFAI_API_KEY`.
 - Reads `credits`, `requests_plan`, and `usable_requests` from `GET https://crof.ai/usage_api/`.
 - Shows request quota as the primary usage window and dollar credits as the secondary row.
 - Infers the daily request reset from midnight America/Chicago until the usage API exposes reset metadata.
