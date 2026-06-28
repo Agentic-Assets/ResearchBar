@@ -22,7 +22,7 @@ func showAbout() {
         ])
     }
 
-    let credits = NSMutableAttributedString(string: "Peter Steinberger — MIT License\n")
+    let credits = NSMutableAttributedString(string: "Peter Steinberger, MIT License\n")
     credits.append(makeLink("GitHub", urlString: "https://github.com/Agentic-Assets/ResearchBar"))
     credits.append(separator)
     credits.append(makeLink("Website", urlString: "https://codexbar.app"))

@@ -327,6 +327,16 @@ private func makeUpdaterController() -> UpdaterProviding {
         return DisabledUpdaterController(unavailableReason: "Updates unavailable in this build.")
     }
 
+    // No appcast feed is configured yet (SUFeedURL is empty during the ResearchBar identity
+    // migration, until a ResearchBar appcast is published). Starting Sparkle against an empty
+    // feed leaves "Check for Updates" non-functional and can surface a feed-not-set error, so
+    // keep the updater disabled until a real feed URL ships.
+    let feedURL = (Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String)?
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let feedURL, !feedURL.isEmpty else {
+        return DisabledUpdaterController(unavailableReason: "Updates unavailable in this build.")
+    }
+
     let defaults = UserDefaults.standard
     let autoUpdateKey = "autoUpdateEnabled"
     // Default to true for first launch; fall back to saved preference thereafter.

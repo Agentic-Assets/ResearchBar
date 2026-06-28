@@ -48,6 +48,7 @@ struct PreferencesView: View {
     let runProviderLoginFlow: @MainActor (UsageProvider) async -> Void
     let corbisCredentialStore: KeychainCorbisCredentialStore
     let researchPulseCache: FileResearchPulseCache
+    let corbisMCPClient: CorbisMCPClient
     @Environment(\.colorScheme) private var colorScheme
     @State private var contentWidth: CGFloat = PreferencesTab.general.preferredWidth
     @State private var contentHeight: CGFloat = PreferencesTab.general.preferredHeight
@@ -62,7 +63,8 @@ struct PreferencesView: View {
         codexAccountPromotionCoordinator: CodexAccountPromotionCoordinator? = nil,
         runProviderLoginFlow: @escaping @MainActor (UsageProvider) async -> Void = { _ in },
         corbisCredentialStore: KeychainCorbisCredentialStore = KeychainCorbisCredentialStore(),
-        researchPulseCache: FileResearchPulseCache = FileResearchPulseCache())
+        researchPulseCache: FileResearchPulseCache = FileResearchPulseCache(),
+        corbisMCPClient: CorbisMCPClient = CorbisMCPClient(baseURL: PreferencesView.corbisMCPBaseURL))
     {
         self.settings = settings
         self.store = store
@@ -77,7 +79,13 @@ struct PreferencesView: View {
         self.runProviderLoginFlow = runProviderLoginFlow
         self.corbisCredentialStore = corbisCredentialStore
         self.researchPulseCache = researchPulseCache
+        self.corbisMCPClient = corbisMCPClient
     }
+
+    /// Base URL for the Corbis MCP universal endpoint. Mirrors
+    /// `StatusItemController.corbisMCPBaseURL` so the settings probe and the menu refresh
+    /// coordinator talk to the same backend.
+    static let corbisMCPBaseURL = URL(string: "https://www.corbis.ai")!
 
     var body: some View {
         TabView(selection: self.$selection.tab) {
@@ -180,9 +188,19 @@ struct PreferencesView: View {
     }
 
     private func configureCorbisSettingsModel() {
-        self.corbisSettingsModel.onConnect = { [corbisCredentialStore, researchPulseCache, corbisSettingsModel] token in
+        // Bind dependencies to locals so the stored closures capture only these (never self),
+        // and capture the model weakly: it owns these closures, so a strong capture would form
+        // a retain cycle and leak the model. The sibling status-item integration uses the same
+        // [weak] convention for exactly this reason.
+        let credentialStore = self.corbisCredentialStore
+        let cache = self.researchPulseCache
+        let client = self.corbisMCPClient
+        let model = self.corbisSettingsModel
+
+        model.onConnect = { [weak model] token in
             Task { @MainActor in
-                corbisSettingsModel.connectionState = .connecting
+                guard let model else { return }
+                model.connectionState = .connecting
                 let credential = CorbisCredential(
                     token: token,
                     accountID: nil,
@@ -190,35 +208,54 @@ struct PreferencesView: View {
                     createdAt: Date(),
                     lastValidatedAt: nil)
                 do {
-                    try await corbisCredentialStore.saveCredential(credential)
-                    await researchPulseCache.clearAll()
-                    corbisSettingsModel.tokenField = ""
-                    corbisSettingsModel.displayEmail = credential.displayEmail
-                    corbisSettingsModel.connectionState = .connected(credential.accountIdentity())
+                    try await credentialStore.saveCredential(credential)
+                    await cache.clearAll()
+                    model.tokenField = ""
+                    model.displayEmail = credential.displayEmail
                 } catch {
-                    corbisSettingsModel.connectionState = .invalid
+                    model.connectionState = .invalid
+                    return
                 }
-            }
-        }
-
-        self.corbisSettingsModel.onUnlink = { [corbisCredentialStore, researchPulseCache, corbisSettingsModel] in
-            Task { @MainActor in
+                // Validate the token with one unbilled tools/list probe so the settings pane
+                // does not claim a healthy connection the menu can immediately contradict.
+                // A rejected token flips to .invalid; a transient transport failure stays
+                // optimistic so a network blip does not mark a good token invalid. Probe
+                // errors are never surfaced verbatim, preserving the no-leak rule.
                 do {
-                    try await corbisCredentialStore.deleteCredential()
-                    await researchPulseCache.clearAll()
-                    corbisSettingsModel.tokenField = ""
-                    corbisSettingsModel.displayEmail = nil
-                    corbisSettingsModel.connectionState = .notConnected
+                    _ = try await client.listToolNames(token: token)
+                    let validated = CorbisCredential(
+                        token: token,
+                        accountID: credential.accountID,
+                        displayEmail: credential.displayEmail,
+                        createdAt: credential.createdAt,
+                        lastValidatedAt: Date())
+                    try? await credentialStore.saveCredential(validated)
+                    model.connectionState = .connected(validated.accountIdentity())
+                } catch CorbisMCPError.invalidCredential {
+                    model.connectionState = .invalid
                 } catch {
-                    corbisSettingsModel.connectionState = .invalid
+                    model.connectionState = .connected(credential.accountIdentity())
                 }
             }
         }
 
-        self.corbisSettingsModel.onClearCache = { [researchPulseCache] in
-            Task {
-                await researchPulseCache.clearAll()
+        model.onUnlink = { [weak model] in
+            Task { @MainActor in
+                guard let model else { return }
+                do {
+                    try await credentialStore.deleteCredential()
+                    await cache.clearAll()
+                    model.tokenField = ""
+                    model.displayEmail = nil
+                    model.connectionState = .notConnected
+                } catch {
+                    model.connectionState = .invalid
+                }
             }
+        }
+
+        model.onClearCache = {
+            Task { await cache.clearAll() }
         }
     }
 

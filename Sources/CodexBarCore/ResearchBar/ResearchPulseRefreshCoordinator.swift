@@ -179,22 +179,3 @@ public actor ResearchPulseRefreshCoordinator {
         }
     }
 }
-
-// MARK: - Pulse re-encoding
-
-extension ResearchPulse {
-    /// Encode the pulse back to JSON for cache persistence. Dates are written with
-    /// fractional-second ISO-8601 via `ResearchBarISO8601.string(from:)`, matching the
-    /// `FileResearchPulseCache` encoder and the live wire format, so `fetchedAt`/
-    /// `staleAfter` round-trip exactly when the pulse is reconstructed from `rawJSON`.
-    /// A bare `.iso8601` strategy would round timestamps to the nearest second and break
-    /// pulse equality across a cache round-trip.
-    func makeRawJSON() throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .custom { date, encoder in
-            var container = encoder.singleValueContainer()
-            try container.encode(ResearchBarISO8601.string(from: date))
-        }
-        return try encoder.encode(self)
-    }
-}

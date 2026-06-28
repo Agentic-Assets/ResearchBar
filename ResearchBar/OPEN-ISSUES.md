@@ -72,6 +72,8 @@ Implemented as a Core/app split: pure logic in `Sources/CodexBarCore/ResearchBar
 | Test `NSStatusItem` on macOS 26 (Tahoe) | Pending (manual; checklist in [`build/10-track-b-distribution-decisions.md`](build/10-track-b-distribution-decisions.md)) |
 | Local git scanner + agent launch (later phases) | Not started (Phase 2+) |
 
+**Code-review pass (2026-06-28, branch `feat/researchbar-track-b-client-codex-review`).** A deep multi-dimensional review of the app-identity separation and live-menu integration confirmed 13 real findings, all fixed: CLI cache dir half-rename, Sparkle updater gated when `SUFeedURL` is empty, launch-state seeding (correct tooltip, no first-open flicker), a one-time keychain service-rename copy migration, settings token validation via an unbilled `tools/list` probe, the About em dash, a centralized credential screen in the redactor, a `[weak]` fix for the settings-model closures, removal of dead `makeRawJSON`, removal of dead config constants, and a host-menu factory variant that drops the duplicate Quit. `make check` and the full sharded `make test` are green. One item is accepted as-is: the app-group migration source uses the non-team-prefixed legacy group id, so a CodexBar-to-ResearchBar switch re-seeds the widget snapshot on first launch (regenerable data; rewiring the shared migration was higher risk than the value warranted). On-disk config-file migration is intentionally out of scope (the `CODEXBAR_CONFIG` env bridge remains).
+
 Full historical checklist: [`concept/open-questions-checklist.md`](concept/open-questions-checklist.md). Current Track B build guides: [`build/06`](build/06-track-b-fixture-pulse-plan.md) through [`build/10`](build/10-track-b-distribution-plan.md).
 
 ---
