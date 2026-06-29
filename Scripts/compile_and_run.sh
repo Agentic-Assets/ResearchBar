@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reset ResearchBar: kill this repo's running instances, build, package, relaunch, verify.
+# Reset ResearchBar: kill stale running instances, build, package, relaunch, verify.
 
 set -euo pipefail
 
@@ -8,6 +8,7 @@ APP_BUNDLE="${ROOT_DIR}/ResearchBar.app"
 APP_PROCESS_PATTERN="${ROOT_DIR}/ResearchBar.app/Contents/MacOS/ResearchBar"
 DEBUG_PROCESS_PATTERN="${ROOT_DIR}/.build/debug/CodexBar"
 RELEASE_PROCESS_PATTERN="${ROOT_DIR}/.build/release/CodexBar"
+PROCESS_NAME_PATTERN="ResearchBar"
 LOCK_KEY="$(printf '%s' "${ROOT_DIR}" | shasum -a 256 | cut -c1-8)"
 LOCK_DIR="${TMPDIR:-/tmp}/researchbar-compile-and-run-${LOCK_KEY}"
 LOCK_PID_FILE="${LOCK_DIR}/pid"
@@ -202,7 +203,8 @@ kill_all_researchbar() {
   is_running() {
     pgrep -f "${APP_PROCESS_PATTERN}" >/dev/null 2>&1 \
       || pgrep -f "${DEBUG_PROCESS_PATTERN}" >/dev/null 2>&1 \
-      || pgrep -f "${RELEASE_PROCESS_PATTERN}" >/dev/null 2>&1
+      || pgrep -f "${RELEASE_PROCESS_PATTERN}" >/dev/null 2>&1 \
+      || pgrep -x "${PROCESS_NAME_PATTERN}" >/dev/null 2>&1
   }
 
   # Phase 1: request termination (give the app time to exit cleanly).
@@ -210,6 +212,7 @@ kill_all_researchbar() {
     pkill -f "${APP_PROCESS_PATTERN}" 2>/dev/null || true
     pkill -f "${DEBUG_PROCESS_PATTERN}" 2>/dev/null || true
     pkill -f "${RELEASE_PROCESS_PATTERN}" 2>/dev/null || true
+    pkill -x "${PROCESS_NAME_PATTERN}" 2>/dev/null || true
     if ! is_running; then
       return 0
     fi
@@ -220,6 +223,7 @@ kill_all_researchbar() {
   pkill -9 -f "${APP_PROCESS_PATTERN}" 2>/dev/null || true
   pkill -9 -f "${DEBUG_PROCESS_PATTERN}" 2>/dev/null || true
   pkill -9 -f "${RELEASE_PROCESS_PATTERN}" 2>/dev/null || true
+  pkill -9 -x "${PROCESS_NAME_PATTERN}" 2>/dev/null || true
 
   for _ in {1..25}; do
     if ! is_running; then
@@ -262,8 +266,8 @@ fi
 
 acquire_lock
 
-# 2) Kill this repo's running ResearchBar instances (debug, release, bundled).
-log "==> Killing existing ResearchBar instances from this repo"
+# 2) Kill stale running ResearchBar instances (debug, release, bundled, installed).
+log "==> Killing existing ResearchBar instances"
 kill_all_researchbar
 kill_claude_probes
 

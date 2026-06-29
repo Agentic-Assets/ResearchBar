@@ -170,6 +170,44 @@ struct StatusItemControllerSplitLifecycleTests {
     }
 
     @Test
+    func `researchbar owner renders cap-only menu bar chrome`() throws {
+        StatusItemController.researchBarStatusItemOwnerOverrideForTesting = true
+        defer { StatusItemController.researchBarStatusItemOwnerOverrideForTesting = nil }
+
+        let (_, controller) = try self.makeSplitController()
+        defer { controller.releaseStatusItemsForTesting() }
+
+        let button = try #require(controller.statusItem.button)
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItems.isEmpty)
+        #expect(controller.statusItem.length == ResearchBarStatusItemBrandIcon.statusItemLength)
+        let image = try #require(button.image)
+        #expect(button.title.isEmpty)
+        #expect(button.attributedTitle.string.isEmpty)
+        #expect(image.isTemplate)
+        #expect(button.imagePosition == .imageOnly)
+        #expect(button.imageScaling == .scaleProportionallyDown)
+        #expect(button.toolTip == "ResearchBar: Not connected")
+        #expect(button.accessibilityValue() as? String == "Not connected")
+
+        button.title = " stale"
+        button.image = NSImage(size: NSSize(width: 12, height: 12))
+        button.imagePosition = .imageLeft
+        button.imageScaling = .scaleProportionallyDown
+        controller.statusItem.length = NSStatusItem.variableLength
+
+        controller.updateIcons()
+
+        #expect(controller.statusItem.length == ResearchBarStatusItemBrandIcon.statusItemLength)
+        let restoredImage = try #require(button.image)
+        #expect(button.title.isEmpty)
+        #expect(button.attributedTitle.string.isEmpty)
+        #expect(restoredImage.isTemplate)
+        #expect(button.imagePosition == .imageOnly)
+        #expect(button.imageScaling == .scaleProportionallyDown)
+    }
+
+    @Test
     func `status item identity returns stable autosave names`() {
         #expect(StatusItemController.StatusItemIdentity.merged.autosaveName == "researchbar-merged")
         #expect(StatusItemController.StatusItemIdentity.provider(.codex).autosaveName == "researchbar-codex")

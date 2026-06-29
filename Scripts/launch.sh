@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Simple script to launch ResearchBar from this repo (kills only this repo's instance first)
+# Simple script to launch ResearchBar from this repo (kills stale ResearchBar instances first)
 # Usage: ./Scripts/launch.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,8 +9,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_PATH="$PROJECT_ROOT/ResearchBar.app"
 APP_PROCESS_PATTERN="$PROJECT_ROOT/ResearchBar.app/Contents/MacOS/ResearchBar"
 
-echo "==> Killing existing ResearchBar instances from this repo"
+echo "==> Killing existing ResearchBar instances"
 pkill -f "$APP_PROCESS_PATTERN" || true
+pkill -x "ResearchBar" || true
 sleep 0.5
 
 if [[ ! -d "$APP_PATH" ]]; then

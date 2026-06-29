@@ -320,12 +320,14 @@ extension StatusItemController {
                 // Keep the cheap title path self-healing even when the icon image itself can be skipped.
                 self.setButtonTitle(displayText, for: button)
                 self.noteIconPerfRender(skipped: true)
+                self.updateResearchBarStatusAccessibility()
                 return true
             }
             self.setButtonImage(
                 warningFlash ? Self.quotaWarningFlashImage(base: brand) : brand, for: button)
             self.setButtonTitle(displayText, for: button)
             self.noteIconPerfRender(skipped: false)
+            self.updateResearchBarStatusAccessibility()
             return false
         }
 
@@ -342,6 +344,7 @@ extension StatusItemController {
             ].joined(separator: "|")
             if self.shouldSkipMergedIconRender(signature) {
                 self.noteIconPerfRender(skipped: true)
+                self.updateResearchBarStatusAccessibility()
                 return true
             }
             let image = IconRenderer.makeMorphIcon(progress: morphProgress, style: style)
@@ -365,6 +368,7 @@ extension StatusItemController {
             ].joined(separator: "|")
             if self.shouldSkipMergedIconRender(signature) {
                 self.noteIconPerfRender(skipped: true)
+                self.updateResearchBarStatusAccessibility()
                 return true
             }
             let image = IconRenderer.makeIcon(
@@ -381,6 +385,7 @@ extension StatusItemController {
                 warningFlash ? Self.quotaWarningFlashImage(base: image) : image, for: button)
         }
         self.noteIconPerfRender(skipped: false)
+        self.updateResearchBarStatusAccessibility()
         return false
     }
 

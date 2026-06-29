@@ -272,12 +272,17 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         legacyDefaultItemIndex: Int?)
         -> NSStatusItem
     {
-        MenuBarStatusItemPlacementPreflight.prepare(
-            defaults: defaults,
-            autosaveName: identity.autosaveName,
-            legacyDefaultItemIndex: legacyDefaultItemIndex)
+        let shouldPersistPlacement = !self.shouldUseTransientResearchBarStatusItem(identity: identity)
+        if shouldPersistPlacement {
+            MenuBarStatusItemPlacementPreflight.prepare(
+                defaults: defaults,
+                autosaveName: identity.autosaveName,
+                legacyDefaultItemIndex: legacyDefaultItemIndex)
+        }
         let item = statusBar.statusItem(withLength: NSStatusItem.variableLength)
-        item.autosaveName = identity.autosaveName
+        if shouldPersistPlacement {
+            item.autosaveName = identity.autosaveName
+        }
         if let button = item.button {
             // Ensure the icon is rendered at 1:1 without resampling (crisper edges for template images).
             button.imageScaling = .scaleNone
@@ -763,6 +768,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         #if DEBUG
         guard !self.isReleasedForTesting else { return }
         #endif
+        if self.updateResearchBarVisibilityIfNeeded() { return }
         let anyEnabled = !self.store.enabledProvidersForDisplay().isEmpty
         let force = self.store.debugForceAnimation
         let mergeIcons = self.shouldMergeIcons
@@ -814,7 +820,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         }
     }
 
-    private func attachMenus() {
+    func attachMenus() {
         if self.mergedMenu == nil {
             self.mergedMenu = self.makeMenu()
         }
@@ -873,7 +879,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         }
     }
 
-    private func removeProviderStatusItem(for provider: UsageProvider) {
+    func removeProviderStatusItem(for provider: UsageProvider) {
         if let menu = self.providerMenus.removeValue(forKey: provider) {
             let menuID = ObjectIdentifier(menu)
             if menuID == self.providerSwitcherShortcutMenuID {
@@ -887,15 +893,6 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         item.menu = nil
         self.lastAppliedProviderIconRenderSignatures.removeValue(forKey: provider)
         self.statusBar.removeStatusItem(item)
-    }
-
-    func isVisible(_ provider: UsageProvider) -> Bool {
-        self.store.debugForceAnimation || self.isEnabled(provider)
-            || self.fallbackProvider == provider
-    }
-
-    var shouldMergeIcons: Bool {
-        self.settings.mergeIcons && self.store.enabledProvidersForDisplay().count > 1
     }
 
     func switchAccountSubtitle(for target: UsageProvider) -> String? {
@@ -977,6 +974,21 @@ extension StatusItemController {
 #endif
 
 extension StatusItemController {
+    private static func shouldUseTransientResearchBarStatusItem(identity: StatusItemIdentity) -> Bool {
+        guard case .merged = identity else { return false }
+        return AppIdentity.displayName == "ResearchBar" && !SettingsStore.isRunningTests
+    }
+
+    func isVisible(_ provider: UsageProvider) -> Bool {
+        self.store.debugForceAnimation || self.isEnabled(provider)
+            || self.fallbackProvider == provider
+    }
+
+    var shouldMergeIcons: Bool {
+        if self.isResearchBarStatusItemOwner { return true }
+        return self.settings.mergeIcons && self.store.enabledProvidersForDisplay().count > 1
+    }
+
     var selectedMenuProvider: UsageProvider? {
         get { self.settings.selectedMenuProvider }
         set { self.settings.selectedMenuProvider = newValue }
