@@ -151,6 +151,64 @@ struct StatusItemControllerSplitLifecycleTests {
     }
 
     @Test
+    func `researchbar owner renders standard cap status item`() throws {
+        StatusItemController.researchBarStatusItemOwnerOverrideForTesting = true
+        defer {
+            StatusItemController.researchBarStatusItemOwnerOverrideForTesting = nil
+        }
+
+        let (_, controller) = try self.makeSplitController()
+        defer { controller.releaseStatusItemsForTesting() }
+
+        let button = try #require(controller.statusItem.button)
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(controller.statusItem.autosaveName == "researchbar-merged")
+        #expect(controller.statusItems.isEmpty)
+        #expect(controller.statusItem.menu === controller.mergedMenu)
+        #expect(button.title.isEmpty)
+        #expect(button.attributedTitle.string.isEmpty)
+        #expect(button.image != nil)
+        #expect(button.image?.isTemplate == true)
+        #expect(button.imagePosition == .imageOnly)
+        #expect(button.imageScaling == .scaleProportionallyDown)
+        #expect(button.toolTip == "ResearchBar: Not connected")
+        #expect(button.accessibilityIdentifier() == "ResearchBar.StatusItem")
+        #expect(button.accessibilityTitle() == "ResearchBar")
+        #expect(button.accessibilityValue() as? String == "Not connected")
+
+        _ = controller.applyIcon(phase: nil)
+
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(controller.statusItems.isEmpty)
+        #expect(button.title.isEmpty)
+        #expect(button.image != nil)
+        #expect(button.image?.isTemplate == true)
+        #expect(button.imagePosition == .imageOnly)
+        #expect(button.imageScaling == .scaleProportionallyDown)
+
+        controller.recreateStatusItemsForVisibilityRecovery()
+
+        let recoveredButton = try #require(controller.statusItem.button)
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(controller.statusItem.autosaveName == "researchbar-merged")
+        #expect(controller.statusItems.isEmpty)
+        #expect(controller.statusItem.menu === controller.mergedMenu)
+        #expect(recoveredButton.title.isEmpty)
+        #expect(recoveredButton.attributedTitle.string.isEmpty)
+        #expect(recoveredButton.image != nil)
+        #expect(recoveredButton.image?.isTemplate == true)
+        #expect(recoveredButton.imagePosition == .imageOnly)
+        #expect(recoveredButton.imageScaling == .scaleProportionallyDown)
+        #expect(recoveredButton.toolTip == "ResearchBar: Not connected")
+        #expect(recoveredButton.accessibilityIdentifier() == "ResearchBar.StatusItem")
+        #expect(recoveredButton.accessibilityTitle() == "ResearchBar")
+        #expect(recoveredButton.accessibilityValue() as? String == "Not connected")
+    }
+
+    @Test
     func `status items publish stable manager identity`() throws {
         let (_, controller) = try self.makeSplitController()
         defer { controller.releaseStatusItemsForTesting() }

@@ -156,6 +156,10 @@ enum MenuBarVisibilityWatcher {
             detectTahoeBlockedProxy: detectTahoeBlockedProxy)
     }
 
+    static func shouldRefreshStartupPlacement(snapshots: [StatusItemVisibilitySnapshot]) -> Bool {
+        self.hasAnyDisplacedVisibleSnapshot(snapshots)
+    }
+
     static func shouldRefreshScreenChangePlacement(
         previousScreenCount _: Int,
         currentScreenCount _: Int,
@@ -220,6 +224,18 @@ extension StatusItemController {
     private func checkStartupStatusItemVisibility(appLaunchedAt: Date, now: Date = Date()) {
         let snapshots = MenuBarVisibilityWatcher.visibilitySnapshots(self.startupVisibilityStatusItems)
         let windowSnapshots = self.statusItemWindowSnapshots()
+        if self.isResearchBarStatusItemOwner,
+           MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: snapshots)
+        {
+            self.menuLogger.info(
+                "ResearchBar status item launched displaced; recreating status item placement",
+                metadata: [
+                    "snapshots": snapshots.map(\.description).joined(separator: " | "),
+                    "windows": self.statusItemWindowDiagnosticsDescription(windowSnapshots),
+                ])
+            self.recreateStatusItemsForVisibilityRecovery()
+            return
+        }
         guard MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
             appLaunchedAt: appLaunchedAt,
             now: now,

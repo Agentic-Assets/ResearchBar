@@ -89,6 +89,9 @@ extension StatusItemController {
     }
 
     private func removeShutdownStatusItems() {
+        if let sentinel = self.researchBarPlacementSentinelStatusItem {
+            self.statusBar.removeStatusItem(sentinel)
+        }
         self.statusItem.menu = nil
         self.statusBar.removeStatusItem(self.statusItem)
 

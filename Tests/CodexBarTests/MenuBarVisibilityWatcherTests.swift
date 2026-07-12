@@ -337,6 +337,44 @@ struct MenuBarVisibilityWatcherTests {
     }
 
     @Test
+    func `startup placement refresh triggers for displaced live item`() {
+        let displaced = StatusItemVisibilitySnapshot(
+            isVisible: true,
+            hasButton: true,
+            hasWindow: true,
+            hasScreen: true,
+            isOnCurrentScreen: false,
+            buttonWidth: 18)
+
+        #expect(MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: [displaced]))
+    }
+
+    @Test
+    func `startup placement refresh ignores healthy visible item`() {
+        let healthy = StatusItemVisibilitySnapshot(
+            isVisible: true,
+            hasButton: true,
+            hasWindow: true,
+            hasScreen: true,
+            buttonWidth: 18)
+
+        #expect(!MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: [healthy]))
+    }
+
+    @Test
+    func `startup placement refresh ignores hidden displaced item`() {
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: true,
+            hasScreen: true,
+            isOnCurrentScreen: false,
+            buttonWidth: 18)
+
+        #expect(!MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: [hidden]))
+    }
+
+    @Test
     func `screen change placement refresh ignores display removal with healthy status item`() {
         let healthy = StatusItemVisibilitySnapshot(
             isVisible: true,

@@ -2,6 +2,23 @@ import AppKit
 import CodexBarCore
 
 extension StatusItemController {
+    #if DEBUG
+    static var researchBarStatusItemOwnerOverrideForTesting: Bool?
+    #endif
+
+    static var shouldCreateResearchBarStatusItem: Bool {
+        #if DEBUG
+        if let override = researchBarStatusItemOwnerOverrideForTesting {
+            return override
+        }
+        #endif
+        return AppIdentity.displayName == "ResearchBar" && !SettingsStore.isRunningTests
+    }
+
+    var isResearchBarStatusItemOwner: Bool {
+        Self.shouldCreateResearchBarStatusItem
+    }
+
     /// Seed the no-credit launch state so the always-visible status-item tooltip is correct
     /// from launch and the first menu open builds with the right input instead of the
     /// `.notConnected` default. `currentMenuInput()` reads only the credential and cache, so
@@ -82,10 +99,12 @@ extension StatusItemController {
     }
 
     func updateResearchBarStatusAccessibility() {
+        guard self.isResearchBarStatusItemOwner else { return }
         let model = ResearchPulseStatusIconModel.make(from: self.researchPulseMenuInput)
         guard let button = self.statusItem.button else { return }
         button.setAccessibilityValue(model.accessibilityValue)
         button.toolTip = "ResearchBar: \(model.accessibilityValue)"
+        ResearchBarStatusItemIcon.apply(to: button, statusItem: self.statusItem)
     }
 
     private func addResearchBarHeader(to menu: NSMenu) {
@@ -147,5 +166,28 @@ extension StatusItemController {
             item.action = #selector(self.quit)
         }
         return item
+    }
+}
+
+@MainActor
+enum ResearchBarStatusItemIcon {
+    static let symbolName = "graduationcap"
+    static let statusItemLength = NSStatusItem.variableLength
+
+    static func makeImage() -> NSImage? {
+        let image = NSImage(systemSymbolName: self.symbolName, accessibilityDescription: "ResearchBar")
+        image?.isTemplate = true
+        return image
+    }
+
+    static func apply(to button: NSStatusBarButton, statusItem: NSStatusItem) {
+        statusItem.isVisible = true
+        statusItem.length = self.statusItemLength
+        button.title = ""
+        button.attributedTitle = NSAttributedString(string: "")
+        button.image = self.makeImage()
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
+        button.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
     }
 }
