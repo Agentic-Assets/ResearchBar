@@ -472,6 +472,33 @@ struct StatusItemControllerSplitLifecycleTests {
     }
 
     @Test
+    func `researchbar legacy visibility repair runs after generic repair is complete`() throws {
+        let suite = "StatusItemControllerSplitLifecycleTests-researchbar-repair-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+        }
+
+        let legacyKey = "NSStatusItem VisibleCC Item-0"
+        defaults.set(true, forKey: MenuBarStatusItemDefaultsRepair.didRepairKey)
+        defaults.set(false, forKey: legacyKey)
+
+        #expect(MenuBarStatusItemDefaultsRepair.repairHiddenVisibilityDefaultsIfNeeded(defaults: defaults).isEmpty)
+        #expect(MenuBarStatusItemDefaultsRepair.repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults) == [
+            legacyKey,
+        ])
+        #expect(defaults.object(forKey: legacyKey) == nil)
+        #expect(defaults.bool(forKey: MenuBarStatusItemDefaultsRepair.didRepairResearchBarLegacyItemKey))
+
+        defaults.set(false, forKey: legacyKey)
+        let secondRepair = MenuBarStatusItemDefaultsRepair
+            .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults)
+        #expect(secondRepair.isEmpty)
+        #expect(defaults.object(forKey: legacyKey) != nil)
+    }
+
+    @Test
     func `non destructive visibility refresh preserves split provider status items`() throws {
         let (_, controller) = try self.makeSplitController()
         defer { controller.releaseStatusItemsForTesting() }

@@ -2,6 +2,7 @@ import Foundation
 
 enum MenuBarStatusItemDefaultsRepair {
     static let didRepairKey = "hasRepairedHiddenStatusItemVisibilityDefaults"
+    static let didRepairResearchBarLegacyItemKey = "hasRepairedResearchBarLegacyItemVisibility"
     private static let visibilityPrefix = "NSStatusItem VisibleCC "
     private static let repairableAutosavePrefixes = ["codexbar-", "researchbar-"]
 
@@ -18,6 +19,18 @@ enum MenuBarStatusItemDefaultsRepair {
             defaults.removeObject(forKey: key)
         }
         defaults.set(true, forKey: self.didRepairKey)
+        return repairedKeys
+    }
+
+    static func repairResearchBarLegacyItemVisibilityIfNeeded(defaults: UserDefaults) -> [String] {
+        guard !defaults.bool(forKey: self.didRepairResearchBarLegacyItemKey) else { return [] }
+
+        let key = "\(self.visibilityPrefix)Item-0"
+        let repairedKeys = self.isFalse(defaults.object(forKey: key)) ? [key] : []
+        for key in repairedKeys {
+            defaults.removeObject(forKey: key)
+        }
+        defaults.set(true, forKey: self.didRepairResearchBarLegacyItemKey)
         return repairedKeys
     }
 

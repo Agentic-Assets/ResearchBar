@@ -384,8 +384,12 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         self.lastSwitcherUsageBarsShowUsed = settings.usageBarsShowUsed
         self.menuCardRenderingEnabledForController = menuCardRenderingEnabled
         self.menuRefreshEnabledForController = menuRefreshEnabled
-        let repairedStatusItemVisibilityKeys = MenuBarStatusItemDefaultsRepair
+        var repairedStatusItemVisibilityKeys = MenuBarStatusItemDefaultsRepair
             .repairHiddenVisibilityDefaultsIfNeeded(defaults: settings.userDefaults)
+        if Self.shouldCreateResearchBarStatusItem {
+            repairedStatusItemVisibilityKeys += MenuBarStatusItemDefaultsRepair
+                .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: settings.userDefaults)
+        }
         self.statusBar = statusBar
         self.researchBarPlacementSentinelStatusItem = Self.makeResearchBarPlacementSentinelStatusItem(
             statusBar: statusBar)
