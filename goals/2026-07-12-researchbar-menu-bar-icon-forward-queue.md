@@ -19,3 +19,6 @@ Candidate work surfaced during this session. This is a menu, not a roadmap.
 
 - **Capture the placement sentinel in live diagnostics** (priority: low, confidence: hypothesis)
   The sentinel is intentionally excluded from current visibility snapshots. If live placement diagnosis remains difficult after no-prompt verification, add an explicit diagnostic record that distinguishes the visible cap item from the one-point placement helper.
+
+- **Document the app-group approval prerequisite for fresh local verification** (priority: high, confidence: verified gap)
+  After the legacy visibility migration persisted `researchbar-merged = 1`, a fresh app launch prompted for macOS access to data from other apps. Document the required operator approval or provide an explicitly authorized isolated validation mode before requiring screenshot evidence from a new local bundle.

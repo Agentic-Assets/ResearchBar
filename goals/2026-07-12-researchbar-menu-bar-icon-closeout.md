@@ -38,3 +38,10 @@ The target display reported as the built-in Liquid Retina XDR display, 3456 by 2
 ## Left to the operator
 
 Provide a no-prompt ResearchBar launch environment or explicitly authorize handling the Keychain prompt, then rerun the live menu-bar capture and open-menu inspection against the fresh bundle. Do not treat this commit as complete live visibility proof until those captures show the cap inside the active display's normal status-item area.
+
+## Continuation, commit `c17378ea`
+
+- Live inspection found the concrete stale migration state `NSStatusItem VisibleCC Item-0 = 0`, while the generic visibility repair had already recorded completion. The new ResearchBar-only migration clears that exact hidden legacy key once, then leaves normal app behavior unchanged.
+- Focused suites passed: `StatusItemControllerSplitLifecycleTests` (25 tests) and `MenuBarVisibilityWatcherTests` (34 tests). `make check` passed. The sharded `make test` runner completed after the repair.
+- A fresh ad-hoc bundle applied the migration and persisted `NSStatusItem VisibleCC researchbar-merged = 1`. The next fresh launch then presented the macOS dialog “ResearchBar would like to access data from other apps.” No button was pressed. The Control Center window-server list still contained no `researchbar-merged` item before that approval.
+- Live rendered cap and open-menu evidence remains blocked by that approval-gated macOS dialog. The temporary `debugDisableKeychainAccess` preference was restored to its prior absent state.
