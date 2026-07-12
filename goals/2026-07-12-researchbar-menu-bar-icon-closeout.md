@@ -45,3 +45,10 @@ Provide a no-prompt ResearchBar launch environment or explicitly authorize handl
 - Focused suites passed: `StatusItemControllerSplitLifecycleTests` (25 tests) and `MenuBarVisibilityWatcherTests` (34 tests). `make check` passed. The sharded `make test` runner completed after the repair.
 - A fresh ad-hoc bundle applied the migration and persisted `NSStatusItem VisibleCC researchbar-merged = 1`. The next fresh launch then presented the macOS dialog “ResearchBar would like to access data from other apps.” No button was pressed. The Control Center window-server list still contained no `researchbar-merged` item before that approval.
 - Live rendered cap and open-menu evidence remains blocked by that approval-gated macOS dialog. The temporary `debugDisableKeychainAccess` preference was restored to its prior absent state.
+
+## Continuation, 2026-07-12 approval-gate audit
+
+- Rebuilt the current feature branch with `CODEXBAR_SIGNING=adhoc ./Scripts/package_app.sh` and launched the resulting `ResearchBar.app` with the temporary no-Keychain test gate enabled. The app process was `/Users/caymanseagraves/Documents/GitHub/agentic-assets/ResearchBar/ResearchBar.app/Contents/MacOS/ResearchBar` and the bundle identifier was `com.corbis.researchbar`.
+- The target display could be captured, but the fresh app remained behind the macOS “ResearchBar would like to access data from other apps” dialog. Three resumed inspection attempts found only the offscreen `ResearchBarLifecycleKeepalive` window (`x=-5000`, `y=6328`, `20 by 20`) and no visible `researchbar-merged` WindowServer item.
+- The final captured blocker evidence is `/Users/caymanseagraves/.codex/evidence/researchbar-menu-bar-icon-2026-07-12/15-third-resumed-tcc-gate.png`. It is intentionally outside the repository because it contains unrelated desktop content.
+- No Keychain read or provider probe was performed. The requested cap and open-menu captures remain unproven, so this branch is not a completed visual verification.
