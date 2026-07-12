@@ -5,7 +5,7 @@ Candidate work surfaced during this session. This is a menu, not a roadmap.
 ## Evaluation
 
 - **Complete the no-prompt visual proof** (priority: high, confidence: verified gap)
-  Launch the freshly packaged app in an environment where the Corbis and provider startup paths use no-UI credential access. Capture the cap before interaction, record the active display and status-item bounds, then open the attached menu and capture it from the same item.
+  Launch the freshly packaged app with the no-UI credential gate, confirm ResearchBar is enabled in macOS Menu Bar settings under `Allow in the Menu Bar`, then capture the cap before interaction, record the active display and status-item bounds, and open the attached menu from that item.
 
 ## Robustness
 
@@ -21,4 +21,4 @@ Candidate work surfaced during this session. This is a menu, not a roadmap.
   The sentinel is intentionally excluded from current visibility snapshots. If live placement diagnosis remains difficult after no-prompt verification, add an explicit diagnostic record that distinguishes the visible cap item from the one-point placement helper.
 
 - **Document the app-group approval prerequisite for fresh local verification** (priority: high, confidence: verified gap)
-  After the legacy visibility migration persisted `researchbar-merged = 1`, a fresh app launch prompted for macOS access to data from other apps. Three resumed inspection attempts remained gated by that dialog and surfaced no `researchbar-merged` WindowServer item. Document the required operator approval or provide an explicitly authorized isolated validation mode before requiring screenshot evidence from a new local bundle.
+  After the legacy visibility migration persisted `researchbar-merged = 1`, a fresh app launch prompted for macOS access to data from other apps. That approval has now been accepted. The remaining admission control is macOS Menu Bar settings, where ResearchBar must appear under and be enabled in `Allow in the Menu Bar` before visual proof is possible.

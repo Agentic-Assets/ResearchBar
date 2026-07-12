@@ -111,7 +111,6 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let statusBar: NSStatusBar
     let menuCardRenderingEnabledForController: Bool
     let menuRefreshEnabledForController: Bool
-    let researchBarPlacementSentinelStatusItem: NSStatusItem?
     var statusItem: NSStatusItem
     var statusItems: [UsageProvider: NSStatusItem] = [:]
     var lastMenuProvider: UsageProvider?
@@ -389,10 +388,10 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         if Self.shouldCreateResearchBarStatusItem {
             repairedStatusItemVisibilityKeys += MenuBarStatusItemDefaultsRepair
                 .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: settings.userDefaults)
+            repairedStatusItemVisibilityKeys += MenuBarStatusItemDefaultsRepair
+                .removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: settings.userDefaults)
         }
         self.statusBar = statusBar
-        self.researchBarPlacementSentinelStatusItem = Self.makeResearchBarPlacementSentinelStatusItem(
-            statusBar: statusBar)
         self.statusItem = Self.makeStatusItem(
             statusBar: statusBar,
             identity: .merged,
@@ -972,20 +971,6 @@ extension StatusItemController {
 #endif
 
 extension StatusItemController {
-    private static func makeResearchBarPlacementSentinelStatusItem(statusBar: NSStatusBar) -> NSStatusItem? {
-        guard self.shouldCreateResearchBarStatusItem else { return nil }
-        let item = statusBar.statusItem(withLength: 1)
-        item.autosaveName = "researchbar-placement-sentinel"
-        item.isVisible = true
-        if let button = item.button {
-            button.image = nil
-            button.title = ""
-            button.attributedTitle = NSAttributedString(string: "")
-            button.toolTip = nil
-        }
-        return item
-    }
-
     private static func makeStatusItem(
         statusBar: NSStatusBar,
         identity: StatusItemIdentity,

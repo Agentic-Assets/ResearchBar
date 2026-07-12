@@ -172,7 +172,7 @@ extension StatusItemController {
 @MainActor
 enum ResearchBarStatusItemIcon {
     static let symbolName = "graduationcap"
-    static let statusItemLength = NSStatusItem.variableLength
+    static let statusItemLength = NSStatusItem.squareLength
 
     static func makeImage() -> NSImage? {
         let image = NSImage(systemSymbolName: self.symbolName, accessibilityDescription: "ResearchBar")

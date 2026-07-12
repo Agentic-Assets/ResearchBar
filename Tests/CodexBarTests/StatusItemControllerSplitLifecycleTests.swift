@@ -163,6 +163,7 @@ struct StatusItemControllerSplitLifecycleTests {
         let button = try #require(controller.statusItem.button)
         #expect(controller.statusItem.isVisible)
         #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(ResearchBarStatusItemIcon.statusItemLength == NSStatusItem.squareLength)
         #expect(controller.statusItem.autosaveName == "researchbar-merged")
         #expect(controller.statusItems.isEmpty)
         #expect(controller.statusItem.menu === controller.mergedMenu)
@@ -496,6 +497,33 @@ struct StatusItemControllerSplitLifecycleTests {
             .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults)
         #expect(secondRepair.isEmpty)
         #expect(defaults.object(forKey: legacyKey) != nil)
+    }
+
+    @Test
+    func `researchbar removes the retired placement sentinel defaults once`() throws {
+        let suite = "StatusItemControllerSplitLifecycleTests-placement-sentinel-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let visibleKey = "NSStatusItem VisibleCC researchbar-placement-sentinel"
+        let positionKey = "NSStatusItem Preferred Position researchbar-placement-sentinel"
+        defaults.set(true, forKey: visibleKey)
+        defaults.set(73, forKey: positionKey)
+
+        #expect(MenuBarStatusItemDefaultsRepair
+            .removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: defaults) == [
+                visibleKey,
+                positionKey,
+            ])
+        #expect(defaults.object(forKey: visibleKey) == nil)
+        #expect(defaults.object(forKey: positionKey) == nil)
+        #expect(defaults.bool(forKey: MenuBarStatusItemDefaultsRepair.didRemoveResearchBarPlacementSentinelKey))
+
+        defaults.set(true, forKey: visibleKey)
+        #expect(MenuBarStatusItemDefaultsRepair.removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: defaults)
+            .isEmpty)
+        #expect(defaults.object(forKey: visibleKey) != nil)
     }
 
     @Test

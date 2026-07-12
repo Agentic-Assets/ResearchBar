@@ -3,7 +3,10 @@ import Foundation
 enum MenuBarStatusItemDefaultsRepair {
     static let didRepairKey = "hasRepairedHiddenStatusItemVisibilityDefaults"
     static let didRepairResearchBarLegacyItemKey = "hasRepairedResearchBarLegacyItemVisibility"
+    static let didRemoveResearchBarPlacementSentinelKey = "hasRemovedResearchBarPlacementSentinel"
     private static let visibilityPrefix = "NSStatusItem VisibleCC "
+    private static let placementPrefix = "NSStatusItem Preferred Position "
+    private static let researchBarPlacementSentinelName = "researchbar-placement-sentinel"
     private static let repairableAutosavePrefixes = ["codexbar-", "researchbar-"]
 
     static func repairHiddenVisibilityDefaultsIfNeeded(defaults: UserDefaults) -> [String] {
@@ -32,6 +35,21 @@ enum MenuBarStatusItemDefaultsRepair {
         }
         defaults.set(true, forKey: self.didRepairResearchBarLegacyItemKey)
         return repairedKeys
+    }
+
+    static func removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: UserDefaults) -> [String] {
+        guard !defaults.bool(forKey: self.didRemoveResearchBarPlacementSentinelKey) else { return [] }
+
+        let keys = [
+            "\(self.visibilityPrefix)\(self.researchBarPlacementSentinelName)",
+            "\(self.placementPrefix)\(self.researchBarPlacementSentinelName)",
+        ]
+        let removedKeys = keys.filter { defaults.object(forKey: $0) != nil }
+        for key in removedKeys {
+            defaults.removeObject(forKey: key)
+        }
+        defaults.set(true, forKey: self.didRemoveResearchBarPlacementSentinelKey)
+        return removedKeys
     }
 
     static func shouldRepair(key: String, value: Any?) -> Bool {
