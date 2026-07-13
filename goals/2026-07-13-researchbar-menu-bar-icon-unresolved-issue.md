@@ -1,40 +1,33 @@
-# ResearchBar menu-bar icon: unresolved macOS rendering issue
+# ResearchBar menu-bar icon: macOS rendering issue (RESOLVED 2026-07-13)
 
-**Status:** Unresolved. ResearchBar is not yet working correctly as a visible menu-bar app on this Mac.
+**Status:** Resolved. The graduation-cap status item renders in the menu bar and the root cause is confirmed with direct evidence. Resolution details are recorded below and in the closeout continuation for 2026-07-13.
 
-## What is happening
+## Root cause
 
-A freshly packaged and launched `ResearchBar.app` creates a status item that is configured as a normal, square menu-bar item. Debugger inspection confirmed that the item:
+macOS 26 (Tahoe) renders all status items through Control Center, which keeps a private admission store at
+`~/Library/Group Containers/group.com.apple.controlcenter/Library/Preferences/group.com.apple.controlcenter.plist`
+under the `trackedApplications` key. ResearchBar's status-item location had been attributed to **Cursor's** tracked-application entry (`com.todesktop.230313mzl4w4u92`, along with `com.apple.dt.xctest.tool`), and that entry carried `isAllowed: false`. Control Center therefore accepted the app-side `NSStatusItem` and silently refused to create any window for it. This matched every observed symptom:
 
-- is visible to AppKit;
-- uses the template `graduationcap` image;
-- has `NSStatusItem.squareLength` rather than variable length;
-- has the `ResearchBar` accessibility title and `ResearchBar.StatusItem` identifier;
-- is attached to the built-in display; and
-- has an attached menu.
+- AppKit reported the item visible, square-length, correct image and accessibility identity, yet the WindowServer contained no window for it at all.
+- ResearchBar's own entry in the store said `isAllowed: true`, so the System Settings > Menu Bar toggle showed enabled and toggling it changed nothing.
+- The separately installed CodexBar and RepoBar rendered fine because their entries were clean.
 
-Despite that state, the graduation-cap icon has not appeared in the captured macOS menu bar. The expected Control Center status-item control is absent, so its menu cannot be opened for the required visual verification.
+The stale attribution was created by launching dev builds and running status-item tests from agent terminals hosted inside Cursor during the 2026-07-12 debugging sessions. This is a documented failure class in the upstream repo: steipete/CodexBar issues #1440 and #1945 (the exact no-window variant), fixed app-side by upstream PR #1954.
 
-## Why this is a confirmed failure
+## Repair applied (2026-07-13)
 
-This is not only an icon-selection or process-launch problem. The current bundle launched from this repository, and live inspection found the intended ResearchBar item with its fixed dimensions and accessibility identity. Repeated display captures still did not show a visible cap in the normal status-item area. On macOS 26.5.1, the Control Center scene appears not to render or admit this otherwise valid status item.
+1. Backed up the Control Center plist beside itself (`...plist.backup-20260713-171105`), then removed `com.corbis.researchbar` and `com.apple.dt.xctest.tool` from Cursor's `menuItemLocations` array.
+2. `killall cfprefsd`, then killed `ControlCenter` (it respawns).
+3. Relaunched the existing packaged bundle via `./Scripts/launch.sh`. The cap rendered in the menu bar and the operator confirmed it visually. The relaunched process also owned its expected keepalive window again, and Control Center's menu-bar window count increased accordingly.
 
-That is enough to establish that the requested visible behavior is failing. It is not enough to establish the underlying macOS cause. We cannot yet say why the system is suppressing the control.
+## Durable code fix
 
-## Observed symptoms and history
+Ported upstream steipete/CodexBar PR #1954 ("Fix Tahoe no-window menu bar recovery") into this fork: the app now records which autosave names it intends to be visible, and the startup visibility check detects the Tahoe state where an intended-visible item with an enabled `NSStatusItem VisibleCC` default reports non-visible with no window and no matching on-screen Control Center window, then attempts recovery and surfaces the Menu Bar settings guidance instead of failing silently.
 
-- Earlier launches were blocked first by a Keychain prompt and then by the macOS "ResearchBar would like to access data from other apps" approval. Those approvals no longer explain the current failure.
-- A legacy hidden-status-item preference and a variable-length item were found and repaired. The current live item reports square length, but it still does not render visibly.
-- macOS Menu Bar settings includes an `Allow in the Menu Bar` admission section. ResearchBar needs to be present and enabled there, but the system has not yet produced a visible ResearchBar control after the approval and code repairs.
-- The icon was reported as visible at one point during earlier work. That observation shows the behavior has not been uniformly absent, but it was not reproduced in the latest fresh-bundle captures.
-- The original CodexBar application is also installed on this computer at the same time as ResearchBar. Both applications derive from the same status-item architecture. A collision in macOS placement, saved status-item state, or menu-bar admission is plausible, but has not been demonstrated. It remains a hypothesis, not a diagnosis.
+## Prevention
 
-## What we do not know
+Do not launch ResearchBar dev builds or status-item tests from terminal contexts whose host app is disallowed in the Menu Bar (Cursor was the trigger here). `./Scripts/launch.sh` uses `open -n`, which gives the app its own launch attribution and is the safe path. The direct-binary fallback in `Scripts/compile_and_run.sh` is the risky path if `open` fails.
 
-We do not currently know whether macOS is withholding the item because of its menu-bar admission state, a collision with the installed CodexBar app, retained Control Center placement data, a macOS 26.5.1 behavior, or another system-level condition. The application-level status-item state is correct enough that further source changes without new evidence would be speculative.
+---
 
-## Evidence and next diagnostic step
-
-The fresh-bundle inspection and display captures are recorded in the closeout note at `goals/2026-07-12-researchbar-menu-bar-icon-closeout.md`. Screenshots remain outside the repository at `/Users/caymanseagraves/.codex/evidence/researchbar-menu-bar-icon-2026-07-12/` because they include unrelated desktop content.
-
-The most useful next check is to confirm that ResearchBar is enabled under **System Settings > Menu Bar > Allow in the Menu Bar**, then relaunch a fresh bundle and capture the built-in display. If it remains absent, temporarily quitting the separately installed original CodexBar and checking whether ResearchBar appears would test the coexistence hypothesis without claiming that it is the cause.
+The original unresolved report from 2026-07-13 (kept for history) described: a correctly configured square status item that AppKit reported visible while repeated display captures showed no cap, with admission state, CodexBar coexistence, retained placement data, and macOS 26.5.1 behavior all listed as untested hypotheses. The admission-state hypothesis was the correct family; the specific mechanism was the cross-app `trackedApplications` attribution above.
