@@ -113,6 +113,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let menuRefreshEnabledForController: Bool
     var statusItem: NSStatusItem
     var statusItems: [UsageProvider: NSStatusItem] = [:]
+    /// App intent survives Tahoe changing `NSStatusItem.isVisible` after Control Center rejects its scene.
+    var expectedVisibleStatusItemAutosaveNames: Set<String> = []
     var lastMenuProvider: UsageProvider?
     var menuProviders: [ObjectIdentifier: UsageProvider] = [:]
     var menuSession = MenuSessionCoordinator<ObjectIdentifier>()
@@ -749,41 +751,6 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         self.updateIcons()
     }
 
-    private func updateVisibility() {
-        #if DEBUG
-        guard !self.isReleasedForTesting else { return }
-        #endif
-        if self.updateResearchBarVisibility() {
-            return
-        }
-        let anyEnabled = !self.store.enabledProvidersForDisplay().isEmpty
-        let force = self.store.debugForceAnimation
-        let mergeIcons = self.shouldMergeIcons
-        if mergeIcons {
-            self.statusItem.isVisible = anyEnabled || force
-            for provider in Array(self.statusItems.keys) {
-                self.removeProviderStatusItem(for: provider)
-            }
-            self.attachMenus()
-        } else {
-            self.statusItem.isVisible = false
-            let fallback = self.fallbackProvider
-            for provider in self.settings.orderedProviders() {
-                let isEnabled = self.isEnabled(provider)
-                let shouldBeVisible = isEnabled || fallback == provider || force
-                if shouldBeVisible {
-                    let item = self.lazyStatusItem(for: provider)
-                    item.isVisible = true
-                } else {
-                    self.removeProviderStatusItem(for: provider)
-                }
-            }
-            self.attachMenus(fallback: fallback)
-        }
-        self.updateAnimationState()
-        self.updateBlinkingState()
-    }
-
     var fallbackProvider: UsageProvider? {
         // Intentionally uses availability-filtered list: fallback activates when no provider
         // can actually work, ensuring at least a codex icon is always visible.
@@ -1007,9 +974,52 @@ extension StatusItemController {
         set { self.settings.selectedMenuProvider = newValue }
     }
 
+    private func updateVisibility() {
+        #if DEBUG
+        guard !self.isReleasedForTesting else { return }
+        #endif
+        if self.updateResearchBarVisibility() {
+            return
+        }
+        let anyEnabled = !self.store.enabledProvidersForDisplay().isEmpty
+        let force = self.store.debugForceAnimation
+        let mergeIcons = self.shouldMergeIcons
+        var expectedVisibleAutosaveNames: Set<String> = []
+        if mergeIcons {
+            let shouldBeVisible = anyEnabled || force
+            self.statusItem.isVisible = shouldBeVisible
+            if shouldBeVisible {
+                expectedVisibleAutosaveNames.insert(self.statusItem.autosaveName)
+            }
+            for provider in Array(self.statusItems.keys) {
+                self.removeProviderStatusItem(for: provider)
+            }
+            self.attachMenus()
+        } else {
+            self.statusItem.isVisible = false
+            let fallback = self.fallbackProvider
+            for provider in self.settings.orderedProviders() {
+                let isEnabled = self.isEnabled(provider)
+                let shouldBeVisible = isEnabled || fallback == provider || force
+                if shouldBeVisible {
+                    let item = self.lazyStatusItem(for: provider)
+                    item.isVisible = true
+                    expectedVisibleAutosaveNames.insert(item.autosaveName)
+                } else {
+                    self.removeProviderStatusItem(for: provider)
+                }
+            }
+            self.attachMenus(fallback: fallback)
+        }
+        self.expectedVisibleStatusItemAutosaveNames = expectedVisibleAutosaveNames
+        self.updateAnimationState()
+        self.updateBlinkingState()
+    }
+
     private func updateResearchBarVisibility() -> Bool {
         guard self.isResearchBarStatusItemOwner else { return false }
         self.statusItem.isVisible = true
+        self.expectedVisibleStatusItemAutosaveNames = [self.statusItem.autosaveName]
         for provider in Array(self.statusItems.keys) {
             self.removeProviderStatusItem(for: provider)
         }

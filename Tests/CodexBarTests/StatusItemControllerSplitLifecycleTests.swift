@@ -72,12 +72,14 @@ struct StatusItemControllerSplitLifecycleTests {
 
         #expect(controller.statusItems[.codex] != nil)
         #expect(controller.statusItems[.claude] != nil)
+        #expect(controller.expectedVisibleStatusItemAutosaveNames == ["researchbar-codex", "researchbar-claude"])
 
         settings.mergeIcons = true
         controller.handleProviderConfigChange(reason: "test")
 
         #expect(controller.statusItem.isVisible == true)
         #expect(controller.statusItems.isEmpty)
+        #expect(controller.expectedVisibleStatusItemAutosaveNames == ["researchbar-merged"])
     }
 
     @Test
@@ -470,6 +472,26 @@ struct StatusItemControllerSplitLifecycleTests {
         defaults.set(false, forKey: "NSStatusItem VisibleCC Item-2")
         #expect(MenuBarStatusItemDefaultsRepair.repairHiddenVisibilityDefaultsIfNeeded(defaults: defaults).isEmpty)
         #expect(defaults.object(forKey: "NSStatusItem VisibleCC Item-2") != nil)
+    }
+
+    @Test
+    func `status item visibility default distinguishes enabled disabled and unset`() throws {
+        let suite = "StatusItemControllerSplitLifecycleTests-visibility-default-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defaults.set(true, forKey: "NSStatusItem VisibleCC researchbar-merged")
+        defaults.set(false, forKey: "NSStatusItem VisibleCC researchbar-claude")
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
+            defaults: defaults,
+            autosaveName: "researchbar-merged") == true)
+        #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
+            defaults: defaults,
+            autosaveName: "researchbar-claude") == false)
+        #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
+            defaults: defaults,
+            autosaveName: "researchbar-codex") == nil)
     }
 
     @Test
