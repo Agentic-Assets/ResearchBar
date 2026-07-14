@@ -45,13 +45,13 @@ What it does:
 - `swift build -c release --arch arm64` and `swift build -c release --arch x86_64`
 - Packages `ResearchBar.app` with Info.plist and Icon.icns
 - Embeds Sparkle.framework, Updater, Autoupdate, XPCs
-- Codesigns **everything** with runtime + timestamp (deep) and adds rpath
+- Codesigns each nested component (Sparkle framework parts, helper binaries, widget extension) individually with runtime + timestamp, then signs the app bundle itself with entitlements, and adds rpath
 - Zips to `ResearchBar-macos-universal-<version>.zip`
 - Submits to notarytool, waits, staples, validates
 
 Gotchas fixed:
 - Sparkle needs signing for framework, Autoupdate, Updater, XPCs (Downloader/Installer) or notarization fails.
-- Use `--timestamp` and `--deep` when signing the app to avoid invalid signature errors.
+- Use `--timestamp --options runtime`, signing each nested component individually rather than a single `--deep` sign, to avoid invalid signature errors.
 - Avoid `unzip` because it can add AppleDouble `._*` files that break the sealed signature and trigger “app is damaged”. Use Finder or `ditto -x -k ResearchBar-<ver>.zip /Applications`. If Gatekeeper complains, delete the app bundle, re-extract with `ditto`, then `spctl -a -t exec` to verify.
 - Manual sanity check before uploading: `find ResearchBar.app -name '._*'` should return nothing; then `spctl --assess --type execute --verbose ResearchBar.app` and `codesign --verify --deep --strict --verbose ResearchBar.app` should both pass on the packaged bundle.
 
