@@ -2,7 +2,7 @@
 
 **Branch:** `codex/fix-researchbar-menu-bar-icon`  
 **Commit:** `1647aae9` (`Fix ResearchBar status item visibility`)  
-**State:** Blocked on no-prompt live menu-bar inspection.
+**State:** Resolved 2026-07-13 (see "Continuation, 2026-07-13 root cause found and repaired" below); originally blocked on no-prompt live menu-bar inspection.
 
 ## Goal
 

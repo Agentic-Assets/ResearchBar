@@ -7,6 +7,11 @@ read_when:
 
 # CodexBar Homebrew Release Playbook
 
+**Stale for ResearchBar:** this file is inherited from upstream CodexBar and describes upstream's own tap
+(`steipete/homebrew-tap`, `steipete/tap`). ResearchBar does not currently ship a Homebrew cask and has no
+equivalent tap repo; see the "Homebrew (Cask)" section of `docs/RELEASING.md` for ResearchBar's actual status.
+Do not run the commands below against ResearchBar releases — they target a repo and cask this fork does not own.
+
 Homebrew is for the UI app via Cask. When installed via Homebrew, CodexBar disables Sparkle and shows a "update via brew" hint in About.
 
 ## Prereqs
