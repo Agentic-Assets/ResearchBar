@@ -244,7 +244,147 @@ struct MenuBarVisibilityWatcherTests {
             now: launchedAt.addingTimeInterval(2),
             snapshots: [detachedProxy],
             windowSnapshots: [blockedWindow],
-            detectTahoeBlockedProxy: true))
+            detectTahoeBlockedStatusItem: true))
+    }
+
+    @Test
+    func `startup recovery retries expected hidden Tahoe item with enabled default and no window`() {
+        let launchedAt = Date(timeIntervalSince1970: 1000)
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: false,
+            hasScreen: false,
+            buttonWidth: 76)
+        let evidence = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: true,
+            visibilityDefault: true,
+            snapshot: hidden)
+
+        #expect(MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
+            appLaunchedAt: launchedAt,
+            now: launchedAt.addingTimeInterval(2),
+            snapshots: [hidden],
+            evidence: [evidence],
+            detectTahoeBlockedStatusItem: true))
+    }
+
+    @Test
+    func `startup recovery ignores hidden Tahoe item without app and defaults visibility agreement`() {
+        let launchedAt = Date(timeIntervalSince1970: 1000)
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: false,
+            hasScreen: false,
+            buttonWidth: 76)
+        let intentionallyHidden = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: false,
+            visibilityDefault: true,
+            snapshot: hidden)
+        let disabledByUser = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: true,
+            visibilityDefault: false,
+            snapshot: hidden)
+        let unknownDefault = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: true,
+            visibilityDefault: nil,
+            snapshot: hidden)
+
+        for evidence in [intentionallyHidden, disabledByUser, unknownDefault] {
+            #expect(!MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
+                appLaunchedAt: launchedAt,
+                now: launchedAt.addingTimeInterval(2),
+                snapshots: [hidden],
+                evidence: [evidence],
+                detectTahoeBlockedStatusItem: true))
+        }
+    }
+
+    @Test
+    func `startup recovery ignores hidden item when matching window still exists`() {
+        let launchedAt = Date(timeIntervalSince1970: 1000)
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: false,
+            hasScreen: false,
+            buttonWidth: 76)
+        let evidence = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: true,
+            visibilityDefault: true,
+            snapshot: hidden)
+        let existingWindow = MenuBarStatusItemWindowSnapshot(
+            name: "researchbar-merged",
+            ownerName: "Control Center",
+            bounds: CGRect(x: 1500, y: 0, width: 76, height: 24),
+            isOnscreen: true,
+            displayBounds: CGRect(x: 0, y: 0, width: 2056, height: 1329))
+
+        #expect(!MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
+            appLaunchedAt: launchedAt,
+            now: launchedAt.addingTimeInterval(2),
+            snapshots: [hidden],
+            evidence: [evidence],
+            windowSnapshots: [existingWindow],
+            detectTahoeBlockedStatusItem: true))
+    }
+
+    @Test
+    func `startup recovery ignores stale hidden matching window record`() {
+        let launchedAt = Date(timeIntervalSince1970: 1000)
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: false,
+            hasScreen: false,
+            buttonWidth: 76)
+        let evidence = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: true,
+            visibilityDefault: true,
+            snapshot: hidden)
+        let staleWindow = MenuBarStatusItemWindowSnapshot(
+            name: "researchbar-merged",
+            ownerName: "Control Center",
+            bounds: CGRect(x: 1500, y: 0, width: 76, height: 24),
+            isOnscreen: false,
+            displayBounds: CGRect(x: 0, y: 0, width: 2056, height: 1329))
+
+        #expect(MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
+            appLaunchedAt: launchedAt,
+            now: launchedAt.addingTimeInterval(2),
+            snapshots: [hidden],
+            evidence: [evidence],
+            windowSnapshots: [staleWindow],
+            detectTahoeBlockedStatusItem: true))
+    }
+
+    @Test
+    func `startup recovery keeps hidden no-window detection Tahoe only`() {
+        let launchedAt = Date(timeIntervalSince1970: 1000)
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: false,
+            hasScreen: false,
+            buttonWidth: 76)
+        let evidence = StatusItemStartupVisibilityEvidence(
+            autosaveName: "researchbar-merged",
+            expectsVisibility: true,
+            visibilityDefault: true,
+            snapshot: hidden)
+
+        #expect(!MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
+            appLaunchedAt: launchedAt,
+            now: launchedAt.addingTimeInterval(2),
+            snapshots: [hidden],
+            evidence: [evidence]))
     }
 
     @Test
@@ -262,7 +402,7 @@ struct MenuBarVisibilityWatcherTests {
             appLaunchedAt: launchedAt,
             now: launchedAt.addingTimeInterval(2),
             snapshots: [managed],
-            detectTahoeBlockedProxy: true))
+            detectTahoeBlockedStatusItem: true))
     }
 
     @Test
@@ -334,6 +474,44 @@ struct MenuBarVisibilityWatcherTests {
             appLaunchedAt: launchedAt,
             now: launchedAt.addingTimeInterval(2),
             snapshots: [healthy]))
+    }
+
+    @Test
+    func `startup placement refresh triggers for displaced live item`() {
+        let displaced = StatusItemVisibilitySnapshot(
+            isVisible: true,
+            hasButton: true,
+            hasWindow: true,
+            hasScreen: true,
+            isOnCurrentScreen: false,
+            buttonWidth: 18)
+
+        #expect(MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: [displaced]))
+    }
+
+    @Test
+    func `startup placement refresh ignores healthy visible item`() {
+        let healthy = StatusItemVisibilitySnapshot(
+            isVisible: true,
+            hasButton: true,
+            hasWindow: true,
+            hasScreen: true,
+            buttonWidth: 18)
+
+        #expect(!MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: [healthy]))
+    }
+
+    @Test
+    func `startup placement refresh ignores hidden displaced item`() {
+        let hidden = StatusItemVisibilitySnapshot(
+            isVisible: false,
+            hasButton: true,
+            hasWindow: true,
+            hasScreen: true,
+            isOnCurrentScreen: false,
+            buttonWidth: 18)
+
+        #expect(!MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: [hidden]))
     }
 
     @Test

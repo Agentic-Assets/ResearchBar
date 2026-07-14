@@ -113,6 +113,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let menuRefreshEnabledForController: Bool
     var statusItem: NSStatusItem
     var statusItems: [UsageProvider: NSStatusItem] = [:]
+    /// App intent survives Tahoe changing `NSStatusItem.isVisible` after Control Center rejects its scene.
+    var expectedVisibleStatusItemAutosaveNames: Set<String> = []
     var lastMenuProvider: UsageProvider?
     var menuProviders: [ObjectIdentifier: UsageProvider] = [:]
     var menuSession = MenuSessionCoordinator<ObjectIdentifier>()
@@ -265,29 +267,6 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let menuLogger = CodexBarLog.logger(LogCategories.app)
     var researchPulseMenuInput: ResearchPulseMenuInput = .notConnected
 
-    private static func makeStatusItem(
-        statusBar: NSStatusBar,
-        identity: StatusItemIdentity,
-        defaults: UserDefaults,
-        legacyDefaultItemIndex: Int?)
-        -> NSStatusItem
-    {
-        MenuBarStatusItemPlacementPreflight.prepare(
-            defaults: defaults,
-            autosaveName: identity.autosaveName,
-            legacyDefaultItemIndex: legacyDefaultItemIndex)
-        let item = statusBar.statusItem(withLength: NSStatusItem.variableLength)
-        item.autosaveName = identity.autosaveName
-        if let button = item.button {
-            // Ensure the icon is rendered at 1:1 without resampling (crisper edges for template images).
-            button.imageScaling = .scaleNone
-            button.setAccessibilityIdentifier(identity.accessibilityIdentifier)
-            button.setAccessibilityTitle(self.statusItemAccessibilityTitle)
-            button.toolTip = self.statusItemAccessibilityTitle
-        }
-        return item
-    }
-
     struct BlinkState {
         var nextBlink: Date
         var blinkStart: Date?
@@ -406,8 +385,14 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         self.lastSwitcherUsageBarsShowUsed = settings.usageBarsShowUsed
         self.menuCardRenderingEnabledForController = menuCardRenderingEnabled
         self.menuRefreshEnabledForController = menuRefreshEnabled
-        let repairedStatusItemVisibilityKeys = MenuBarStatusItemDefaultsRepair
+        var repairedStatusItemVisibilityKeys = MenuBarStatusItemDefaultsRepair
             .repairHiddenVisibilityDefaultsIfNeeded(defaults: settings.userDefaults)
+        if Self.shouldCreateResearchBarStatusItem {
+            repairedStatusItemVisibilityKeys += MenuBarStatusItemDefaultsRepair
+                .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: settings.userDefaults)
+            repairedStatusItemVisibilityKeys += MenuBarStatusItemDefaultsRepair
+                .removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: settings.userDefaults)
+        }
         self.statusBar = statusBar
         self.statusItem = Self.makeStatusItem(
             statusBar: statusBar,
@@ -694,6 +679,13 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
             self.endIconPerfUpdatePass()
             MainThreadActivityBreadcrumb.pop()
         }
+        if self.isResearchBarStatusItemOwner {
+            self.attachMenus()
+            self.updateAnimationState()
+            self.updateBlinkingState()
+            self.updateResearchBarStatusAccessibility()
+            return
+        }
         // Avoid flicker: when an animation driver is active, store updates can call `updateIcons()` and
         // briefly overwrite the animated frame with the static (phase=nil) icon.
         let phase: Double? = self.needsMenuBarIconAnimation() ? self.animationPhase : nil
@@ -757,38 +749,6 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         self.lastAppliedProviderIconRenderSignatures.removeAll()
         self.updateVisibility()
         self.updateIcons()
-    }
-
-    private func updateVisibility() {
-        #if DEBUG
-        guard !self.isReleasedForTesting else { return }
-        #endif
-        let anyEnabled = !self.store.enabledProvidersForDisplay().isEmpty
-        let force = self.store.debugForceAnimation
-        let mergeIcons = self.shouldMergeIcons
-        if mergeIcons {
-            self.statusItem.isVisible = anyEnabled || force
-            for provider in Array(self.statusItems.keys) {
-                self.removeProviderStatusItem(for: provider)
-            }
-            self.attachMenus()
-        } else {
-            self.statusItem.isVisible = false
-            let fallback = self.fallbackProvider
-            for provider in self.settings.orderedProviders() {
-                let isEnabled = self.isEnabled(provider)
-                let shouldBeVisible = isEnabled || fallback == provider || force
-                if shouldBeVisible {
-                    let item = self.lazyStatusItem(for: provider)
-                    item.isVisible = true
-                } else {
-                    self.removeProviderStatusItem(for: provider)
-                }
-            }
-            self.attachMenus(fallback: fallback)
-        }
-        self.updateAnimationState()
-        self.updateBlinkingState()
     }
 
     var fallbackProvider: UsageProvider? {
@@ -895,7 +855,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     }
 
     var shouldMergeIcons: Bool {
-        self.settings.mergeIcons && self.store.enabledProvidersForDisplay().count > 1
+        if self.isResearchBarStatusItemOwner { return true }
+        return self.settings.mergeIcons && self.store.enabledProvidersForDisplay().count > 1
     }
 
     func switchAccountSubtitle(for target: UsageProvider) -> String? {
@@ -977,9 +938,96 @@ extension StatusItemController {
 #endif
 
 extension StatusItemController {
+    private static func makeStatusItem(
+        statusBar: NSStatusBar,
+        identity: StatusItemIdentity,
+        defaults: UserDefaults,
+        legacyDefaultItemIndex: Int?)
+        -> NSStatusItem
+    {
+        MenuBarStatusItemPlacementPreflight.prepare(
+            defaults: defaults,
+            autosaveName: identity.autosaveName,
+            legacyDefaultItemIndex: legacyDefaultItemIndex)
+        let isMergedStatusItem = if case .merged = identity { true } else { false }
+        let rendersResearchBarStatusItem = isMergedStatusItem && Self.shouldCreateResearchBarStatusItem
+        let length = rendersResearchBarStatusItem
+            ? ResearchBarStatusItemIcon.statusItemLength
+            : NSStatusItem.variableLength
+        let item = statusBar.statusItem(withLength: length)
+        item.autosaveName = identity.autosaveName
+        if let button = item.button {
+            // Ensure the icon is rendered at 1:1 without resampling.
+            button.imageScaling = NSImageScaling.scaleNone
+            button.setAccessibilityIdentifier(identity.accessibilityIdentifier)
+            button.setAccessibilityTitle(self.statusItemAccessibilityTitle)
+            button.toolTip = self.statusItemAccessibilityTitle
+            if rendersResearchBarStatusItem {
+                ResearchBarStatusItemIcon.apply(to: button, statusItem: item)
+            }
+        }
+        return item
+    }
+
     var selectedMenuProvider: UsageProvider? {
         get { self.settings.selectedMenuProvider }
         set { self.settings.selectedMenuProvider = newValue }
+    }
+
+    private func updateVisibility() {
+        #if DEBUG
+        guard !self.isReleasedForTesting else { return }
+        #endif
+        if self.updateResearchBarVisibility() {
+            return
+        }
+        let anyEnabled = !self.store.enabledProvidersForDisplay().isEmpty
+        let force = self.store.debugForceAnimation
+        let mergeIcons = self.shouldMergeIcons
+        var expectedVisibleAutosaveNames: Set<String> = []
+        if mergeIcons {
+            let shouldBeVisible = anyEnabled || force
+            self.statusItem.isVisible = shouldBeVisible
+            if shouldBeVisible {
+                expectedVisibleAutosaveNames.insert(self.statusItem.autosaveName)
+            }
+            for provider in Array(self.statusItems.keys) {
+                self.removeProviderStatusItem(for: provider)
+            }
+            self.attachMenus()
+        } else {
+            self.statusItem.isVisible = false
+            let fallback = self.fallbackProvider
+            for provider in self.settings.orderedProviders() {
+                let isEnabled = self.isEnabled(provider)
+                let shouldBeVisible = isEnabled || fallback == provider || force
+                if shouldBeVisible {
+                    let item = self.lazyStatusItem(for: provider)
+                    item.isVisible = true
+                    expectedVisibleAutosaveNames.insert(item.autosaveName)
+                } else {
+                    self.removeProviderStatusItem(for: provider)
+                }
+            }
+            self.attachMenus(fallback: fallback)
+        }
+        self.expectedVisibleStatusItemAutosaveNames = expectedVisibleAutosaveNames
+        self.updateAnimationState()
+        self.updateBlinkingState()
+    }
+
+    private func updateResearchBarVisibility() -> Bool {
+        guard self.isResearchBarStatusItemOwner else { return false }
+        self.statusItem.isVisible = true
+        self.expectedVisibleStatusItemAutosaveNames = [self.statusItem.autosaveName]
+        for provider in Array(self.statusItems.keys) {
+            self.removeProviderStatusItem(for: provider)
+        }
+        self.attachMenus()
+        self.updateAnimationState()
+        self.updateBlinkingState()
+        self.updateResearchBarStatusAccessibility()
+        return true
     }
 
     private func legacyDefaultItemIndex(forNewProvider provider: UsageProvider) -> Int? {

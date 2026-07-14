@@ -72,12 +72,14 @@ struct StatusItemControllerSplitLifecycleTests {
 
         #expect(controller.statusItems[.codex] != nil)
         #expect(controller.statusItems[.claude] != nil)
+        #expect(controller.expectedVisibleStatusItemAutosaveNames == ["researchbar-codex", "researchbar-claude"])
 
         settings.mergeIcons = true
         controller.handleProviderConfigChange(reason: "test")
 
         #expect(controller.statusItem.isVisible == true)
         #expect(controller.statusItems.isEmpty)
+        #expect(controller.expectedVisibleStatusItemAutosaveNames == ["researchbar-merged"])
     }
 
     @Test
@@ -148,6 +150,65 @@ struct StatusItemControllerSplitLifecycleTests {
         let mergedButton = try #require(controller.statusItem.button)
         #expect(mergedButton.image != nil)
         #expect(!self.containsHostingView(mergedButton))
+    }
+
+    @Test
+    func `researchbar owner renders standard cap status item`() throws {
+        StatusItemController.researchBarStatusItemOwnerOverrideForTesting = true
+        defer {
+            StatusItemController.researchBarStatusItemOwnerOverrideForTesting = nil
+        }
+
+        let (_, controller) = try self.makeSplitController()
+        defer { controller.releaseStatusItemsForTesting() }
+
+        let button = try #require(controller.statusItem.button)
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(ResearchBarStatusItemIcon.statusItemLength == NSStatusItem.squareLength)
+        #expect(controller.statusItem.autosaveName == "researchbar-merged")
+        #expect(controller.statusItems.isEmpty)
+        #expect(controller.statusItem.menu === controller.mergedMenu)
+        #expect(button.title.isEmpty)
+        #expect(button.attributedTitle.string.isEmpty)
+        #expect(button.image != nil)
+        #expect(button.image?.isTemplate == true)
+        #expect(button.imagePosition == .imageOnly)
+        #expect(button.imageScaling == .scaleProportionallyDown)
+        #expect(button.toolTip == "ResearchBar: Not connected")
+        #expect(button.accessibilityIdentifier() == "ResearchBar.StatusItem")
+        #expect(button.accessibilityTitle() == "ResearchBar")
+        #expect(button.accessibilityValue() as? String == "Not connected")
+
+        _ = controller.applyIcon(phase: nil)
+
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(controller.statusItems.isEmpty)
+        #expect(button.title.isEmpty)
+        #expect(button.image != nil)
+        #expect(button.image?.isTemplate == true)
+        #expect(button.imagePosition == .imageOnly)
+        #expect(button.imageScaling == .scaleProportionallyDown)
+
+        controller.recreateStatusItemsForVisibilityRecovery()
+
+        let recoveredButton = try #require(controller.statusItem.button)
+        #expect(controller.statusItem.isVisible)
+        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
+        #expect(controller.statusItem.autosaveName == "researchbar-merged")
+        #expect(controller.statusItems.isEmpty)
+        #expect(controller.statusItem.menu === controller.mergedMenu)
+        #expect(recoveredButton.title.isEmpty)
+        #expect(recoveredButton.attributedTitle.string.isEmpty)
+        #expect(recoveredButton.image != nil)
+        #expect(recoveredButton.image?.isTemplate == true)
+        #expect(recoveredButton.imagePosition == .imageOnly)
+        #expect(recoveredButton.imageScaling == .scaleProportionallyDown)
+        #expect(recoveredButton.toolTip == "ResearchBar: Not connected")
+        #expect(recoveredButton.accessibilityIdentifier() == "ResearchBar.StatusItem")
+        #expect(recoveredButton.accessibilityTitle() == "ResearchBar")
+        #expect(recoveredButton.accessibilityValue() as? String == "Not connected")
     }
 
     @Test
@@ -411,6 +472,80 @@ struct StatusItemControllerSplitLifecycleTests {
         defaults.set(false, forKey: "NSStatusItem VisibleCC Item-2")
         #expect(MenuBarStatusItemDefaultsRepair.repairHiddenVisibilityDefaultsIfNeeded(defaults: defaults).isEmpty)
         #expect(defaults.object(forKey: "NSStatusItem VisibleCC Item-2") != nil)
+    }
+
+    @Test
+    func `status item visibility default distinguishes enabled disabled and unset`() throws {
+        let suite = "StatusItemControllerSplitLifecycleTests-visibility-default-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defaults.set(true, forKey: "NSStatusItem VisibleCC researchbar-merged")
+        defaults.set(false, forKey: "NSStatusItem VisibleCC researchbar-claude")
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
+            defaults: defaults,
+            autosaveName: "researchbar-merged") == true)
+        #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
+            defaults: defaults,
+            autosaveName: "researchbar-claude") == false)
+        #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
+            defaults: defaults,
+            autosaveName: "researchbar-codex") == nil)
+    }
+
+    @Test
+    func `researchbar legacy visibility repair runs after generic repair is complete`() throws {
+        let suite = "StatusItemControllerSplitLifecycleTests-researchbar-repair-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+        }
+
+        let legacyKey = "NSStatusItem VisibleCC Item-0"
+        defaults.set(true, forKey: MenuBarStatusItemDefaultsRepair.didRepairKey)
+        defaults.set(false, forKey: legacyKey)
+
+        #expect(MenuBarStatusItemDefaultsRepair.repairHiddenVisibilityDefaultsIfNeeded(defaults: defaults).isEmpty)
+        #expect(MenuBarStatusItemDefaultsRepair.repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults) == [
+            legacyKey,
+        ])
+        #expect(defaults.object(forKey: legacyKey) == nil)
+        #expect(defaults.bool(forKey: MenuBarStatusItemDefaultsRepair.didRepairResearchBarLegacyItemKey))
+
+        defaults.set(false, forKey: legacyKey)
+        let secondRepair = MenuBarStatusItemDefaultsRepair
+            .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults)
+        #expect(secondRepair.isEmpty)
+        #expect(defaults.object(forKey: legacyKey) != nil)
+    }
+
+    @Test
+    func `researchbar removes the retired placement sentinel defaults once`() throws {
+        let suite = "StatusItemControllerSplitLifecycleTests-placement-sentinel-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let visibleKey = "NSStatusItem VisibleCC researchbar-placement-sentinel"
+        let positionKey = "NSStatusItem Preferred Position researchbar-placement-sentinel"
+        defaults.set(true, forKey: visibleKey)
+        defaults.set(73, forKey: positionKey)
+
+        #expect(MenuBarStatusItemDefaultsRepair
+            .removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: defaults) == [
+                visibleKey,
+                positionKey,
+            ])
+        #expect(defaults.object(forKey: visibleKey) == nil)
+        #expect(defaults.object(forKey: positionKey) == nil)
+        #expect(defaults.bool(forKey: MenuBarStatusItemDefaultsRepair.didRemoveResearchBarPlacementSentinelKey))
+
+        defaults.set(true, forKey: visibleKey)
+        #expect(MenuBarStatusItemDefaultsRepair.removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: defaults)
+            .isEmpty)
+        #expect(defaults.object(forKey: visibleKey) != nil)
     }
 
     @Test

@@ -11,6 +11,7 @@ extension StatusItemController {
         2.7 / StatusItemController.loadingAnimationFPS
     private static let loadingAnimationMaxContinuousDuration: TimeInterval = 30.0
     func needsMenuBarIconAnimation() -> Bool {
+        if self.isResearchBarStatusItemOwner { return false }
         if self.shouldMergeIcons {
             let primaryProvider = self.primaryProviderForUnifiedIcon()
             return self.shouldAnimate(provider: primaryProvider)
@@ -22,6 +23,11 @@ extension StatusItemController {
         #if DEBUG
         guard !self.isReleasedForTesting else { return }
         #endif
+        if self.isResearchBarStatusItemOwner {
+            self.stopBlinking()
+            self.updateResearchBarStatusAccessibility()
+            return
+        }
         // During the loading animation, blink ticks can overwrite the animated menu bar icon and cause flicker.
         if self.needsMenuBarIconAnimation() {
             self.stopBlinking()
@@ -237,6 +243,10 @@ extension StatusItemController {
         bypassMergedMenuTrackingDeferral: Bool = false) -> Bool
     {
         guard let button = self.statusItem.button else { return false }
+        if self.isResearchBarStatusItemOwner {
+            self.updateResearchBarStatusAccessibility()
+            return true
+        }
         if !bypassMergedMenuTrackingDeferral,
            self.deferMergedIconRenderDuringMenuTrackingIfNeeded() { return true }
 
@@ -425,6 +435,10 @@ extension StatusItemController {
 
     @discardableResult
     func applyIcon(for provider: UsageProvider, phase: Double?) -> Bool {
+        if self.isResearchBarStatusItemOwner {
+            self.updateResearchBarStatusAccessibility()
+            return true
+        }
         guard let button = self.statusItems[provider]?.button else { return false }
         let snapshot = self.store.snapshot(for: provider)
         // IconRenderer treats these values as a left-to-right "progress fill" percentage; depending on the
