@@ -168,11 +168,11 @@ Corbis also implements full OAuth 2.1: discovery at `/.well-known/oauth-protecte
 
 ## 4. `get_research_pulse`: the v0 tool
 
-Tool facts: scope `read:profile`, tier `tier1`, flat cost 0.5 credits, **not cached** (per-user state), no arguments (`lib/ai/capabilities/index.ts:648`; `lib/mcp/tools/output-schemas.ts:324`).
+Tool facts: scope `read:profile`, tier `tier1`, flat cost 0.5 credits, **not cached** (per-user state), no arguments (`lib/ai/capabilities/index.ts:709`; `lib/mcp/tools/output-schemas.ts:441-479`).
 
 ### Exact output schema (decode `structuredContent` into this)
 
-This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: an older planning doc (`04`) typed the trend fields as hard `null` and the middle history state as `accruing`. **The shipped code is what follows**: trend fields are nullable numbers, and the middle state is `tracking`.
+This is the live compatibility schema (`lib/mcp/tools/output-schemas.ts:441-479`). The new fields are optional at the decode boundary, but current Corbis responses always dual-emit them with their required legacy mirrors. Note: an older planning doc (`04`) typed the trend fields as hard `null` and the middle history state as `accruing`. Trend fields are nullable numbers, and the middle state is `tracking`.
 
 ```ts
 {
@@ -183,13 +183,17 @@ This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: a
   sector: string | null,
   companyName: string | null,
   plan: string,                 // effective tier label, e.g. "free"
-  creditsRemaining: number,     // per-user; this is why the tool is never cached
+  creditBalance?:
+    | { kind: "limited", remaining: number }
+    | { kind: "unlimited" },
+  creditsRemaining: number, // required legacy mirror; 0 for unlimited
   orcid: string | null,
   googleScholarId: string | null,
   googleScholarUrl: string | null,  // URL
   totalCitations: number | null,
   hIndex: number | null,
-  trackedPaperCount: number | null,
+  indexedWorksCount?: number | null,
+  trackedPaperCount: number | null, // required legacy mirror
   citationDelta7d: number | null,   // null until history accrues
   citationDelta52w: number | null,  // null until history accrues
   sparkline52w: number[] | null,    // null until history accrues
@@ -205,6 +209,12 @@ This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: a
   etag: string,        // payload hash: use for cache validation
 }
 ```
+
+Compatibility resolution is deterministic:
+
+- Prefer a valid `creditBalance`. Render `Unlimited` for `kind: "unlimited"` and the exact remainder for `kind: "limited"`.
+- Current responses always emit `creditBalance` and numeric `creditsRemaining`. Unlimited accounts send `creditBalance.kind: "unlimited"` with legacy `creditsRemaining: 0`; clients must render `Unlimited`, not the mirror. For future post-window compatibility, an absent, unknown, or malformed new balance may fall back to a numeric legacy value. If neither is usable, omit the value rather than displaying zero.
+- Current responses always emit `indexedWorksCount` and required nullable `trackedPaperCount` as exact mirrors. A valid new number or explicit null is authoritative and renders as `Indexed works` only when numeric. For future mixed-version compatibility, absent or malformed new values may fall back to the legacy field.
 
 ### `profileStatus`: render all four states
 
@@ -223,7 +233,8 @@ This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: a
 
 ### Trend / sparkline rules (do not fabricate)
 
-- Draw a sparkline or a delta **only** when the trend fields are non-null **and** `citationHistoryStatus === "tracked"`.
+- Treat `"tracked"` as renderable only when `citationDelta7d` is non-null and `sparkline52w` is non-empty. Render those available trends; render the 52-week row only when `citationDelta52w` is also non-null.
+- `citationDelta52w` normally remains null until the snapshot store contains a valid roughly-year-old comparator. Its absence does not invalidate an otherwise tracked trend.
 - For `"not_yet_tracked"` show a "tracking will begin" affordance. For `"tracking"` show "history is accruing," not a flat zero line.
 - **Never render a zero trend or a synthetic sparkline.** A null trend means "no data," which is visually different from "zero change." This is a hard product rule (`08-get-research-pulse-v0-spec.md` §3; `build-guides/05`).
 
@@ -233,7 +244,7 @@ Trends populate automatically once the backend's weekly citation-snapshot cron a
 
 ## 5. `get_data_freshness`: the "how current is the data" tool
 
-Tool facts: scope `read:market_data`, tier `tier1`, flat cost 0.5, **cacheable**, no arguments (`lib/ai/capabilities/index.ts:659`; `lib/mcp/tools/output-schemas.ts:363`).
+Tool facts: scope `read:market_data`, tier `tier1`, flat cost 0.5, **cacheable**, no arguments (`lib/ai/capabilities/index.ts:720`; `lib/mcp/tools/output-schemas.ts:487-501`).
 
 ```ts
 {
@@ -285,8 +296,8 @@ ResearchBar can drive the full identity handshake over MCP (both tools are `read
 ## 7. Billing and the free-allowance caveat
 
 - **Flat cost: 0.5 credits per `tools/call`** (`MCP_CREDIT_COST`, `lib/mcp/tool-credits.ts:16`). `tools/list` is free.
-- The route **reserves before executing and refunds on tool failure** (`app/api/mcp/universal/route.ts`, reserve ~`:1382`, refund ~`:1438`). A failed tool call does not cost the user; a successful one does. Cached results still reserve but skip re-execution.
-- **Free-allowance math (planning, not a hard fact):** code fallbacks suggest a free user has on the order of 50 lifetime/period credits, i.e. roughly 100 aggregate calls at 0.5 each. These are DB-driven defaults that can change; **do not freeze any credit number, price, or allowance into ResearchBar.** Read `creditsRemaining` from the pulse and show it; do not compute entitlements client-side.
+- The route **reserves before executing and refunds on tool failure** (`app/api/mcp/universal/route.ts`, reserve `:1422`, refund `:1487`). A failed tool call does not cost the user; a successful one does. Cached results still reserve but skip re-execution.
+- **Free-allowance math (planning, not a hard fact):** code fallbacks suggest a free user has on the order of 50 lifetime/period credits, i.e. roughly 100 aggregate calls at 0.5 each. These are DB-driven defaults that can change; **do not freeze any credit number, price, or allowance into ResearchBar.** Prefer `creditBalance`, use `creditsRemaining` only as a legacy fallback, and do not compute entitlements client-side.
 - **Design for frugal calls.** Refresh on menu-open when the cache is stale, plus an explicit manual refresh. **Do not background-poll.** A 30-second poller would burn a free user's allowance in under an hour.
 - If you see a diagnostics panel claiming "1 credit per call," that is a stale display value; the authoritative cost is **0.5** (`lib/mcp/tool-credits.ts:16`).
 
@@ -329,7 +340,7 @@ Target repo: **`Agentic-Assets/ResearchBar`** (local path `…/agentic-assets/Re
 - [ ] `CorbisMCPClient.swift`: JSON-RPC over `URLSession`: builds the envelope (§2), sets the bearer header, decodes `result.structuredContent`, and maps both failure modes (protocol error vs `structuredContent.status == "error"`) plus the HTTP status table to typed Swift errors.
 - [ ] `CorbisCredentialStore.swift`: Keychain-backed token storage. No plaintext token in `UserDefaults`/preferences. Support connect / reconnect / unlink.
 - [ ] `ResearchPulseCache.swift`: account-keyed, honors `staleAfter` / `etag`, clears on token change, no background polling (§9).
-- [ ] `ResearchPulseMenuModel.swift` + `ResearchPulseMenuFactory.swift`: descriptor-driven menu renderer covering all four `profileStatus` states and the trend rules. Never draws a sparkline unless trends are non-null and status is `tracked`.
+- [ ] `ResearchPulseMenuModel.swift` + `ResearchPulseMenuFactory.swift`: descriptor-driven menu renderer covering all four `profileStatus` states and the trend rules. Never draws a sparkline unless the 7-day delta is non-null, the sparkline is non-empty, and status is `tracked`; omit the 52-week row until its comparator exists.
 - [ ] `ResearchBarRedaction.swift`: defensive client-side redaction assertions (§8).
 - [ ] `CorbisSettingsView.swift`: paste-token onboarding (v0), connection diagnostics, unlink.
 
@@ -398,7 +409,7 @@ From `06-risks-and-open-questions.md` and `founder-decisions.md` (founder calls,
 
 ## 14. Source of truth (re-verify before trusting memory)
 
-- **Wire schemas:** `lib/mcp/tools/output-schemas.ts` (`GetResearchPulseOutput` ~`:324`, `GetDataFreshnessOutput` ~`:363`).
+- **Wire schemas:** `lib/mcp/tools/output-schemas.ts` (`GetResearchPulseOutput` `:441-479`, `GetDataFreshnessOutput` `:487-501`).
 - **Transport + billing route:** `app/api/mcp/universal/route.ts`. **Result shaping:** `lib/mcp/result-format.ts`. **Cost:** `lib/mcp/tool-credits.ts:16`.
 - **Auth + scopes:** `lib/mcp/auth.ts` (`authenticateMCPRequest` `:326`, `DEFAULT_MCP_SCOPES` `:64`). **Key minting:** `app/actions/mcp-api-keys.ts`. **Scope/tier per tool:** `lib/ai/capabilities/index.ts:626,638,648,659`.
 - **Identity tools:** `lib/ai/tools/find-academic-identity.ts`, `lib/ai/tools/confirm-academic-identity.ts`, candidate token `lib/research-profile/author-candidate-service.ts`.

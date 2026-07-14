@@ -298,15 +298,18 @@ extension ResearchPulseMenuModel {
             rows.append(ResearchMenuRow(label: "ORCID", value: orcid, kind: .info))
         }
         rows.append(ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info))
-        rows.append(ResearchMenuRow(label: "Credits", value: Self.creditsLabel(pulse.creditsRemaining), kind: .info))
+        if let balance = pulse.resolvedCreditBalance {
+            rows.append(ResearchMenuRow(label: "Credits", value: Self.creditsLabel(balance), kind: .info))
+        }
         return ResearchMenuSection(title: "Account", rows: rows)
     }
 
     private static func creditsSection(for pulse: ResearchPulse) -> ResearchMenuSection {
-        ResearchMenuSection(title: "Account", rows: [
-            ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info),
-            ResearchMenuRow(label: "Credits", value: self.creditsLabel(pulse.creditsRemaining), kind: .info),
-        ])
+        var rows = [ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info)]
+        if let balance = pulse.resolvedCreditBalance {
+            rows.append(ResearchMenuRow(label: "Credits", value: self.creditsLabel(balance), kind: .info))
+        }
+        return ResearchMenuSection(title: "Account", rows: rows)
     }
 
     /// Citation metrics, or nil when every publication metric is absent (never zero them).
@@ -319,8 +322,8 @@ extension ResearchPulseMenuModel {
         if let hIndex = pulse.hIndex {
             rows.append(ResearchMenuRow(label: "h-index", value: "\(hIndex)", kind: .info))
         }
-        if let papers = pulse.trackedPaperCount {
-            rows.append(ResearchMenuRow(label: "Tracked papers", value: "\(papers)", kind: .info))
+        if let works = pulse.resolvedIndexedWorksCount {
+            rows.append(ResearchMenuRow(label: "Indexed works", value: "\(works)", kind: .info))
         }
         return rows.isEmpty ? nil : ResearchMenuSection(title: "Citation pulse", rows: rows)
     }
@@ -394,11 +397,16 @@ extension ResearchPulseMenuModel {
         }
     }
 
-    private static func creditsLabel(_ credits: Double) -> String {
-        if credits == credits.rounded() {
-            return "\(Int(credits))"
+    private static func creditsLabel(_ balance: CreditBalance) -> String {
+        switch balance {
+        case let .limited(remaining):
+            if remaining == remaining.rounded() {
+                return "\(Int(remaining))"
+            }
+            return "\(remaining)"
+        case .unlimited:
+            return "Unlimited"
         }
-        return "\(credits)"
     }
 
     private static func deltaLabel(_ delta: Int) -> String {

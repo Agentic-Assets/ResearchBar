@@ -76,6 +76,19 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
+    func trackedBeforeFiftyTwoWeekComparatorRendersAvailableTrendOnly() throws {
+        let model = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-tracked-no-52w-comparator"),
+            fromStaleCache: false))
+
+        #expect(model.state == .loadedTracked)
+        #expect(model.hasSparkline)
+        #expect(model.renderedStrings.contains("Past 7 days"))
+        #expect(model.renderedStrings.contains("+7"))
+        #expect(!model.renderedStrings.contains("Past 52 weeks"))
+    }
+
+    @Test
     func lowConfidenceShowsNoticeAndReviewAction() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-low-confidence"),
@@ -104,6 +117,41 @@ struct ResearchPulseMenuModelTests {
         #expect(!model.actions.contains(.refresh))
     }
 
+    @Test
+    func creditAndWorksRowsUseDualContractWithoutFabricatingValues() throws {
+        let limited = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-contract-limited"),
+            fromStaleCache: false))
+        #expect(limited.renderedStrings.contains("12.5"))
+        #expect(limited.renderedStrings.contains("Indexed works"))
+        #expect(limited.renderedStrings.contains("21"))
+        #expect(!limited.renderedStrings.contains("Tracked papers"))
+
+        let unlimited = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-contract-unlimited"),
+            fromStaleCache: false))
+        #expect(unlimited.renderedStrings.contains("Unlimited"))
+
+        let legacyFallback = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-contract-malformed-new-fields"),
+            fromStaleCache: false))
+        #expect(legacyFallback.renderedStrings.contains("9.25"))
+        #expect(legacyFallback.renderedStrings.contains("18"))
+
+        // Future mixed-version tolerance: explicit new null remains authoritative.
+        let authoritativeNull = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-contract-null-indexed-works"),
+            fromStaleCache: false))
+        #expect(!authoritativeNull.renderedStrings.contains("Indexed works"))
+        #expect(!authoritativeNull.renderedStrings.contains("18"))
+
+        let unavailable = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-contract-no-balances"),
+            fromStaleCache: false))
+        #expect(!unavailable.renderedStrings.contains("Credits"))
+        #expect(!unavailable.renderedStrings.contains("0"))
+    }
+
     // MARK: Redaction + semantic safety
 
     @Test
@@ -121,6 +169,14 @@ struct ResearchPulseMenuModelTests {
     @Test
     func trackedButIncompleteTrendsCollapsesToSafeError() {
         let broken = Self.makeLinkedPulse(citationHistoryStatus: .tracked, citationDelta7d: 5, sparkline52w: nil)
+        let model = ResearchPulseMenuModel.make(from: .loaded(pulse: broken, fromStaleCache: false))
+        #expect(model.state == .safeError)
+        #expect(!model.hasSparkline)
+    }
+
+    @Test
+    func trackedWithoutSevenDayDeltaCollapsesToSafeError() {
+        let broken = Self.makeLinkedPulse(citationHistoryStatus: .tracked, sparkline52w: [95, 100])
         let model = ResearchPulseMenuModel.make(from: .loaded(pulse: broken, fromStaleCache: false))
         #expect(model.state == .safeError)
         #expect(!model.hasSparkline)
