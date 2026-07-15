@@ -63,11 +63,11 @@ Verified against Corbis code and the live MCP smoke (2026-06-26). Authoritative 
 |---|---|
 | MCP tools registered | **41** authed; anonymous/invalid token sees **31** tier1 (`tools/list`, 2026-06-26) |
 | Credit per `tools/call` | **0.5** (not 1; a diagnostics panel still displays `1`, which is stale) |
-| Free tier | **~50 credits** (~**100** aggregate calls). DB-driven default, not a frozen fact; read `creditsRemaining` from the pulse. |
+| Free tier | **~50 credits** (~**100** aggregate calls). DB-driven default, not a frozen fact; prefer `creditBalance`. Current dual-emission keeps numeric `creditsRemaining` as a legacy mirror. |
 | ORCID-first confirm | **Shipped** (migration `0162`; `confirm_academic_identity` accepts ORCID / Google Scholar / opaque candidate token) |
 | Premium MCP tools | enterprise-only in practice; `get_research_pulse` + `get_data_freshness` are both **tier1** (free-reachable) |
 | Rate limit enforced | **200/hour** only (`10 concurrent` is docs-only) |
-| Pulse trends in v0 | **null** with `citationHistoryStatus: "not_yet_tracked"`; the weekly snapshot store (Phase 1) is shipped and populates real deltas + a 52-week sparkline once history accrues. Middle state is `"tracking"` (code), not `accruing`. |
+| Pulse trends in v0 | **null** with `citationHistoryStatus: "not_yet_tracked"`; the weekly snapshot store (Phase 1) is shipped. A valid roughly-seven-day comparator produces `"tracked"`, a real 7-day delta, and a non-empty sparkline. The 52-week delta stays null until a roughly-year-old comparator exists. Middle state is `"tracking"` (code), not `accruing`. |
 
 ## Citation convention
 

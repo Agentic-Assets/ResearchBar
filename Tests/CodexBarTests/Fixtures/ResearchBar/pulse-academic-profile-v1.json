@@ -1,0 +1,197 @@
+{
+  "profileStatus": "linked_researcher",
+  "displayName": "Dr. Rhea Calloway",
+  "affiliation": "University of Tulsa",
+  "role": "Assistant Professor of Finance",
+  "sector": "academic",
+  "companyName": null,
+  "plan": "academic",
+  "creditsRemaining": 84.0,
+  "orcid": "0000-0002-1825-0097",
+  "googleScholarId": "rheaCalloway123",
+  "googleScholarUrl": "https://scholar.google.com/citations?user=rheaCalloway123",
+  "totalCitations": 0,
+  "hIndex": 0,
+  "trackedPaperCount": 1,
+  "citationDelta7d": null,
+  "citationDelta52w": null,
+  "sparkline52w": null,
+  "citationHistoryStatus": "not_yet_tracked",
+  "lowConfidence": { "identity": false, "citations": false, "reason": null },
+  "profileLinks": [
+    { "label": "ORCID", "url": "https://orcid.org/0000-0002-1825-0097" }
+  ],
+  "academicProfile": {
+    "contractVersion": "academic-profile.v1",
+    "observedAt": "2026-07-14T12:00:00.000Z",
+    "identity": [
+      {
+        "id": "name",
+        "label": "Name",
+        "value": "Dr. Rhea Calloway",
+        "source": "orcid",
+        "sourceRecordId": null,
+        "status": "current",
+        "observedAt": "2026-07-14T12:00:00.000Z",
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "provenance": "Public ORCID profile",
+        "visibility": "public",
+        "reason": null
+      }
+    ],
+    "sources": [
+      {
+        "source": "openalex",
+        "label": "OpenAlex",
+        "status": "current",
+        "observedAt": "2026-07-14T12:00:00.000Z",
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": null,
+        "profileUrl": null,
+        "reason": null,
+        "warnings": [],
+        "coverage": { "recordCount": 1, "complete": true, "note": "Complete cursor read." }
+      },
+      {
+        "source": "orcid",
+        "label": "ORCID",
+        "status": "current",
+        "observedAt": "2026-07-14T00:00:00.000Z",
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": null,
+        "profileUrl": "https://orcid.org/0000-0002-1825-0097",
+        "reason": null,
+        "warnings": [],
+        "coverage": { "recordCount": 1, "complete": true, "note": "Public record." }
+      },
+      {
+        "source": "google_scholar",
+        "label": "Google Scholar",
+        "status": "unconfigured",
+        "observedAt": null,
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": null,
+        "profileUrl": null,
+        "reason": "No linked public profile.",
+        "warnings": ["Google Scholar was not linked."],
+        "coverage": { "recordCount": null, "complete": null, "note": "No configured source." }
+      },
+      {
+        "source": "ssrn",
+        "label": "SSRN",
+        "status": "partial",
+        "observedAt": "2026-07-13T00:00:00.000Z",
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": "2026-07-15T12:00:00.000Z",
+        "profileUrl": "https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=123456",
+        "reason": null,
+        "warnings": ["Counts are profile-reported."],
+        "coverage": { "recordCount": 19, "complete": false, "note": "Version families need review." }
+      }
+    ],
+    "metrics": [
+      {
+        "id": "openalex.citations",
+        "label": "OpenAlex citations",
+        "source": "openalex",
+        "value": 0,
+        "status": "current",
+        "observedAt": "2026-07-14T12:00:00.000Z",
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": null,
+        "scope": "Citations recorded by OpenAlex for OpenAlex-indexed works",
+        "reason": null,
+        "coverage": { "kind": "source_only", "complete": true }
+      },
+      {
+        "id": "google_scholar.citations",
+        "label": "Google Scholar citations",
+        "source": "google_scholar",
+        "value": null,
+        "status": "unconfigured",
+        "observedAt": null,
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": null,
+        "scope": "Citations reported by the named Google Scholar profile",
+        "reason": "No linked public profile.",
+        "coverage": { "kind": "source_only", "complete": null }
+      },
+      {
+        "id": "ssrn.downloads",
+        "label": "SSRN downloads",
+        "source": "ssrn",
+        "value": 18914,
+        "status": "partial",
+        "observedAt": "2026-07-13T00:00:00.000Z",
+        "attemptedAt": "2026-07-14T12:00:00.000Z",
+        "staleAfter": "2026-07-15T12:00:00.000Z",
+        "scope": "Downloads reported by the named SSRN author profile",
+        "reason": null,
+        "coverage": { "kind": "source_only", "complete": false }
+      }
+    ],
+    "works": [
+      {
+        "source": "openalex",
+        "sourceRecordId": "W987654321",
+        "title": "A public work",
+        "doi": null,
+        "year": 2026,
+        "contributors": ["Rhea Calloway"],
+        "citations": 0,
+        "downloads": null,
+        "observedAt": "2026-07-14T12:00:00.000Z",
+        "provenance": "Public OpenAlex work record",
+        "recordId": "openalex:W987654321",
+        "normalizedTitle": "a public work",
+        "versionFamilyId": "record:openalex:W987654321"
+      },
+      {
+        "source": "orcid",
+        "sourceRecordId": "put-code:42",
+        "title": "A public working-paper version",
+        "doi": null,
+        "year": 2025,
+        "contributors": ["Rhea Calloway"],
+        "citations": null,
+        "downloads": null,
+        "observedAt": "2026-07-14T12:00:00.000Z",
+        "provenance": "Public registry work record",
+        "recordId": "orcid:put-code:42",
+        "normalizedTitle": "a public working paper version",
+        "versionFamilyId": "record:orcid:put-code:42"
+      }
+    ],
+    "workFamilies": [
+      {
+        "id": "record:openalex:W987654321",
+        "status": "singleton",
+        "matchBasis": "source_record",
+        "memberRecordIds": ["openalex:W987654321"]
+      },
+      {
+        "id": "record:orcid:put-code:42",
+        "status": "singleton",
+        "matchBasis": "source_record",
+        "memberRecordIds": ["orcid:put-code:42"]
+      }
+    ],
+    "workProposals": [
+      {
+        "id": "proposal:title-contributor-year:test",
+        "matchBasis": "title_contributor_year",
+        "memberRecordIds": ["openalex:W987654321", "orcid:put-code:42"],
+        "reviewRequired": true
+      }
+    ],
+    "coverageWarnings": ["SSRN source is partial; do not sum metrics across sources."],
+    "aggregationPolicy": {
+      "works": "reconciled_version_families_only",
+      "citations": "source_specific_never_sum",
+      "downloads": "source_specific_never_sum"
+    }
+  },
+  "fetchedAt": "2026-07-14T12:00:00.000Z",
+  "staleAfter": "2026-07-14T18:00:00.000Z",
+  "etag": "research-pulse-academic-profile-v1"
+}

@@ -15,6 +15,94 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
+    func allowsDeclaredAcademicProfileSourceLabelsInRawPayload() throws {
+        let data = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+
+        #expect(ResearchPulseRedactor.scanRawJSON(data).isEmpty)
+    }
+
+    @Test
+    func rejectsPrivateEmailInsideAcademicProfile() throws {
+        let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        var profile = try #require(object["academicProfile"] as? [String: Any])
+        var identity = try #require(profile["identity"] as? [[String: Any]])
+        identity[0]["value"] = "private.researcher@example.edu"
+        profile["identity"] = identity
+        object["academicProfile"] = profile
+
+        let mutated = try JSONSerialization.data(withJSONObject: object)
+        let violations = ResearchPulseRedactor.scanRawJSON(mutated)
+        #expect(!violations.isEmpty)
+        #expect(violations.contains { $0.kind == .privateIdentityEvidence })
+    }
+
+    @Test
+    func rejectsPrivateOnlyFieldsAndCredentialsInsideAcademicProfile() throws {
+        let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        var profile = try #require(object["academicProfile"] as? [String: Any])
+        profile["openalexAuthorId"] = "A5012345678"
+        profile["credential"] = "corbis_mcp_privatevalue"
+        object["academicProfile"] = profile
+
+        let violations = try ResearchPulseRedactor.scanRawJSON(
+            JSONSerialization.data(withJSONObject: object))
+        #expect(violations.contains { $0.kind == .privateIdentityEvidence })
+        #expect(violations.contains { $0.kind == .internalAuthorID })
+        #expect(violations.contains { $0.kind == .sensitiveCredential })
+    }
+
+    @Test
+    func rejectsSemanticPrivateKeyVariantsInsideAcademicProfile() throws {
+        let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        var profile = try #require(object["academicProfile"] as? [String: Any])
+        profile["private_email"] = "hidden@example.edu"
+        profile["emailAddress"] = "hidden@example.edu"
+        profile["author_id"] = "private-author"
+        profile["internalUserId"] = "private-user"
+        profile["accessToken"] = "opaque"
+        profile["api_key"] = "opaque"
+        object["academicProfile"] = profile
+
+        let violations = try ResearchPulseRedactor.scanRawJSON(
+            JSONSerialization.data(withJSONObject: object))
+        #expect(violations.count(where: { $0.kind == .privateIdentityEvidence }) >= 6)
+    }
+
+    @Test
+    func rejectsMissingOrNonStringAcademicIdentityVisibility() throws {
+        for visibility: Any? in [nil, 1] {
+            let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+            var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+            var profile = try #require(object["academicProfile"] as? [String: Any])
+            var identity = try #require(profile["identity"] as? [[String: Any]])
+            identity[0]["visibility"] = visibility
+            profile["identity"] = identity
+            object["academicProfile"] = profile
+
+            let violations = try ResearchPulseRedactor.scanRawJSON(
+                JSONSerialization.data(withJSONObject: object))
+            #expect(violations.contains { $0.kind == .privateIdentityEvidence })
+        }
+    }
+
+    @Test
+    func typedAcademicProfileScanProtectsCachedPayloads() throws {
+        let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        var profile = try #require(object["academicProfile"] as? [String: Any])
+        var identity = try #require(profile["identity"] as? [[String: Any]])
+        identity[0]["value"] = "cached.private@example.edu"
+        profile["identity"] = identity
+        object["academicProfile"] = profile
+
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+        #expect(ResearchPulseRedactor.scan(pulse).contains { $0.kind == .privateIdentityEvidence })
+    }
+
+    @Test
     func leakLikeFixtureIsRejected() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-leak-like")
         #expect(!ResearchPulseRedactor.isClean(pulse))

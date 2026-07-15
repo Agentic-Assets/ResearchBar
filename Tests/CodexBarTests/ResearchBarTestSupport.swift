@@ -7,16 +7,24 @@ import Testing
 /// Shared loader for ResearchBar pulse fixtures under `Fixtures/ResearchBar`.
 /// Reused by the decoding, redaction, menu-model, cache, and client test suites.
 enum ResearchBarFixtures {
-    /// Every v0 pulse fixture name shipped under `Fixtures/ResearchBar`.
+    /// Legacy, current dual-emission, and labeled future-compatibility fixtures.
     static let allPulseNames: [String] = [
         "pulse-linked-not-tracked",
         "pulse-linked-tracking",
         "pulse-linked-tracked",
+        "pulse-tracked-no-52w-comparator",
         "pulse-profile-only",
         "pulse-industry-profile",
         "pulse-unlinked",
         "pulse-low-confidence",
+        "pulse-academic-profile-v1",
         "pulse-credit-limited",
+        "pulse-contract-limited",
+        "pulse-contract-unlimited",
+        "pulse-contract-malformed-new-fields",
+        "pulse-contract-null-indexed-works",
+        "pulse-contract-no-balances",
+        "pulse-future-post-window-unlimited",
         "pulse-leak-like",
     ]
 

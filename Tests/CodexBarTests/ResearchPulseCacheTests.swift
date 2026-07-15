@@ -153,6 +153,22 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
+    func fileCacheReDecodesDualContractPulse() async throws {
+        let directory = Self.makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let identity = CorbisAccountIdentity.make(accountID: "acct-dual", token: "tok-dual")
+        let (entry, key) = try Self.makeEntry(name: "pulse-contract-unlimited", identity: identity)
+        let writer = FileResearchPulseCache(directory: directory)
+        try await writer.store(entry, for: key)
+
+        let reader = FileResearchPulseCache(directory: directory)
+        let loaded = try #require(await reader.entry(for: key))
+        #expect(loaded.pulse.resolvedCreditBalance == .unlimited)
+        #expect(loaded.pulse.resolvedIndexedWorksCount == 24)
+    }
+
+    @Test
     func fileCacheDifferentTokenDoesNotCrossRead() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

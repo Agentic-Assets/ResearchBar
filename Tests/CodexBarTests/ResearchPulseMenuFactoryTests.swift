@@ -37,6 +37,19 @@ struct ResearchPulseMenuFactoryTests {
         #expect(Self.allTitles(sections).contains { $0.contains("+7") })
     }
 
+    @Test
+    func trackedBeforeFiftyTwoWeekComparatorOmitsOnlyFiftyTwoWeekRow() throws {
+        let sections = try ResearchPulseMenuFactory.makeSections(
+            from: .loaded(
+                pulse: ResearchBarFixtures.pulse("pulse-tracked-no-52w-comparator"),
+                fromStaleCache: false))
+        let titles = Self.allTitles(sections)
+
+        #expect(Self.hasTrend(sections))
+        #expect(titles.contains("Past 7 days: +7"))
+        #expect(!titles.contains { $0.hasPrefix("Past 52 weeks:") })
+    }
+
     // MARK: Industry profile shows no zeroed widgets
 
     @Test
@@ -47,6 +60,31 @@ struct ResearchPulseMenuFactoryTests {
         #expect(!titles.contains { $0.localizedCaseInsensitiveContains("Citations") })
         #expect(!titles.contains { $0 == "0" })
         #expect(!Self.hasTrend(sections))
+    }
+
+    @Test
+    func dualContractRowsReachRenderableMenuTitles() throws {
+        let limited = try ResearchPulseMenuFactory.makeSections(
+            from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-contract-limited"), fromStaleCache: false))
+        let limitedTitles = Self.allTitles(limited)
+        #expect(limitedTitles.contains("Credits: 12.5"))
+        #expect(limitedTitles.contains("Indexed works: 21"))
+
+        let unlimited = try ResearchPulseMenuFactory.makeSections(
+            from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-contract-unlimited"), fromStaleCache: false))
+        #expect(Self.allTitles(unlimited).contains("Credits: Unlimited"))
+        #expect(Self.allTitles(unlimited).contains("Indexed works: 24"))
+
+        // Future mixed-version tolerance: explicit new null remains authoritative.
+        let authoritativeNull = try ResearchPulseMenuFactory.makeSections(
+            from: .loaded(
+                pulse: ResearchBarFixtures.pulse("pulse-contract-null-indexed-works"),
+                fromStaleCache: false))
+        #expect(!Self.allTitles(authoritativeNull).contains { $0.hasPrefix("Indexed works:") })
+
+        let unavailable = try ResearchPulseMenuFactory.makeSections(
+            from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-contract-no-balances"), fromStaleCache: false))
+        #expect(!Self.allTitles(unavailable).contains { $0.hasPrefix("Credits:") })
     }
 
     // MARK: Action gating
