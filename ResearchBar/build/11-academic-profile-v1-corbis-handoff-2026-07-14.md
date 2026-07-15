@@ -237,6 +237,8 @@ Fresh Swift compile: passed as part of the focused suite
 make check: passed (format, strict lint, parser, package-path, sharding, and locale gates)
 make test: passed (41 shards, 488 test selections)
 Release package: passed with ad-hoc signing; bundle was not launched
+Bundled CLI version and strict deep code-signature verification: passed
+Gatekeeper assessment: rejected as expected for the ad-hoc, non-notarized bundle
 Keychain and live-provider probes: not run by design
 ```
 

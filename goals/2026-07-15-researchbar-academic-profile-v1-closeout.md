@@ -36,6 +36,10 @@ and durable verification.
 - `make test`: passed all 41 shards and 488 test selections.
 - `CODEXBAR_SIGNING=adhoc ./Scripts/package_app.sh release`: passed and created
   `ResearchBar.app`. The bundle was not launched.
+- Bundled `ResearchBarCLI --version`: passed and reported `ResearchBar 0.36.2`.
+- `codesign --verify --deep --strict --verbose=2 ResearchBar.app`: passed. Local
+  Gatekeeper assessment rejected the intentionally ad-hoc, non-notarized bundle;
+  this is not release or notarization proof.
 - Adversarial finder/skeptic review: six confirmed findings fixed; five earlier
   concerns refuted against the final code and tests.
 - Live Corbis MCP, Keychain, and provider probes were not run by design.
