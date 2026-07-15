@@ -1,0 +1,23 @@
+{
+  "profileStatus": "industry_profile",
+  "displayName": "Taylor Morgan",
+  "affiliation": null,
+  "role": "Research Director",
+  "sector": "Commercial Real Estate",
+  "companyName": "Northstar Analytics",
+  "plan": "enterprise",
+  "orcid": null,
+  "googleScholarId": null,
+  "googleScholarUrl": null,
+  "totalCitations": null,
+  "hIndex": null,
+  "citationDelta7d": null,
+  "citationDelta52w": null,
+  "sparkline52w": null,
+  "citationHistoryStatus": "not_yet_tracked",
+  "lowConfidence": { "identity": false, "citations": false, "reason": null },
+  "profileLinks": [],
+  "fetchedAt": "2026-07-14T12:00:00Z",
+  "staleAfter": "2026-07-14T18:00:00Z",
+  "etag": "sha256:no-balances"
+}

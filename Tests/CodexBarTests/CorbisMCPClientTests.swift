@@ -81,6 +81,18 @@ struct CorbisMCPClientTests {
         #expect(pulse.hasRenderableTrend)
     }
 
+    @Test
+    func futureMalformedFieldsRemainClientCompatible() async throws {
+        let client = Self.client { request in
+            let envelope = try Self.successEnvelope(structuredFixture: "pulse-contract-malformed-new-fields")
+            return (envelope, Self.http(200, url: request.url))
+        }
+
+        let pulse = try await client.fetchResearchPulse(token: Self.token)
+        #expect(pulse.resolvedCreditBalance == .limited(remaining: 9.25))
+        #expect(pulse.resolvedIndexedWorksCount == 18)
+    }
+
     // MARK: - HTTP status mapping
 
     @Test

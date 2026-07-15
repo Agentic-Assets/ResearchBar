@@ -254,7 +254,16 @@ extension ResearchPulseMenuModel {
     private static func contentSections(for pulse: ResearchPulse, state: State) -> [ResearchMenuSection] {
         var sections: [ResearchMenuSection] = [Self.identitySection(for: pulse)]
 
-        if pulse.profileStatus == .industryProfile {
+        if let academicProfile = pulse.academicProfile, academicProfile.isSupported {
+            sections.append(contentsOf: Self.academicProfileSections(for: academicProfile))
+        } else if pulse.hasUnsupportedAcademicProfile {
+            sections.append(ResearchMenuSection(title: "Academic profile", rows: [
+                ResearchMenuRow(
+                    label: "Research data needs a ResearchBar update",
+                    value: "Legacy totals are hidden",
+                    kind: .notice),
+            ]))
+        } else if pulse.profileStatus == .industryProfile {
             sections.append(ResearchMenuSection(title: "Research", rows: [
                 ResearchMenuRow(label: "Metrics not tracked", kind: .notice),
             ]))
@@ -298,31 +307,230 @@ extension ResearchPulseMenuModel {
             rows.append(ResearchMenuRow(label: "ORCID", value: orcid, kind: .info))
         }
         rows.append(ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info))
-        rows.append(ResearchMenuRow(label: "Credits", value: Self.creditsLabel(pulse.creditsRemaining), kind: .info))
+        if let balance = pulse.resolvedCreditBalance {
+            rows.append(ResearchMenuRow(label: "Credits", value: Self.creditsLabel(balance), kind: .info))
+        }
         return ResearchMenuSection(title: "Account", rows: rows)
     }
 
     private static func creditsSection(for pulse: ResearchPulse) -> ResearchMenuSection {
-        ResearchMenuSection(title: "Account", rows: [
-            ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info),
-            ResearchMenuRow(label: "Credits", value: self.creditsLabel(pulse.creditsRemaining), kind: .info),
-        ])
+        var rows = [ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info)]
+        if let balance = pulse.resolvedCreditBalance {
+            rows.append(ResearchMenuRow(label: "Credits", value: self.creditsLabel(balance), kind: .info))
+        }
+        return ResearchMenuSection(title: "Account", rows: rows)
     }
 
     /// Citation metrics, or nil when every publication metric is absent (never zero them).
     private static func citationSection(for pulse: ResearchPulse) -> ResearchMenuSection? {
         guard !pulse.hasNoPublicationMetrics else { return nil }
         var rows: [ResearchMenuRow] = []
-        if let citations = pulse.totalCitations {
+        if let citations = pulse.resolvedOpenAlexCitations {
             rows.append(ResearchMenuRow(label: "Citations", value: "\(citations)", kind: .info))
         }
         if let hIndex = pulse.hIndex {
             rows.append(ResearchMenuRow(label: "h-index", value: "\(hIndex)", kind: .info))
         }
-        if let papers = pulse.trackedPaperCount {
-            rows.append(ResearchMenuRow(label: "Tracked papers", value: "\(papers)", kind: .info))
+        if let works = pulse.resolvedIndexedWorksCount {
+            rows.append(ResearchMenuRow(label: "Indexed works", value: "\(works)", kind: .info))
         }
         return rows.isEmpty ? nil : ResearchMenuSection(title: "Citation pulse", rows: rows)
+    }
+
+    // MARK: academic-profile.v1 presentation
+
+    /// Builds a compact, provider-neutral view while preserving source, freshness,
+    /// status, coverage, and reconciliation boundaries from the canonical contract.
+    private static func academicProfileSections(for profile: AcademicProfile) -> [ResearchMenuSection] {
+        let sourceOrdinals = Self.sourceOrdinals(for: profile)
+        var sections = [
+            Self.academicOverviewSection(for: profile),
+            Self.academicEvidenceSection(for: profile, sourceOrdinals: sourceOrdinals),
+            Self.academicMetricsSection(for: profile, sourceOrdinals: sourceOrdinals),
+        ]
+        if let coverage = Self.academicCoverageSection(for: profile, sourceOrdinals: sourceOrdinals) {
+            sections.append(coverage)
+        }
+        return sections
+    }
+
+    private static func academicOverviewSection(for profile: AcademicProfile) -> ResearchMenuSection {
+        var rows = [
+            ResearchMenuRow(
+                label: "Research works",
+                value: Self.academicNumberLabel(Double(profile.workFamilies.count)),
+                kind: .info),
+        ]
+        if !profile.workProposals.isEmpty {
+            rows.append(ResearchMenuRow(
+                label: "Matches to review",
+                value: Self.academicNumberLabel(Double(profile.workProposals.count)),
+                kind: .notice))
+        }
+        rows.append(ResearchMenuRow(
+            label: "Profile observed",
+            value: Self.shortDate(profile.observedAt),
+            kind: .info))
+        return ResearchMenuSection(title: "Research overview", rows: rows)
+    }
+
+    private static func academicEvidenceSection(
+        for profile: AcademicProfile,
+        sourceOrdinals: [AcademicProfileSource: Int]) -> ResearchMenuSection
+    {
+        let rows = profile.sources
+            .sorted { Self.sourceOrder($0.source) < Self.sourceOrder($1.source) }
+            .map { state in
+                ResearchMenuRow(
+                    label: "Evidence source \(sourceOrdinals[state.source, default: 1])",
+                    value: Self.academicSourceDetail(state),
+                    kind: Self.isCurrentAndComplete(state) ? .info : .notice)
+            }
+        return ResearchMenuSection(title: "Evidence", rows: rows)
+    }
+
+    private static func academicMetricsSection(
+        for profile: AcademicProfile,
+        sourceOrdinals: [AcademicProfileSource: Int]) -> ResearchMenuSection
+    {
+        let rows = profile.metrics.sorted {
+            let lhs = Self.sourceOrder($0.source)
+            let rhs = Self.sourceOrder($1.source)
+            return lhs == rhs ? $0.id < $1.id : lhs < rhs
+        }.map { metric in
+            let sourceNumber = sourceOrdinals[metric.source, default: 1]
+            let label = "\(Self.metricName(metric.id)) · Source \(sourceNumber)"
+            return ResearchMenuRow(
+                label: label,
+                value: Self.academicMetricDetail(metric),
+                kind: Self.isCurrentAndComplete(metric) ? .info : .notice)
+        }
+        return ResearchMenuSection(title: "Academic metrics", rows: rows)
+    }
+
+    private static func academicCoverageSection(
+        for profile: AcademicProfile,
+        sourceOrdinals: [AcademicProfileSource: Int]) -> ResearchMenuSection?
+    {
+        var rows: [ResearchMenuRow] = []
+        for state in profile.sources.sorted(by: { Self.sourceOrder($0.source) < Self.sourceOrder($1.source) }) {
+            guard !Self.isCurrentAndComplete(state) else { continue }
+            rows.append(ResearchMenuRow(
+                label: "Source \(sourceOrdinals[state.source, default: 1])",
+                value: Self.coverageDetail(status: state.status, complete: state.coverage.complete),
+                kind: .notice))
+        }
+        guard !rows.isEmpty else { return nil }
+        return ResearchMenuSection(title: "Data coverage", rows: rows)
+    }
+
+    private static func academicSourceDetail(_ state: AcademicSourceState) -> String {
+        var parts = [state.status.displayLabel]
+        if let observedAt = state.observedAt {
+            parts.append("observed \(Self.shortDate(observedAt))")
+        } else if let attemptedAt = state.attemptedAt {
+            parts.append("attempted \(Self.shortDate(attemptedAt))")
+        }
+        if let recordCount = state.coverage.recordCount {
+            let suffix = recordCount == 1 ? "record" : "records"
+            parts.append("\(Self.academicNumberLabel(recordCount)) \(suffix)")
+        } else {
+            parts.append("record count unavailable")
+        }
+        switch state.coverage.complete {
+        case true: parts.append("complete")
+        case false: parts.append("partial coverage")
+        case nil: parts.append("coverage unknown")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private static func academicMetricDetail(_ metric: AcademicProfileMetric) -> String {
+        var parts = [metric.value.map(Self.academicNumberLabel) ?? "Unavailable"]
+        parts.append(metric.status.displayLabel)
+        if let observedAt = metric.observedAt {
+            parts.append("observed \(Self.shortDate(observedAt))")
+        } else if let attemptedAt = metric.attemptedAt {
+            parts.append("attempted \(Self.shortDate(attemptedAt))")
+        }
+        parts.append("scope: \(Self.providerNeutralAcademicText(metric.scope))")
+        if let staleAfter = metric.staleAfter {
+            parts.append("refresh by \(Self.shortDate(staleAfter))")
+        }
+        if let reason = metric.reason, !reason.isEmpty {
+            parts.append(Self.providerNeutralAcademicText(reason))
+        }
+        switch metric.coverage.complete {
+        case true: break
+        case false: parts.append("partial coverage")
+        case nil: parts.append("coverage unknown")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private static func metricName(_ id: String) -> String {
+        let suffix = id.split(separator: ".", maxSplits: 1).last.map(String.init) ?? id
+        return switch suffix {
+        case "citations": "Citations"
+        case "downloads": "Downloads"
+        case "h_index": "h-index"
+        case "i10_index": "i10-index"
+        case "indexed_works": "Indexed works"
+        case "work_summaries": "Work summaries"
+        case "normalized_title_families": "Title families"
+        case "visible_works": "Visible works"
+        case "scholarly_papers": "Scholarly papers"
+        default: "Research metric"
+        }
+    }
+
+    private static func sourceOrder(_ source: AcademicProfileSource) -> Int {
+        switch source {
+        case .openAlex: 0
+        case .orcid: 1
+        case .googleScholar: 2
+        case .ssrn: 3
+        }
+    }
+
+    private static func sourceOrdinals(for profile: AcademicProfile) -> [AcademicProfileSource: Int] {
+        let participating = Set(profile.sources.map(\.source) + profile.metrics.map(\.source))
+        return Dictionary(uniqueKeysWithValues: participating
+            .sorted { Self.sourceOrder($0) < Self.sourceOrder($1) }
+            .enumerated()
+            .map { ($0.element, $0.offset + 1) })
+    }
+
+    private static func providerNeutralAcademicText(_ text: String) -> String {
+        AcademicProfileSource.allCases.reduce(text) { result, source in
+            result.replacingOccurrences(
+                of: source.displayLabel,
+                with: "this source",
+                options: .caseInsensitive)
+        }
+    }
+
+    private static func isCurrentAndComplete(_ state: AcademicSourceState) -> Bool {
+        state.status == .current && state.coverage.complete == true
+    }
+
+    private static func isCurrentAndComplete(_ metric: AcademicProfileMetric) -> Bool {
+        metric.value != nil && metric.status == .current && metric.coverage.complete == true
+    }
+
+    private static func coverageDetail(status: AcademicSourceStatus, complete: Bool?) -> String {
+        switch complete {
+        case true: status.displayLabel
+        case false: "\(status.displayLabel) · partial coverage"
+        case nil: "\(status.displayLabel) · coverage unknown"
+        }
+    }
+
+    private static func academicNumberLabel(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = value == value.rounded() ? 0 : 2
+        return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 
     private static func trendSection(for pulse: ResearchPulse) -> ResearchMenuSection {
@@ -394,11 +602,13 @@ extension ResearchPulseMenuModel {
         }
     }
 
-    private static func creditsLabel(_ credits: Double) -> String {
-        if credits == credits.rounded() {
-            return "\(Int(credits))"
+    private static func creditsLabel(_ balance: CreditBalance) -> String {
+        switch balance {
+        case let .limited(remaining):
+            Self.academicNumberLabel(remaining)
+        case .unlimited:
+            "Unlimited"
         }
-        return "\(credits)"
     }
 
     private static func deltaLabel(_ delta: Int) -> String {
@@ -409,6 +619,13 @@ extension ResearchPulseMenuModel {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private static func shortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .none
         return formatter.string(from: date)
     }
 }

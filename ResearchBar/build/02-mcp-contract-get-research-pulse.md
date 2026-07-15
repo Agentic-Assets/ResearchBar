@@ -1,6 +1,6 @@
 # 02. MCP contract: `get_research_pulse`
 
-The exact JSON the client renders, framed for the Swift client. This is the build-against contract. It supersedes the illustrative table in [`../concept/corbis-api-contracts.md`](../concept/corbis-api-contracts.md) where they disagree (mainly: trend fields are nullable with a status flag, `lowConfidence` is a structured object, and no internal id or backend name appears anywhere). The full Corbis-side spec is [`../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`](../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md). All `path:line` references point into the Corbis repo.
+The exact JSON the client renders, framed for the Swift client. This is the build-against contract. It supersedes the illustrative table in [`../concept/corbis-api-contracts.md`](../concept/corbis-api-contracts.md) where they disagree (mainly: trend fields are nullable with a status flag and `lowConfidence` is a structured object). Internal IDs and private identity evidence must never appear. Public source provenance may appear inside `academicProfile`, but ResearchBar keeps its default presentation provider-neutral. The full Corbis-side spec is [`../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`](../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md). All `path:line` references point into the Corbis repo.
 
 ## Call facts
 
@@ -17,7 +17,7 @@ The exact JSON the client renders, framed for the Swift client. This is the buil
 
 ## Response shape (v0)
 
-> **Authoritative live schema:** [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) §4 (verified against `lib/mcp/tools/output-schemas.ts:324-355`). The JSON below is illustrative; where it disagrees with the guide, the guide wins. Three live facts the early drafts missed: the primary field is `profileStatus` (four states), the middle history state is `tracking` (not `accruing`), and `lowConfidence` is `{ identity, citations, reason }` (not `{ identity, metrics, reasons }`).
+> **Authoritative live schema:** [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) §4 (verified against `lib/mcp/tools/output-schemas.ts:441-479`). The JSON below is illustrative; where it disagrees with the guide, the guide wins. Three live facts the early drafts missed: the primary field is `profileStatus` (four states), the middle history state is `tracking` (not `accruing`), and `lowConfidence` is `{ identity, citations, reason }` (not `{ identity, metrics, reasons }`).
 
 Trend fields are present but null until history accrues. `profileStatus` selects the render mode; `citationHistoryStatus` selects the trend state.
 
@@ -30,12 +30,14 @@ Trend fields are present but null until history accrues. `profileStatus` selects
   "sector": null,
   "companyName": null,
   "plan": "academic",
+  "creditBalance": { "kind": "limited", "remaining": 84.0 },
   "creditsRemaining": 84.0,
   "orcid": "0000-0002-1825-0097",
   "googleScholarId": null,
   "googleScholarUrl": null,
   "totalCitations": 1284,
   "hIndex": 11,
+  "indexedWorksCount": 18,
   "trackedPaperCount": 18,
   "citationDelta7d": null,
   "citationDelta52w": null,
@@ -52,24 +54,25 @@ Trend fields are present but null until history accrues. `profileStatus` selects
 }
 ```
 
-Once Phase 1's snapshot store has two or more weekly rows, the same call returns populated trends and `citationHistoryStatus: "tracked"`:
+Once Phase 1's snapshot store contains a valid comparison point near seven days before the latest snapshot, the same call returns a seven-day delta and `citationHistoryStatus: "tracked"`:
 
 ```json
 {
   "citationDelta7d": 7,
-  "citationDelta52w": 168,
-  "sparkline52w": [1102, 1110, 1121, "...48 more weekly totals...", 1284],
+  "citationDelta52w": null,
+  "sparkline52w": [1238, 1244, 1250, 1259, 1267, 1275, 1280, 1284],
   "citationHistoryStatus": "tracked"
 }
 ```
 
 ## Field rules the client must honor
 
-- `citationHistoryStatus` is `not_yet_tracked` (no snapshots), `tracking` (one snapshot, deltas still null; show "history is accruing" copy), or `tracked` (two or more). The three trend fields are non-null only when `tracked`. Corbis never fabricates a delta; the client must never invent one either.
+- `citationHistoryStatus` is `not_yet_tracked` when no snapshots exist, `tracking` when snapshots exist but none is a valid roughly-seven-day comparator, or `tracked` when that comparator supports a real `citationDelta7d`. A tracked response also carries a non-empty real sparkline. Its 52-week delta remains independently null until a valid roughly-52-week comparator exists; that null does not invalidate the tracked state. Corbis never fabricates a delta; the client must never invent one either (`lib/research-profile/research-pulse.ts:160-217`).
 - `profileStatus` is the primary render selector: `linked_researcher`, `profile_only`, `industry_profile`, or `unlinked`. All four are first-class (guide §4). For an `unlinked` account, `orcid` is null, `lowConfidence.identity` is true, and the metric and trend fields are null; the client renders a "confirm your ORCID" state, never an internal id. For `industry_profile`, render a professional pulse with null publication metrics, not zeroed citation widgets.
-- `creditsRemaining` is live per-user state; show it so the user sees the budget the client spends.
-- `profileLinks` carries ORCID and personal-site URLs only. There must be no backend-source domain. The client opens these; it never constructs URLs.
-- No field, URL, or string may contain the internal author id pattern (`^A\d+$`) or a backend source name. Corbis enforces this with a redaction pass and a regression test (Corbis Phase 0.B); the client redacts defensively.
+- `creditBalance` is the preferred live per-user state. Current responses also emit required numeric `creditsRemaining`; unlimited accounts use legacy `0`. Render `Unlimited` for `{ "kind": "unlimited" }`, never that mirror. Future post-window payloads may omit the legacy field; malformed or missing new values may use a valid legacy fallback.
+- `indexedWorksCount` is the preferred publication count and renders as `Indexed works`. Current responses also emit required nullable `trackedPaperCount` as an exact mirror. Explicit new null is authoritative; absent or malformed new values may use the legacy fallback for future mixed-version compatibility.
+- `profileLinks` carries ORCID and personal-site URLs only. The client opens these; it never constructs URLs.
+- No field, URL, or string may contain the internal author ID pattern (`^A\d+$`), private identity evidence, or credentials. Public source labels are valid only inside the source-aware `academicProfile` contract and are not default-rendered. Corbis enforces the server boundary; the client redacts defensively.
 
 ## Swift Codable sketch
 
@@ -84,17 +87,21 @@ struct ResearchPulse: Codable {
     let sector: String?
     let companyName: String?
     let plan: String
-    let creditsRemaining: Double
+    let creditBalance: CreditBalance?
+    let creditsRemaining: Double? // required today; optional client decoding for future retirement
     let orcid: String?
     let googleScholarId: String?
     let googleScholarUrl: URL?
     let totalCitations: Int?
     let hIndex: Int?
-    let trackedPaperCount: Int?
+    let indexedWorksCount: Int?
+    let trackedPaperCount: Int? // required key today; nullable value
 
-    // null in v0; populated only when citationHistoryStatus == .tracked
+    // Required for a renderable tracked state.
     let citationDelta7d: Int?
+    // Optional until a valid roughly-year-old comparator exists.
     let citationDelta52w: Int?
+    // Required and non-empty for a renderable tracked state.
     let sparkline52w: [Int]?
     let citationHistoryStatus: CitationHistoryStatus
 
@@ -104,6 +111,11 @@ struct ResearchPulse: Codable {
     let fetchedAt: String
     let staleAfter: String
     let etag: String
+}
+
+enum CreditBalance: Codable {
+    case limited(remaining: Double)
+    case unlimited
 }
 
 enum ProfileStatus: String, Codable {
@@ -136,7 +148,7 @@ Render logic that follows from the status:
 ```swift
 switch pulse.citationHistoryStatus {
 case .tracked:
-    // draw sparkline52w and the 7d/52w deltas
+    // require/draw sparkline52w and the 7d delta; draw 52w only when non-null
 case .tracking, .notYetTracked:
     // show "citation tracking will begin shortly" / "history is accruing"; do not draw an empty sparkline or a fake 0
 }
@@ -171,6 +183,6 @@ If `get_research_pulse` does not appear in `tools/list`, Corbis Phase 0 is not d
 
 These ship in later Corbis phases. The client builds renderers against them when the corresponding phase lands. Concrete shapes are in [`../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md`](../../../agentic-assets-app/docs/researchbar-evaluation/04-revised-corbis-api-contracts.md).
 
-- `get_data_freshness` (Phase 1, **now shipped + live**): live shape is `{ sources: [{ id, label, status, dataThrough, dataThroughGranularity, lastRefreshedAt, note }], overallStatus, fetchedAt, staleAfter, etag }` (guide §5, `lib/mcp/tools/output-schemas.ts:363`). A source with no fixed cutoff returns `status: "live"` with `dataThrough: null` rather than a fabricated date. Global and cacheable.
+- `get_data_freshness` (Phase 1, **now shipped + live**): live shape is `{ sources: [{ id, label, status, dataThrough, dataThroughGranularity, lastRefreshedAt, note }], overallStatus, fetchedAt, staleAfter, etag }` (guide §5, `lib/mcp/tools/output-schemas.ts:487-501`). A source with no fixed cutoff returns `status: "live"` with `dataThrough: null` rather than a fabricated date. Global and cacheable.
 - `get_new_work_radar` (Phase 2): `{ citingYou: [...], subfieldAlerts: [...], relatedToProjects: [...], watermark, fetchedAt, staleAfter, etag }`. Per-user; "new since last run" is real once Corbis adds the watermark store.
 - `get_conference_deadlines` (Phase 3): `{ deadlines: [...], userAdded: [...], fetchedAt, staleAfter, etag }`. `daysRemaining` is computed server-side.

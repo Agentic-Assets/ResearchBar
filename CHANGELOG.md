@@ -3,10 +3,12 @@
 ## 0.36.2 — Unreleased
 
 ### Changed
+- ResearchBar: present source-aware academic profiles with provider-neutral evidence, explicit uncertainty, and reconciled-work summaries.
 - Menu bar: reuse the icon-observation signature during provider refreshes instead of computing it twice. Thanks @abe238!
 - LiteLLM: show personal and team spend amounts directly on budget rows while suppressing duplicate budget sections. Thanks @hololee!
 
 ### Fixed
+- ResearchBar: reject private academic identity evidence and safely quarantine unsupported profile contracts without displaying stale legacy totals.
 - Localization: improve Japanese terminology consistency and localize next-day reset times across all 21 app languages. Thanks @tukuyomil032!
 - Menu bar: keep visible quota values stable while a manual refresh is in flight without rewinding background-refresh countdowns. Thanks @Zihao-Qi!
 - Menu bar: stop informational usage-card rows from highlighting like clickable actions. Thanks @elijahfriedman!

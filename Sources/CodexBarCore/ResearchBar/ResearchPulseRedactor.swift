@@ -21,6 +21,8 @@ public enum ResearchPulseRedactor {
             /// A bearer credential leaked into a rendered field. Carries no payload so the
             /// matched secret is never re-surfaced through the violation itself.
             case sensitiveCredential
+            /// Private identity evidence or a private-only field entered the public contract.
+            case privateIdentityEvidence
         }
 
         public let field: String
@@ -77,20 +79,26 @@ public enum ResearchPulseRedactor {
             check(link.label, field: "profileLinks[\(index)].label")
             check(link.url.absoluteString, field: "profileLinks[\(index)].url")
         }
+        if let academicProfile = pulse.academicProfile {
+            violations.append(contentsOf: self.scanAcademicProfile(academicProfile))
+        }
 
         return violations
     }
 
-    /// Catch-all scan of the raw JSON text, for fields the typed model does not surface.
+    /// Catch-all scan of the raw JSON payload, for fields the typed model does not surface.
+    ///
+    /// The public `academic-profile.v1` contract deliberately carries source provenance such
+    /// as `openalex` and `ssrn`. Those labels remain forbidden in legacy fields, but are not
+    /// themselves a leak inside the declared academic-profile subtree. Internal author IDs
+    /// remain forbidden everywhere.
     public static func scanRawJSON(_ data: Data) -> [Violation] {
-        guard let text = String(data: data, encoding: .utf8) else { return [] }
+        guard let object = try? JSONSerialization.jsonObject(with: data) else {
+            return self.scanRawText(data)
+        }
+
         var violations: [Violation] = []
-        if self.containsInternalAuthorID(text) {
-            violations.append(Violation(field: "rawJSON", kind: .internalAuthorID))
-        }
-        for name in self.backendSourceNames(in: text) {
-            violations.append(Violation(field: "rawJSON", kind: .backendSourceName(name)))
-        }
+        self.scanRawJSONObject(object, path: [], isAcademicProfile: false, violations: &violations)
         // Credential detection is deliberately NOT applied here. The raw-JSON gate runs before
         // the tool-error branch, where a `status: "error"` message carrying a token is meant to
         // be sanitized to a generic string by `CorbisMCPError.safeToolError`, not rejected
@@ -131,6 +139,14 @@ public enum ResearchPulseRedactor {
         return lower.contains("corbis_mcp_") || lower.contains("bearer ")
     }
 
+    public static func containsEmailAddress(_ string: String) -> Bool {
+        let localPart = #"[a-z0-9.!#$%&'*+/=?^_`{|}~-]+"#
+        let domainPart = #"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+"#
+        return string.range(
+            of: localPart + "@" + domainPart,
+            options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
     // MARK: Private
 
     private static func isASCIIDigit(_ character: Character) -> Bool {
@@ -162,5 +178,111 @@ public enum ResearchPulseRedactor {
             index += 1
         }
         return false
+    }
+
+    private static func scanRawText(_ data: Data) -> [Violation] {
+        guard let text = String(data: data, encoding: .utf8) else { return [] }
+        var violations: [Violation] = []
+        if self.containsInternalAuthorID(text) {
+            violations.append(Violation(field: "rawJSON", kind: .internalAuthorID))
+        }
+        for name in self.backendSourceNames(in: text) {
+            violations.append(Violation(field: "rawJSON", kind: .backendSourceName(name)))
+        }
+        return violations
+    }
+
+    private struct AcademicProfileScanEnvelope: Encodable {
+        let academicProfile: AcademicProfile
+    }
+
+    private static func scanAcademicProfile(_ profile: AcademicProfile) -> [Violation] {
+        guard let data = try? JSONEncoder().encode(AcademicProfileScanEnvelope(academicProfile: profile)) else {
+            return [Violation(field: "academicProfile", kind: .privateIdentityEvidence)]
+        }
+        return self.scanRawJSON(data)
+    }
+
+    private static func scanRawJSONObject(
+        _ value: Any,
+        path: [String],
+        isAcademicProfile: Bool,
+        violations: inout [Violation])
+    {
+        switch value {
+        case let dictionary as [String: Any]:
+            if isAcademicProfile,
+               path.contains("identity"),
+               dictionary.keys.contains("id"),
+               dictionary.keys.contains("source"),
+               dictionary["visibility"] as? String != "public"
+            {
+                violations.append(Violation(
+                    field: (path + ["visibility"]).joined(separator: "."),
+                    kind: .privateIdentityEvidence))
+            }
+            for (key, child) in dictionary {
+                let childPath = path + [key]
+                let childIsAcademicProfile = isAcademicProfile || key == "academicProfile"
+                if childIsAcademicProfile, self.isForbiddenAcademicProfileKey(key) {
+                    violations.append(Violation(
+                        field: childPath.joined(separator: "."),
+                        kind: .privateIdentityEvidence))
+                }
+                self.scanRawJSONObject(
+                    child,
+                    path: childPath,
+                    isAcademicProfile: childIsAcademicProfile,
+                    violations: &violations)
+            }
+        case let array as [Any]:
+            for (index, child) in array.enumerated() {
+                self.scanRawJSONObject(
+                    child,
+                    path: path + ["[\(index)]"],
+                    isAcademicProfile: isAcademicProfile,
+                    violations: &violations)
+            }
+        case let text as String:
+            let field = path.joined(separator: ".")
+            if self.containsInternalAuthorID(text) {
+                violations.append(Violation(field: field, kind: .internalAuthorID))
+            }
+            if !isAcademicProfile {
+                for name in self.backendSourceNames(in: text) {
+                    violations.append(Violation(field: field, kind: .backendSourceName(name)))
+                }
+            } else {
+                if self.containsEmailAddress(text) {
+                    violations.append(Violation(field: field, kind: .privateIdentityEvidence))
+                }
+                if self.containsSensitiveCredential(text) {
+                    violations.append(Violation(field: field, kind: .sensitiveCredential))
+                }
+            }
+        default:
+            return
+        }
+    }
+
+    private static func isForbiddenAcademicProfileKey(_ key: String) -> Bool {
+        let normalized = key.unicodeScalars
+            .filter { CharacterSet.alphanumerics.contains($0) }
+            .map(String.init)
+            .joined()
+            .lowercased()
+
+        if normalized.contains("email") || normalized.contains("private") || normalized.contains("credential") {
+            return true
+        }
+        if normalized.contains("apikey") || normalized.contains("secretkey") || normalized.hasSuffix("token") {
+            return true
+        }
+        if ["authorid", "openalexauthorid", "openalexid", "internaluserid", "userid", "databaseid"]
+            .contains(normalized)
+        {
+            return true
+        }
+        return normalized.hasPrefix("internal") && normalized.hasSuffix("id")
     }
 }

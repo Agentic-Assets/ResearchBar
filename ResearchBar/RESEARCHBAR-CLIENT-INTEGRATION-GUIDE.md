@@ -67,8 +67,9 @@ curl -s -X POST "$BASE/api/mcp/universal" \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_research_pulse","arguments":{}}}' \
   | tee /tmp/research-pulse.json
 
-# This grep MUST return nothing before ResearchBar renders a live payload:
-rg -i 'openalex|semantic scholar|ssrn|backend|sourceId|authorId|openalexId' /tmp/research-pulse.json
+# Internal IDs and private identity fields MUST return nothing before rendering.
+# Public source names may appear only inside academicProfile provenance.
+rg -i 'sourceId|authorId|openalexId|privateEmail|credential|apiKey' /tmp/research-pulse.json
 ```
 
 (Canonical block: `09-deep-dive-review-and-next-actions.md:131-148`.)
@@ -168,11 +169,11 @@ Corbis also implements full OAuth 2.1: discovery at `/.well-known/oauth-protecte
 
 ## 4. `get_research_pulse`: the v0 tool
 
-Tool facts: scope `read:profile`, tier `tier1`, flat cost 0.5 credits, **not cached** (per-user state), no arguments (`lib/ai/capabilities/index.ts:648`; `lib/mcp/tools/output-schemas.ts:324`).
+Tool facts: scope `read:profile`, tier `tier1`, flat cost 0.5 credits, **not cached** (per-user state), no arguments (`lib/ai/capabilities/index.ts:709`; `lib/mcp/tools/output-schemas.ts:441-591`).
 
 ### Exact output schema (decode `structuredContent` into this)
 
-This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: an older planning doc (`04`) typed the trend fields as hard `null` and the middle history state as `accruing`. **The shipped code is what follows**: trend fields are nullable numbers, and the middle state is `tracking`.
+This is the live compatibility schema (`lib/mcp/tools/output-schemas.ts:441-591`). The new fields are optional at the decode boundary, but current Corbis responses always dual-emit them with their required legacy mirrors. Note: an older planning doc (`04`) typed the trend fields as hard `null` and the middle history state as `accruing`. Trend fields are nullable numbers, and the middle state is `tracking`.
 
 ```ts
 {
@@ -183,13 +184,18 @@ This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: a
   sector: string | null,
   companyName: string | null,
   plan: string,                 // effective tier label, e.g. "free"
-  creditsRemaining: number,     // per-user; this is why the tool is never cached
+  creditBalance?:
+    | { kind: "limited", remaining: number }
+    | { kind: "unlimited" },
+  creditsRemaining: number, // required legacy mirror; 0 for unlimited
   orcid: string | null,
   googleScholarId: string | null,
   googleScholarUrl: string | null,  // URL
   totalCitations: number | null,
+  openAlexCitations?: number | null,
   hIndex: number | null,
-  trackedPaperCount: number | null,
+  indexedWorksCount?: number | null,
+  trackedPaperCount: number | null, // required legacy mirror
   citationDelta7d: number | null,   // null until history accrues
   citationDelta52w: number | null,  // null until history accrues
   sparkline52w: number[] | null,    // null until history accrues
@@ -200,11 +206,35 @@ This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: a
     reason: string | null,
   },
   profileLinks: { label: string, url: string }[],  // ORCID / Scholar / DOI / Corbis paper / vetted personal site only
+  academicProfile?: PublicAcademicProfileOutput | null,
   fetchedAt: string,   // ISO 8601
   staleAfter: string,  // ISO 8601: refresh after this
   etag: string,        // payload hash: use for cache validation
 }
 ```
+
+Compatibility resolution is deterministic:
+
+- Prefer a valid `creditBalance`. Render `Unlimited` for `kind: "unlimited"` and the exact remainder for `kind: "limited"`.
+- Current responses always emit `creditBalance` and numeric `creditsRemaining`. Unlimited accounts send `creditBalance.kind: "unlimited"` with legacy `creditsRemaining: 0`; clients must render `Unlimited`, not the mirror. For future post-window compatibility, an absent, unknown, or malformed new balance may fall back to a numeric legacy value. If neither is usable, omit the value rather than displaying zero.
+- Current responses always emit `indexedWorksCount` and required nullable `trackedPaperCount` as exact mirrors. A valid new number or explicit null is authoritative and renders as `Indexed works` only when numeric. For future mixed-version compatibility, absent or malformed new values may fall back to the legacy field.
+
+### `academicProfile`: authoritative source-aware evidence
+
+The optional `academicProfile` object is the `academic-profile.v1` public projection documented in
+[`build/11-academic-profile-v1-corbis-handoff-2026-07-14.md`](build/11-academic-profile-v1-corbis-handoff-2026-07-14.md).
+When present and decodable, it is authoritative over the legacy academic aliases. Preserve observed zero versus missing
+evidence, source status, freshness, scope, and reconciliation state. Current confirmed-family bases are `exact_doi`,
+`manifestation_identity`, `manual_title_policy`, `manual_version_policy`, `manual_review`, and `source_record`;
+`title_only` and `title_contributor_year` remain proposal-only bases. The public work record stops at source provenance,
+stable record and family IDs, DOI, year, contributors, citations, and downloads. Settings-only venue and publication
+classification fields are not part of this wire contract.
+
+Public source labels and provenance are allowed inside this nested contract. Retain them for correct evidence modeling,
+but use provider-neutral visible copy such as “Evidence source 1” in the default menu. Reject internal author IDs,
+private identity evidence, credentials, or any identity item whose visibility is not `public`. If the nested object uses
+an unsupported newer enum or schema, quarantine that academic section and show a safe update message. Do not fall back
+to legacy academic totals as alternative truth.
 
 ### `profileStatus`: render all four states
 
@@ -223,7 +253,8 @@ This is the **live** schema (`lib/mcp/tools/output-schemas.ts:324-355`). Note: a
 
 ### Trend / sparkline rules (do not fabricate)
 
-- Draw a sparkline or a delta **only** when the trend fields are non-null **and** `citationHistoryStatus === "tracked"`.
+- Treat `"tracked"` as renderable only when `citationDelta7d` is non-null and `sparkline52w` is non-empty. Render those available trends; render the 52-week row only when `citationDelta52w` is also non-null.
+- `citationDelta52w` normally remains null until the snapshot store contains a valid roughly-year-old comparator. Its absence does not invalidate an otherwise tracked trend.
 - For `"not_yet_tracked"` show a "tracking will begin" affordance. For `"tracking"` show "history is accruing," not a flat zero line.
 - **Never render a zero trend or a synthetic sparkline.** A null trend means "no data," which is visually different from "zero change." This is a hard product rule (`08-get-research-pulse-v0-spec.md` §3; `build-guides/05`).
 
@@ -233,7 +264,7 @@ Trends populate automatically once the backend's weekly citation-snapshot cron a
 
 ## 5. `get_data_freshness`: the "how current is the data" tool
 
-Tool facts: scope `read:market_data`, tier `tier1`, flat cost 0.5, **cacheable**, no arguments (`lib/ai/capabilities/index.ts:659`; `lib/mcp/tools/output-schemas.ts:363`).
+Tool facts: scope `read:market_data`, tier `tier1`, flat cost 0.5, **cacheable**, no arguments (`lib/ai/capabilities/index.ts:720`; `lib/mcp/tools/output-schemas.ts:487-501`).
 
 ```ts
 {
@@ -285,8 +316,8 @@ ResearchBar can drive the full identity handshake over MCP (both tools are `read
 ## 7. Billing and the free-allowance caveat
 
 - **Flat cost: 0.5 credits per `tools/call`** (`MCP_CREDIT_COST`, `lib/mcp/tool-credits.ts:16`). `tools/list` is free.
-- The route **reserves before executing and refunds on tool failure** (`app/api/mcp/universal/route.ts`, reserve ~`:1382`, refund ~`:1438`). A failed tool call does not cost the user; a successful one does. Cached results still reserve but skip re-execution.
-- **Free-allowance math (planning, not a hard fact):** code fallbacks suggest a free user has on the order of 50 lifetime/period credits, i.e. roughly 100 aggregate calls at 0.5 each. These are DB-driven defaults that can change; **do not freeze any credit number, price, or allowance into ResearchBar.** Read `creditsRemaining` from the pulse and show it; do not compute entitlements client-side.
+- The route **reserves before executing and refunds on tool failure** (`app/api/mcp/universal/route.ts`, reserve `:1422`, refund `:1487`). A failed tool call does not cost the user; a successful one does. Cached results still reserve but skip re-execution.
+- **Free-allowance math (planning, not a hard fact):** code fallbacks suggest a free user has on the order of 50 lifetime/period credits, i.e. roughly 100 aggregate calls at 0.5 each. These are DB-driven defaults that can change; **do not freeze any credit number, price, or allowance into ResearchBar.** Prefer `creditBalance`, use `creditsRemaining` only as a legacy fallback, and do not compute entitlements client-side.
 - **Design for frugal calls.** Refresh on menu-open when the cache is stale, plus an explicit manual refresh. **Do not background-poll.** A 30-second poller would burn a free user's allowance in under an hour.
 - If you see a diagnostics panel claiming "1 credit per call," that is a stale display value; the authoritative cost is **0.5** (`lib/mcp/tool-credits.ts:16`).
 
@@ -299,12 +330,12 @@ ResearchBar can drive the full identity handshake over MCP (both tools are `read
 These are non-negotiable. The backend redacts by construction and a test enforces it; the client adds a second, defensive layer.
 
 1. **Never surface or log the internal author id pattern `/^A\d+$/`** (e.g. `A5012345678`) in any field, URL, label, or log line.
-2. **Never surface or log backend/provider/source names**: `openalex`, `semantic scholar`, `ssrn`, `hybrid_search`, or low-level keys like `sourceId` / `authorId` / `openalexId`. Links may only be ORCID, DOI, a Corbis paper page, Google Scholar, or a vetted personal/work site.
+2. **Never surface or log private plumbing**: low-level keys such as `sourceId`, `authorId`, or `openalexId`; credentials; private identity evidence; or internal-only backend labels. Public source provenance is valid inside `academicProfile`, but the default product UI remains provider-neutral. Links may only be ORCID, DOI, a Corbis paper page, Google Scholar, or a vetted personal/work site.
 3. **Ship a client-side redaction assertion** (`ResearchBarRedaction.swift`): a leak-like fixture must **fail tests**; in release, a payload that trips the assertion shows a safe error instead of rendering.
 4. **Never render a fake sparkline or a zero trend** (see §4).
 5. **v0 calls only the aggregates** (`get_research_pulse`, `get_data_freshness`) and the two identity tools. Do **not** orchestrate low-level paper/citation MCP tools from ResearchBar yet; broader low-level redaction is a tracked Corbis follow-up (see `TODO.md` A4b and the evaluation `CLAUDE.md` gotchas), and those tools still surface corpus identifiers their own contracts require.
 
-Why this matters: the product promise is a research pulse that never leaks the plumbing. A single `openalex.org` URL or `A123…` string in a tooltip breaks it. The grep in §1/Step 3 is your gate.
+Why this matters: the product promise is a research pulse that never leaks private plumbing. An internal author ID or private identity field in a tooltip breaks it. The assertion in §1/Step 3 is one gate; the typed client redactor is the decisive fixture-tested gate.
 
 ---
 
@@ -324,16 +355,16 @@ Target repo: **`Agentic-Assets/ResearchBar`** (local path `…/agentic-assets/Re
 
 **Phase 0B client checklist** (`build-guides/05-researchbar-native-client-plan.md`; `09:93-99`). Build and test each entirely on fixtures first:
 
-- [ ] `ResearchPulse.swift`: `Codable` model matching §4 exactly (nullable trends, the three-state `citationHistoryStatus`, the freshness triplet). A matching `DataFreshness.swift` for §5.
-- [ ] `ResearchPulseFixtures.swift`: one fixture per state: `linked_researcher`, `profile_only`, `industry_profile`, `unlinked`, null-trend, tracked-trend, stale, and a **leak-like** fixture (contains `A123…` / `openalex`) that the redaction test must reject.
-- [ ] `CorbisMCPClient.swift`: JSON-RPC over `URLSession`: builds the envelope (§2), sets the bearer header, decodes `result.structuredContent`, and maps both failure modes (protocol error vs `structuredContent.status == "error"`) plus the HTTP status table to typed Swift errors.
-- [ ] `CorbisCredentialStore.swift`: Keychain-backed token storage. No plaintext token in `UserDefaults`/preferences. Support connect / reconnect / unlink.
-- [ ] `ResearchPulseCache.swift`: account-keyed, honors `staleAfter` / `etag`, clears on token change, no background polling (§9).
-- [ ] `ResearchPulseMenuModel.swift` + `ResearchPulseMenuFactory.swift`: descriptor-driven menu renderer covering all four `profileStatus` states and the trend rules. Never draws a sparkline unless trends are non-null and status is `tracked`.
-- [ ] `ResearchBarRedaction.swift`: defensive client-side redaction assertions (§8).
-- [ ] `CorbisSettingsView.swift`: paste-token onboarding (v0), connection diagnostics, unlink.
+- [x] `ResearchPulse.swift`: typed pulse and `academic-profile.v1` models with nullable trends, compatibility resolution, and safe newer-contract quarantine.
+- [x] Fixture matrix: all profile states, credit/indexed-work compatibility states, tracked-without-52-week state, academic-profile evidence, and leak-like payloads.
+- [x] `CorbisMCPClient.swift`: JSON-RPC over `URLSession`, bearer authentication, `structuredContent` decoding, and typed protocol, tool, and HTTP failures.
+- [x] `CorbisCredentialStore.swift`: Keychain-backed token storage with connect, reconnect, and unlink behavior.
+- [x] `ResearchPulseCache.swift`: account-keyed freshness and token-change isolation without background polling.
+- [x] `ResearchPulseMenuModel.swift` + `ResearchPulseMenuFactory.swift`: descriptor-driven, provider-neutral presentation for all profile and trend states, including academic evidence uncertainty.
+- [x] `ResearchPulseRedactor.swift`: raw and typed defensive assertions for internal IDs, private identity evidence, credentials, and non-public identity items.
+- [x] `CorbisSettingsView.swift`: paste-token onboarding, connection diagnostics, and unlink.
 
-**Live cutover gate:** swap fixtures for live calls **only after** the Corbis live smoke produces a captured clean payload. It now exists (`_recon/2026-06-26-live-smoke.md`), so live mode is unblocked, but keep the fixture suite as the test backbone.
+**Live cutover gate:** the fixture-backed implementation is complete. A current same-session Corbis MCP payload and freshly packaged native app still need explicit live verification before this becomes production proof. Keep the fixture suite as the test backbone.
 
 **Do not** reuse the existing quota-monitor types (`UsageSnapshot`, provider-quota semantics) for research data. Add a parallel research-domain layer; the two are different domains and conflating them is called out as a mistake in `09`.
 
@@ -398,7 +429,7 @@ From `06-risks-and-open-questions.md` and `founder-decisions.md` (founder calls,
 
 ## 14. Source of truth (re-verify before trusting memory)
 
-- **Wire schemas:** `lib/mcp/tools/output-schemas.ts` (`GetResearchPulseOutput` ~`:324`, `GetDataFreshnessOutput` ~`:363`).
+- **Wire schemas:** `lib/mcp/tools/output-schemas.ts` (`GetResearchPulseOutput` `:441-479`, `GetDataFreshnessOutput` `:487-501`).
 - **Transport + billing route:** `app/api/mcp/universal/route.ts`. **Result shaping:** `lib/mcp/result-format.ts`. **Cost:** `lib/mcp/tool-credits.ts:16`.
 - **Auth + scopes:** `lib/mcp/auth.ts` (`authenticateMCPRequest` `:326`, `DEFAULT_MCP_SCOPES` `:64`). **Key minting:** `app/actions/mcp-api-keys.ts`. **Scope/tier per tool:** `lib/ai/capabilities/index.ts:626,638,648,659`.
 - **Identity tools:** `lib/ai/tools/find-academic-identity.ts`, `lib/ai/tools/confirm-academic-identity.ts`, candidate token `lib/research-profile/author-candidate-service.ts`.
