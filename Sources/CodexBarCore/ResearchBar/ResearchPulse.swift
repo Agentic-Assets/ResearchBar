@@ -106,7 +106,13 @@ public struct ResearchPulse: Codable, Equatable, Sendable {
     }
 
     public var resolvedCreditBalance: CreditBalance? {
-        self.creditBalance ?? self.creditsRemaining.map { .limited(remaining: $0) }
+        if let creditBalance = self.creditBalance {
+            return creditBalance
+        }
+        guard let creditsRemaining = self.creditsRemaining, creditsRemaining >= 0 else {
+            return nil
+        }
+        return .limited(remaining: creditsRemaining)
     }
 
     public var resolvedIndexedWorksCount: Int? {

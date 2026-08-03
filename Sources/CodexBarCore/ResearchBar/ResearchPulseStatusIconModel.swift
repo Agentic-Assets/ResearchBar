@@ -89,25 +89,31 @@ public struct ResearchPulseStatusIconModel: Equatable, Sendable {
         state: ResearchPulseMenuModel.State) -> ResearchPulse?
     {
         guard state != .safeError else { return nil }
-        switch input {
-        case let .loaded(pulse, _):
-            return pulse
-        case let .creditLimited(pulse):
-            return pulse
-        default:
-            return nil
+        let pulse: ResearchPulse? = switch input {
+        case let .loaded(pulse, _): pulse
+        case let .creditLimited(pulse): pulse
+        default: nil
         }
+        guard let pulse, ResearchPulseRedactor.isClean(pulse), pulse.isSemanticallyValid else { return nil }
+        return pulse
     }
 
     // MARK: Formatting
 
     private static func glanceLabel(for pulse: ResearchPulse?) -> String {
+        // Source-aware academic profiles explicitly prohibit aggregating citations. The tiny
+        // status-item label cannot safely convey the qualifying source, so reserve counts for
+        // legacy pulses and use the accessible card for the source-specific value.
+        guard pulse?.academicProfile?.isSupported != true else { return "•" }
         guard let pulse, let citations = pulse.totalCitations else { return "•" }
         return "\(citations)"
     }
 
     private static func trackedValue(for pulse: ResearchPulse?) -> String {
         guard let pulse else { return "Citations available" }
+        guard pulse.academicProfile?.isSupported != true else {
+            return Self.sourceSpecificTrackingValue(for: pulse)
+        }
         var parts: [String] = []
         if let citations = pulse.totalCitations {
             parts.append("\(citations) citations")
@@ -119,6 +125,9 @@ public struct ResearchPulseStatusIconModel: Equatable, Sendable {
     }
 
     private static func staleValue(for pulse: ResearchPulse?) -> String {
+        guard pulse?.academicProfile?.isSupported != true else {
+            return "Showing cached source-specific research pulse"
+        }
         guard let pulse, let citations = pulse.totalCitations else {
             return "Showing cached pulse"
         }
@@ -127,5 +136,13 @@ public struct ResearchPulseStatusIconModel: Equatable, Sendable {
 
     private static func signed(_ value: Int) -> String {
         value >= 0 ? "+\(value)" : "\(value)"
+    }
+
+    private static func sourceSpecificTrackingValue(for pulse: ResearchPulse) -> String {
+        var parts = ["Source-specific citation data"]
+        if let delta = pulse.citationDelta7d {
+            parts.append("\(Self.signed(delta)) this week")
+        }
+        return parts.joined(separator: ", ")
     }
 }

@@ -63,12 +63,35 @@ extension StatusMenuTests {
         let firstKeys = Set(controller.menuCardHeightCache.keys)
 
         #expect(!firstKeys.isEmpty)
+        #expect(!firstKeys.contains { $0.id == "researchPulseCard" })
 
         controller.populateMenu(menu, provider: .codex)
         #expect(Set(controller.menuCardHeightCache.keys) == firstKeys)
 
         controller.invalidateMenus()
         #expect(Set(controller.menuCardHeightCache.keys) == firstKeys)
+    }
+
+    @Test
+    func `researchbar owner renders the compact pulse card`() {
+        let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
+        let previousOwnerOverride = StatusItemController.researchBarStatusItemOwnerOverrideForTesting
+        StatusItemController.menuCardRenderingEnabled = true
+        StatusItemController.researchBarStatusItemOwnerOverrideForTesting = true
+        defer {
+            StatusItemController.menuCardRenderingEnabled = previousMenuCardRendering
+            StatusItemController.researchBarStatusItemOwnerOverrideForTesting = previousOwnerOverride
+        }
+
+        let controller = self.makeHeightCacheController()
+        defer { controller.releaseStatusItemsForTesting() }
+
+        let menu = controller.makeMenu()
+        controller.populateMenu(menu, provider: .codex)
+
+        let pulseCard = menu.items.first { ($0.representedObject as? String) == "researchPulseCard" }
+        #expect(pulseCard?.view is any MenuCardMeasuring)
+        #expect(controller.menuCardHeightCache.keys.contains { $0.id == "researchPulseCard" })
     }
 
     @Test

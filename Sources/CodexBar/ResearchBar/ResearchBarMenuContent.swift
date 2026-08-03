@@ -1,58 +1,260 @@
 import CodexBarCore
 import SwiftUI
 
-/// Self-contained SwiftUI renderer for the ResearchBar pulse menu.
+/// Compact primary renderer for the Corbis research pulse.
 ///
-/// It renders the `ResearchPulseMenuFactory` sections directly and dispatches taps through
-/// `ResearchBarMenuActions`, touching none of the inherited `MenuDescriptor` / `MenuContent`
-/// / `MenuActions` quota surfaces.
+/// Unlike the legacy text-row renderer, this card shares the inherited provider-card width,
+/// keeps the primary scan path bounded, and leaves evidence detail in Corbis rather than
+/// expanding a menu into an audit report.
 @MainActor
 struct ResearchBarMenuContent: View {
-    let sections: [ResearchBarMenuRenderSection]
+    let model: ResearchPulseCardModel
     let actions: ResearchBarMenuActions
+    let width: CGFloat
+
+    @Environment(\.menuItemHighlighted) private var isHighlighted
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(self.sections.enumerated()), id: \.offset) { index, section in
-                VStack(alignment: .leading, spacing: 4) {
-                    if let title = section.title {
-                        Text(title)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel(title)
-                    }
-                    ForEach(Array(section.items.enumerated()), id: \.offset) { _, item in
-                        self.row(for: item)
-                    }
-                }
-                if index < self.sections.count - 1 {
-                    Divider()
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            self.header
+
+            if !self.model.metrics.isEmpty {
+                Divider()
+                self.metrics
+            }
+
+            if let trend = self.model.trend {
+                self.trend(trend)
+            }
+
+            if let dataQuality = self.model.dataQuality {
+                self.dataQuality(dataQuality)
+            }
+
+            if let notice = self.model.notice {
+                self.notice(notice)
+            }
+
+            if !self.model.actions.isEmpty {
+                Divider()
+                self.actionGrid
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .frame(minWidth: 260, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(width: self.width, alignment: .leading)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Corbis research pulse")
     }
 
-    @ViewBuilder
-    private func row(for item: ResearchBarMenuItem) -> some View {
-        switch item.kind {
-        case .header:
-            Text(item.title).font(.headline).accessibilityLabel(item.title)
-        case .info:
-            Text(item.title).accessibilityLabel(item.title)
-        case .notice:
-            Text(item.title).foregroundStyle(.secondary).font(.footnote).accessibilityLabel(item.title)
-        case .trend:
-            Text(item.title).font(.callout.monospaced()).accessibilityLabel(item.title)
-        case let .action(action):
-            Button {
-                self.actions.perform(action)
-            } label: {
-                Text(item.title).accessibilityLabel(item.title)
+    private var header: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "graduationcap.fill")
+                .font(.title3)
+                .foregroundStyle(.tint)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(self.model.title)
+                        .font(.headline.weight(.semibold))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .layoutPriority(1)
+
+                    Spacer(minLength: 4)
+
+                    if let freshness = self.model.freshness {
+                        Text(freshness)
+                            .font(.caption)
+                            .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
+
+                if let subtitle = self.model.subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
             }
-            .buttonStyle(.plain)
         }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var metrics: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ForEach(self.model.metrics) { metric in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(metric.value)
+                        .font(.title3.weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                    Text(metric.label)
+                        .font(.caption)
+                        .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    if let detail = metric.detail {
+                        Text(detail)
+                            .font(.caption2)
+                            .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .combine)
+            }
+        }
+    }
+
+    private func trend(_ trend: ResearchPulseCardModel.Trend) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: trend.sparkline == nil ? "clock" : "chart.line.uptrend.xyaxis")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tint)
+                .accessibilityHidden(true)
+            Text(trend.summary)
+                .font(.subheadline)
+                .lineLimit(1)
+            if let sparkline = trend.sparkline {
+                Spacer(minLength: 4)
+                Text(Self.sparkline(for: sparkline))
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.tint)
+                    .lineLimit(1)
+                    .accessibilityHidden(true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Citation trend: \(trend.summary)")
+    }
+
+    private func dataQuality(_ quality: ResearchPulseCardModel.DataQuality) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: quality.needsAttention ? "exclamationmark.circle" : "checkmark.circle")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(quality.needsAttention ? Color.secondary : Color.accentColor)
+                .accessibilityHidden(true)
+            Text("Data quality: \(quality.summary)")
+                .font(.footnote)
+                .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func notice(_ notice: String) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text(notice)
+                .font(.footnote)
+                .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var actionGrid: some View {
+        LazyVGrid(
+            columns: [GridItem(.flexible(minimum: 128), spacing: 6), GridItem(.flexible(minimum: 128), spacing: 6)],
+            alignment: .leading,
+            spacing: 6)
+        {
+            ForEach(self.model.actions) { action in
+                Button {
+                    self.perform(action)
+                } label: {
+                    Label(self.actionLabel(action), systemImage: self.actionSymbol(action))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityLabel(self.actionLabel(action))
+                .accessibilityHint(self.actionHint(action))
+            }
+        }
+    }
+
+    private func perform(_ action: ResearchPulseCardModel.CardAction) {
+        switch action {
+        case let .menuAction(menuAction):
+            self.actions.perform(menuAction)
+        case let .profileLink(link):
+            self.actions.perform(.openProfileLink(link.url))
+        }
+    }
+
+    private func actionLabel(_ action: ResearchPulseCardModel.CardAction) -> String {
+        switch action {
+        case let .profileLink(link): link.label
+        case let .menuAction(menuAction):
+            switch menuAction {
+            case .refresh: "Refresh"
+            case .connect: "Connect"
+            case .reconnect: "Reconnect"
+            case .reviewIdentity: "Review identity"
+            case .openCorbis: "Open Corbis"
+            case .openProfileLink: "Open link"
+            case .openSettings: "Settings"
+            case .clearCache: "Clear cache"
+            case .quit: "Quit"
+            }
+        }
+    }
+
+    private func actionSymbol(_ action: ResearchPulseCardModel.CardAction) -> String {
+        switch action {
+        case .profileLink: "arrow.up.right.square"
+        case let .menuAction(menuAction):
+            switch menuAction {
+            case .refresh: "arrow.clockwise"
+            case .connect, .reconnect: "link"
+            case .reviewIdentity: "person.crop.circle.badge.checkmark"
+            case .openCorbis: "arrow.up.right.square"
+            case .openProfileLink: "link"
+            case .openSettings: "gearshape"
+            case .clearCache: "trash"
+            case .quit: "power"
+            }
+        }
+    }
+
+    private func actionHint(_ action: ResearchPulseCardModel.CardAction) -> String {
+        switch action {
+        case .profileLink: "Open the supplied public profile link"
+        case let .menuAction(menuAction):
+            switch menuAction {
+            case .refresh: "Refreshes the research pulse"
+            case .connect, .reconnect, .reviewIdentity: "Opens ResearchBar connection settings"
+            case .openCorbis: "Opens Corbis in your browser"
+            case .openProfileLink: "Opens the supplied public profile link"
+            case .openSettings: "Opens ResearchBar settings"
+            case .clearCache: "Clears the saved research pulse"
+            case .quit: "Quits ResearchBar"
+            }
+        }
+    }
+
+    private static func sparkline(for values: [Int]) -> String {
+        guard let minimum = values.min(), let maximum = values.max() else { return "" }
+        let glyphs = Array("▁▂▃▄▅▆▇█")
+        guard maximum > minimum else {
+            return String(repeating: glyphs[glyphs.count / 2], count: values.count)
+        }
+        let lastIndex = glyphs.count - 1
+        return String(values.map { value in
+            let ratio = Double(value - minimum) / Double(maximum - minimum)
+            return glyphs[Int((ratio * Double(lastIndex)).rounded())]
+        })
     }
 }

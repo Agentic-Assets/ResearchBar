@@ -146,6 +146,18 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
+    func malformedNewCreditBalanceDoesNotExposeNegativeLegacyFallback() throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-malformed-new-fields")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["creditsRemaining"] = -1
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+        #expect(pulse.creditBalance == nil)
+        #expect(pulse.creditsRemaining == -1)
+        #expect(pulse.resolvedCreditBalance == nil)
+    }
+
+    @Test
     func futureMixedVersionExplicitNullIndexedWorksCountDoesNotFallBackToLegacyMirror() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-contract-null-indexed-works")
 
