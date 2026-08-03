@@ -68,6 +68,7 @@ struct CorbisSettingsView: View {
                     .font(.subheadline)
                 SecureField("corbis_mcp_…", text: self.$model.tokenField)
                     .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Corbis MCP token")
                 if !self.model.tokenField.isEmpty, !state.isTokenFieldValid {
                     Text("Token must start with \(CorbisSettingsViewState.tokenPrefix)")
                         .font(.footnote)
@@ -78,12 +79,22 @@ struct CorbisSettingsView: View {
             HStack(spacing: 10) {
                 if state.availableIntents.contains(.connect) {
                     Button("Connect") { self.model.connect() }
+                        .buttonStyle(.borderedProminent)
                         .disabled(!state.isTokenFieldValid)
                 }
                 if state.availableIntents.contains(.reconnect) {
                     Button("Reconnect") { self.model.connect() }
+                        .buttonStyle(.borderedProminent)
                         .disabled(!state.isTokenFieldValid)
                 }
+                if state.connectionState == .connecting {
+                    ProgressView()
+                        .controlSize(.small)
+                        .accessibilityLabel("Validating Corbis connection")
+                }
+            }
+
+            HStack(spacing: 10) {
                 if state.availableIntents.contains(.unlink) {
                     Button("Unlink") { self.model.unlink() }
                 }
@@ -91,6 +102,7 @@ struct CorbisSettingsView: View {
                     Button("Clear cache") { self.model.clearCache() }
                 }
             }
+            .controlSize(.small)
 
             Text(self.diagnostics(for: state))
                 .font(.footnote)

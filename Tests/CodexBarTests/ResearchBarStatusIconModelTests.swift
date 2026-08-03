@@ -38,10 +38,38 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
+    func sourceAwareAcademicProfileDoesNotSurfaceLegacyAggregateInStatusItem() throws {
+        let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["totalCitations"] = 999
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+        let current = ResearchPulseStatusIconModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
+        let stale = ResearchPulseStatusIconModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+
+        #expect(current.glanceLabel == "•")
+        #expect(current.accessibilityValue == "Citation tracking not started")
+        #expect(stale.glanceLabel == "•")
+        #expect(stale.accessibilityValue == "Showing cached source-specific research pulse")
+        #expect(!current.accessibilityValue.contains("999"))
+        #expect(!stale.accessibilityValue.contains("999"))
+    }
+
+    @Test
     func creditLimitedReadsCreditLabel() throws {
         let model = try ResearchPulseStatusIconModel
             .make(from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-credit-limited")))
         #expect(model.accessibilityValue.localizedCaseInsensitiveContains("credit"))
+    }
+
+    @Test
+    func uncleanCreditLimitedPulseReadsOnlyCreditNotice() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-leak-like")
+        let model = ResearchPulseStatusIconModel.make(from: .creditLimited(pulse: pulse))
+
+        #expect(model.glanceLabel == "•")
+        #expect(model.accessibilityValue == "Corbis credits are used up")
+        #expect(!ResearchPulseRedactor.containsInternalAuthorID(model.accessibilityValue))
     }
 
     @Test

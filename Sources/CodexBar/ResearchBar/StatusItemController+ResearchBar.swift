@@ -66,10 +66,35 @@ extension StatusItemController {
         }
     }
 
-    func addResearchBarMenuContent(to menu: NSMenu, width _: CGFloat) {
+    func addResearchBarMenuContent(to menu: NSMenu, width: CGFloat) {
+        guard self.isResearchBarStatusItemOwner else { return }
         let sections = ResearchPulseMenuFactory.makeHostMenuSections(from: self.researchPulseMenuInput)
         guard !sections.isEmpty else { return }
 
+        guard self.menuCardRenderingEnabledForController else {
+            self.addResearchBarFallbackMenuContent(sections, to: menu)
+            return
+        }
+
+        let card = ResearchPulseCardModel.make(from: self.researchPulseMenuInput)
+        let actions = ResearchBarMenuActions(
+            refresh: { [weak self] in self?.refreshResearchPulseNow() },
+            openCorbisSettings: { [weak self] in self?.showSettingsResearch() },
+            openSettings: { [weak self] in self?.showSettingsResearch() },
+            clearCache: { [weak self] in self?.clearResearchPulseCache() })
+        menu.addItem(self.makeMenuCardItem(
+            ResearchBarMenuContent(model: card, actions: actions, width: width),
+            id: "researchPulseCard",
+            width: width,
+            heightCacheScope: "researchPulse",
+            containsInteractiveControls: true))
+        menu.addItem(.separator())
+    }
+
+    private func addResearchBarFallbackMenuContent(
+        _ sections: [ResearchBarMenuRenderSection],
+        to menu: NSMenu)
+    {
         self.addResearchBarHeader(to: menu)
         for section in sections {
             if let title = section.title {
