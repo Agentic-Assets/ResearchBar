@@ -19,6 +19,54 @@ extension StatusItemController {
         Self.shouldCreateResearchBarStatusItem
     }
 
+    /// Corbis is a first-class peer tab only in the ResearchBar-owned shared menu. Keeping
+    /// this process-local avoids teaching generic provider preferences about a product surface.
+    func includesResearchBarTab() -> Bool {
+        self.isResearchBarStatusItemOwner
+    }
+
+    func shouldShowMergedProviderSwitcher(
+        enabledProviders: [UsageProvider],
+        includesResearchBar: Bool)
+        -> Bool
+    {
+        self.shouldMergeIcons && enabledProviders.count + (includesResearchBar ? 1 : 0) > 1
+    }
+
+    func isResearchBarTabSelected(enabledProviders: [UsageProvider]? = nil) -> Bool {
+        guard self.includesResearchBarTab() else { return false }
+        let providers = enabledProviders ?? self.store.enabledProvidersForDisplay()
+        guard self.shouldShowMergedProviderSwitcher(
+            enabledProviders: providers,
+            includesResearchBar: true)
+        else {
+            // When ResearchBar owns the only visible menu, its content remains available even
+            // though a one-item switcher would add no meaningful navigation.
+            return true
+        }
+        return self.researchBarTabSelected
+    }
+
+    /// A menu-open refresh is intentionally limited to the selected Corbis tab. The non-tab
+    /// ResearchBar fallback has no peer provider menu to protect, so it can still refresh.
+    func shouldRefreshResearchPulseForMenuOpen(enabledProviders: [UsageProvider]? = nil) -> Bool {
+        guard self.includesResearchBarTab() else { return false }
+        let providers = enabledProviders ?? self.store.enabledProvidersForDisplay()
+        let hasPeerTabs = self.shouldShowMergedProviderSwitcher(
+            enabledProviders: providers,
+            includesResearchBar: true)
+        return !hasPeerTabs || self.researchBarTabSelected
+    }
+
+    func selectResearchBarTab() {
+        guard self.includesResearchBarTab() else { return }
+        self.researchBarTabSelected = true
+    }
+
+    func selectProviderOrOverviewTab() {
+        self.researchBarTabSelected = false
+    }
+
     /// Seed the no-credit launch state so the always-visible status-item tooltip is correct
     /// from launch and the first menu open builds with the right input instead of the
     /// `.notConnected` default. `currentMenuInput()` reads only the credential and cache, so
@@ -33,6 +81,12 @@ extension StatusItemController {
     }
 
     func refreshResearchPulseForMenuOpen(_ menu: NSMenu) {
+        #if DEBUG
+        if let operation = self._test_researchPulseMenuOpenRefreshOperation {
+            operation()
+            return
+        }
+        #endif
         Task { @MainActor [weak self, weak menu] in
             guard let self else { return }
             let input = await self.researchPulseRefreshCoordinator.refreshOnMenuOpen()
@@ -41,6 +95,12 @@ extension StatusItemController {
     }
 
     @objc func refreshResearchPulseNow() {
+        #if DEBUG
+        if let operation = self._test_researchPulseManualRefreshOperation {
+            operation()
+            return
+        }
+        #endif
         Task { @MainActor [weak self] in
             guard let self else { return }
             let input = await self.researchPulseRefreshCoordinator.manualRefresh()

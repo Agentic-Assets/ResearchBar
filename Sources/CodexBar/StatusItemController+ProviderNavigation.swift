@@ -40,7 +40,13 @@ extension StatusItemController {
     {
         guard self.shouldMergeIcons else { return }
         let enabledProviders = self.store.enabledProvidersForDisplay()
-        guard enabledProviders.count > 1 else { return }
+        let includesResearchBar = self.includesResearchBarTab()
+        guard self.shouldShowMergedProviderSwitcher(
+            enabledProviders: enabledProviders,
+            includesResearchBar: includesResearchBar)
+        else {
+            return
+        }
 
         let includesOverview = !self.settings.resolvedMergedOverviewProviders(
             activeProviders: enabledProviders,
@@ -49,10 +55,13 @@ extension StatusItemController {
         if includesOverview {
             selections.insert(.overview, at: 0)
         }
+        if includesResearchBar {
+            selections.append(.researchBar)
+        }
 
-        let current: ProviderSwitcherSelection = if includesOverview,
-                                                    self.settings.mergedMenuLastSelectedWasOverview
-        {
+        let current: ProviderSwitcherSelection = if includesResearchBar, self.researchBarTabSelected {
+            .researchBar
+        } else if includesOverview, self.settings.mergedMenuLastSelectedWasOverview {
             .overview
         } else {
             .provider(self.navigationResolvedProvider(enabledProviders: enabledProviders) ?? .codex)
@@ -67,16 +76,23 @@ extension StatusItemController {
             self.navigationResolvedProvider(enabledProviders: enabledProviders) ?? .codex
         case let .provider(provider):
             provider
+        case .researchBar:
+            self.navigationResolvedProvider(enabledProviders: enabledProviders) ?? .codex
         }
         self.preservingMergedSwitcherContentCachesDuringInvalidation {
             switch selection {
             case .overview:
+                self.selectProviderOrOverviewTab()
                 self.settings.mergedMenuLastSelectedWasOverview = true
                 self.lastMenuProvider = self.navigationResolvedProvider(enabledProviders: enabledProviders) ?? .codex
             case let .provider(provider):
+                self.selectProviderOrOverviewTab()
                 self.settings.mergedMenuLastSelectedWasOverview = false
                 self.selectedMenuProvider = provider
                 self.lastMenuProvider = provider
+            case .researchBar:
+                self.selectResearchBarTab()
+                self.lastMenuProvider = self.navigationResolvedProvider(enabledProviders: enabledProviders) ?? .codex
             }
             self.lastMergedSwitcherSelection = selection
             self.refreshProviderSelectionDependentUI(deferRendering: true)
@@ -86,6 +102,9 @@ extension StatusItemController {
             self.requestProviderSwitcherMenuRebuild(
                 trackedMenu,
                 provider: menuProvider)
+            if selection.showsResearchBarContent {
+                self.refreshResearchPulseForMenuOpen(trackedMenu)
+            }
         }
     }
 

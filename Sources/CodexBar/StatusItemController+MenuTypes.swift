@@ -5,11 +5,16 @@ import SwiftUI
 extension ProviderSwitcherSelection {
     var provider: UsageProvider? {
         switch self {
-        case .overview:
+        case .overview, .researchBar:
             nil
         case let .provider(provider):
             provider
         }
+    }
+
+    var showsResearchBarContent: Bool {
+        if case .researchBar = self { return true }
+        return false
     }
 }
 

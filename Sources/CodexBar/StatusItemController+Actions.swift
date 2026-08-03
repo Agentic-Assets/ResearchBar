@@ -102,7 +102,12 @@ extension StatusItemController: StatusItemMenuPersistentActionDelegate {
 
     nonisolated func performPersistentRefreshAction() {
         Task { @MainActor [weak self] in
-            self?.refreshNow()
+            guard let self else { return }
+            if self.isResearchBarTabSelected() {
+                self.refreshResearchPulseNow()
+            } else {
+                self.refreshNow()
+            }
         }
     }
 

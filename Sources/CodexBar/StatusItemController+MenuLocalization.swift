@@ -6,6 +6,7 @@ extension StatusItemController {
             codexBarLocalizationSignature(),
             self.settings.hidePersonalInfo ? "hide-personal-info" : "show-personal-info",
             L("Overview"),
+            "Corbis",
             L("Cost"),
         ].joined(separator: "|")
     }
@@ -14,19 +15,22 @@ extension StatusItemController {
         self.rememberMergedSwitcherState(
             providers,
             selection,
-            self.includesOverviewTab(for: providers))
+            self.includesOverviewTab(for: providers),
+            self.includesResearchBarTab())
     }
 
     func rememberMergedSwitcherState(
         _ providers: [UsageProvider],
         _ selection: ProviderSwitcherSelection?,
-        _ includesOverview: Bool)
+        _ includesOverview: Bool,
+        _ includesResearchBar: Bool)
     {
         self.lastSwitcherProviders = providers
         self.lastSwitcherUsageBarsShowUsed = self.settings.usageBarsShowUsed
         self.lastMergedSwitcherSelection = selection
         self.lastMergedMenuContentSelection = selection
         self.lastSwitcherIncludesOverview = includesOverview
+        self.lastSwitcherIncludesResearchBar = includesResearchBar
         self.lastMenuLocalizationSignature = self.menuLocalizationSignature()
     }
 

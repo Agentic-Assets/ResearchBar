@@ -73,7 +73,7 @@ extension StatusMenuTests {
     }
 
     @Test
-    func `researchbar owner renders the compact pulse card`() {
+    func `researchbar owner renders the compact pulse card only on the corbis tab`() {
         let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
         let previousOwnerOverride = StatusItemController.researchBarStatusItemOwnerOverrideForTesting
         StatusItemController.menuCardRenderingEnabled = true
@@ -87,6 +87,12 @@ extension StatusMenuTests {
         defer { controller.releaseStatusItemsForTesting() }
 
         let menu = controller.makeMenu()
+        controller.populateMenu(menu, provider: .codex)
+
+        #expect(!menu.items.contains { ($0.representedObject as? String) == "researchPulseCard" })
+        #expect(!controller.menuCardHeightCache.keys.contains { $0.id == "researchPulseCard" })
+
+        controller.selectResearchBarTab()
         controller.populateMenu(menu, provider: .codex)
 
         let pulseCard = menu.items.first { ($0.representedObject as? String) == "researchPulseCard" }

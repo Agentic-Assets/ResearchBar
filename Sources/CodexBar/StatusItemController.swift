@@ -182,6 +182,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     var _test_codexAmbientLoginRunnerOverride:
         (@MainActor (TimeInterval) async -> CodexLoginRunner.Result)?
     var _test_manualRefreshOperation: (@MainActor () async -> Void)?
+    var _test_researchPulseMenuOpenRefreshOperation: (@MainActor () -> Void)?
+    var _test_researchPulseManualRefreshOperation: (@MainActor () -> Void)?
     #endif
     var blinkTask: Task<Void, Never>?
     var menuBarCountdownRefreshTask: Task<Void, Never>?
@@ -230,6 +232,9 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     /// Tracks whether the merged-menu switcher was built with the Overview tab visible.
     /// Used to force switcher rebuilds when Overview availability toggles.
     var lastSwitcherIncludesOverview: Bool = false
+    /// Tracks whether the ResearchBar-owned menu switcher was built with the Corbis tab visible.
+    /// This is process-local because Corbis is an app surface, not a generic provider preference.
+    var lastSwitcherIncludesResearchBar: Bool = false
     /// Tracks localization-sensitive labels used by the merged menu.
     /// Used to force menu rebuilds when app language changes.
     var lastMenuLocalizationSignature: String = ""
@@ -266,6 +271,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let loginLogger = CodexBarLog.logger(LogCategories.login)
     let menuLogger = CodexBarLog.logger(LogCategories.app)
     var researchPulseMenuInput: ResearchPulseMenuInput = .notConnected
+    /// Keeps Corbis selected while an open menu rebuilds without changing generic provider settings.
+    var researchBarTabSelected = false
 
     struct BlinkState {
         var nextBlink: Date
