@@ -128,10 +128,13 @@ extension StatusItemController {
             context: menuContext,
             switcherSelection: context.switcherSelection,
             captureMenu: captureMenu)
+        // Corbis receives only generic app actions from its provider-free descriptor. Its card
+        // owns refresh, so exclude the inherited provider-refresh footer action.
         self.addActionableSections(
             context.descriptor.sections,
             to: target,
             width: context.menuWidth,
-            captureMenu: captureMenu)
+            captureMenu: captureMenu,
+            excluding: context.switcherSelection.showsResearchBarContent ? [.refresh] : [])
     }
 }

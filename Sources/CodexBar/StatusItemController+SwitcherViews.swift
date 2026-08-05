@@ -5,6 +5,7 @@ import QuartzCore
 enum ProviderSwitcherSelection: Hashable {
     case overview
     case provider(UsageProvider)
+    case researchBar
 }
 
 final class ProviderSwitcherView: NSView {
@@ -49,6 +50,7 @@ final class ProviderSwitcherView: NSView {
         providers: [UsageProvider],
         selected: ProviderSwitcherSelection?,
         includesOverview: Bool,
+        includesResearchBar: Bool = false,
         width: CGFloat,
         showsIcons: Bool,
         iconProvider: (UsageProvider) -> NSImage,
@@ -56,33 +58,20 @@ final class ProviderSwitcherView: NSView {
         onSelect: @escaping (ProviderSwitcherSelection) -> Void)
     {
         let minimumGap: CGFloat = 1
-        var segments = providers.map { provider in
-            let fullTitle = Self.switcherTitle(for: provider)
-            let icon = iconProvider(provider)
-            icon.isTemplate = true
-            // Avoid any resampling: we ship exact 16pt/32px assets for crisp rendering.
-            icon.size = NSSize(width: 16, height: 16)
-            return Segment(
-                selection: .provider(provider),
-                image: icon,
-                title: fullTitle)
-        }
-        if includesOverview {
-            let overviewIcon = Self.overviewIcon()
-            overviewIcon.isTemplate = true
-            overviewIcon.size = NSSize(width: 16, height: 16)
-            segments.insert(
-                Segment(
-                    selection: .overview,
-                    image: overviewIcon,
-                    title: L("Overview")),
-                at: 0)
-        }
+        let segments = Self.makeSegments(
+            providers: providers,
+            includesOverview: includesOverview,
+            includesResearchBar: includesResearchBar,
+            iconProvider: iconProvider)
         self.segments = segments
         self.onSelect = onSelect
-        self.showsIcons = showsIcons
+        // Four peer labels fit the 310pt rail more clearly as a single text row than as a
+        // taller icon-over-label treatment. Larger switchers retain the established compact
+        // stacked fallback.
+        let usesInlineIcons = showsIcons && !(includesResearchBar && segments.count == 4)
+        self.showsIcons = usesInlineIcons
         self.weeklyRemainingProvider = weeklyRemainingProvider
-        self.stackedIcons = showsIcons && self.segments.count > 3
+        self.stackedIcons = usesInlineIcons && segments.count > 3
         let initialOuterPadding = Self.switcherOuterPadding(
             for: width,
             count: self.segments.count,
@@ -134,13 +123,7 @@ final class ProviderSwitcherView: NSView {
                     action: #selector(self.handleSelection(_:)))
             }
             button.tag = index
-            if self.showsIcons {
-                if self.stackedIcons {
-                    // StackedToggleButton manages its own image view.
-                } else {
-                    // InlineIconToggleButton manages its own image view.
-                }
-            } else {
+            if !self.showsIcons {
                 button.image = nil
                 button.imagePosition = .noImage
             }
@@ -670,7 +653,7 @@ final class ProviderSwitcherView: NSView {
         switch selection {
         case let .provider(provider):
             self.weeklyRemainingProvider(provider)
-        case .overview:
+        case .overview, .researchBar:
             nil
         }
     }
@@ -892,12 +875,58 @@ final class ProviderSwitcherView: NSView {
         return NSImage(size: NSSize(width: 16, height: 16))
     }
 
+    private static func researchBarIcon() -> NSImage {
+        if let symbol = NSImage(systemSymbolName: "graduationcap", accessibilityDescription: nil) {
+            return symbol
+        }
+        return NSImage(size: NSSize(width: 16, height: 16))
+    }
+
     private static func switcherTitle(for provider: UsageProvider) -> String {
         ProviderDescriptorRegistry.descriptor(for: provider).metadata.displayName
     }
 }
 
 extension ProviderSwitcherView {
+    private static func makeSegments(
+        providers: [UsageProvider],
+        includesOverview: Bool,
+        includesResearchBar: Bool,
+        iconProvider: (UsageProvider) -> NSImage) -> [Segment]
+    {
+        var segments = providers.map { provider in
+            let icon = iconProvider(provider)
+            icon.isTemplate = true
+            // Avoid any resampling: we ship exact 16pt/32px assets for crisp rendering.
+            icon.size = NSSize(width: 16, height: 16)
+            return Segment(
+                selection: .provider(provider),
+                image: icon,
+                title: Self.switcherTitle(for: provider))
+        }
+        if includesOverview {
+            segments.insert(Self.overviewSegment(), at: 0)
+        }
+        if includesResearchBar {
+            segments.append(Self.researchBarSegment())
+        }
+        return segments
+    }
+
+    private static func overviewSegment() -> Segment {
+        let icon = Self.overviewIcon()
+        icon.isTemplate = true
+        icon.size = NSSize(width: 16, height: 16)
+        return Segment(selection: .overview, image: icon, title: L("Overview"))
+    }
+
+    private static func researchBarSegment() -> Segment {
+        let icon = Self.researchBarIcon()
+        icon.isTemplate = true
+        icon.size = NSSize(width: 16, height: 16)
+        return Segment(selection: .researchBar, image: icon, title: "Corbis")
+    }
+
     private static func switcherLayoutMetrics(
         for width: CGFloat,
         count: Int,
@@ -1148,7 +1177,7 @@ extension ProviderSwitcherView {
         case let .provider(provider):
             let color = ProviderDescriptorRegistry.descriptor(for: provider).branding.color
             return NSColor(deviceRed: color.red, green: color.green, blue: color.blue, alpha: 1)
-        case .overview:
+        case .overview, .researchBar:
             return NSColor.secondaryLabelColor
         }
     }
