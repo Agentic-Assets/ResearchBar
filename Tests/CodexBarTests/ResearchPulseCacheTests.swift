@@ -4,7 +4,7 @@ import Testing
 
 struct ResearchPulseCacheTests {
     @Test
-    func inMemoryStoreThenEntryReturnsIt() async throws {
+    func `in memory store then entry returns it`() async throws {
         let cache = InMemoryResearchPulseCache()
         let identity = CorbisAccountIdentity.make(accountID: "acct-A", token: "tok-A")
         let (entry, key) = try Self.makeEntry(identity: identity)
@@ -14,7 +14,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func inMemoryAccountAKeyIsolatedFromAccountB() async throws {
+    func `in memory account A key isolated from account B`() async throws {
         let cache = InMemoryResearchPulseCache()
         let identityA = CorbisAccountIdentity.make(accountID: "acct-A", token: "tok-A")
         let identityB = CorbisAccountIdentity.make(accountID: "acct-B", token: "tok-B")
@@ -26,7 +26,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func tokenChangeProducesDifferentKeyAndNoCrossRead() async throws {
+    func `token change produces different key and no cross read`() async throws {
         let cache = InMemoryResearchPulseCache()
         let identityOne = CorbisAccountIdentity.make(accountID: nil, token: "tok-1")
         let identityTwo = CorbisAccountIdentity.make(accountID: nil, token: "tok-2")
@@ -42,7 +42,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func isFreshHonorsServerStaleAfter() throws {
+    func `is fresh honors server stale after`() throws {
         let identity = CorbisAccountIdentity.make(accountID: "a", token: "t")
         let (entry, _) = try Self.makeEntry(identity: identity)
         #expect(entry.isFresh(now: entry.staleAfter.addingTimeInterval(-1)))
@@ -50,7 +50,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func invalidateRemovesEntry() async throws {
+    func `invalidate removes entry`() async throws {
         let cache = InMemoryResearchPulseCache()
         let identity = CorbisAccountIdentity.make(accountID: "a", token: "t")
         let (entry, key) = try Self.makeEntry(identity: identity)
@@ -60,7 +60,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func clearAllEmptiesCache() async throws {
+    func `clear all empties cache`() async throws {
         let cache = InMemoryResearchPulseCache()
         let identity = CorbisAccountIdentity.make(accountID: "a", token: "t")
         let (entry, key) = try Self.makeEntry(identity: identity)
@@ -70,7 +70,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func fileCachePersistsAcrossInstancesPreservingMetadata() async throws {
+    func `file cache persists across instances preserving metadata`() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -90,7 +90,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func fileCacheStaleEntryRoundTrips() async throws {
+    func `file cache stale entry round trips`() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -108,7 +108,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func fileCachePreservesFractionalSecondTimestamps() async throws {
+    func `file cache preserves fractional second timestamps`() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -126,7 +126,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func fileCacheRoundTripsServerBytesPulseExactly() async throws {
+    func `file cache round trips server bytes pulse exactly`() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -153,7 +153,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func fileCacheReDecodesDualContractPulse() async throws {
+    func `file cache re decodes dual contract pulse`() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -169,7 +169,7 @@ struct ResearchPulseCacheTests {
     }
 
     @Test
-    func fileCacheDifferentTokenDoesNotCrossRead() async throws {
+    func `file cache different token does not cross read`() async throws {
         let directory = Self.makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 

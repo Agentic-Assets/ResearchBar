@@ -72,19 +72,24 @@ struct MenuDescriptorPoeTests {
             browserDetection: BrowserDetection(cacheTTL: 0),
             settings: settings)
 
-        let now = Date(timeIntervalSince1970: 1_717_171_717)
+        let now = Date()
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        // Match Poe's UTC day boundary so this remains stable across local time zones and UTC midnight.
+        let today = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: now) ?? now
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? now.addingTimeInterval(-86400)
         let history = PoeUsageHistorySnapshot(
             entries: [
                 .init(
                     id: "a",
-                    createdAt: now.addingTimeInterval(-1000),
+                    createdAt: today,
                     model: "GPT-4o",
                     usageType: "chat",
                     points: 100,
                     costUSD: nil),
                 .init(
                     id: "b",
-                    createdAt: now.addingTimeInterval(-86000),
+                    createdAt: yesterday,
                     model: "Claude-3.7-Sonnet",
                     usageType: "chat",
                     points: 200,
@@ -96,18 +101,10 @@ struct MenuDescriptorPoeTests {
             ],
             updatedAt: now)
 
-        let snapshot = UsageSnapshot(
-            primary: nil,
-            secondary: nil,
-            tertiary: nil,
-            providerCost: nil,
-            poeUsage: history,
-            updatedAt: now,
-            identity: ProviderIdentitySnapshot(
-                providerID: .poe,
-                accountEmail: nil,
-                accountOrganization: nil,
-                loginMethod: "Balance: 300 points"))
+        let snapshot = PoeUsageSnapshot(
+            currentPointBalance: 300,
+            history: history,
+            updatedAt: now).toUsageSnapshot()
         store._setSnapshotForTesting(snapshot, provider: .poe)
 
         let descriptor = MenuDescriptor.build(
@@ -125,10 +122,10 @@ struct MenuDescriptorPoeTests {
                 return text
             }
 
-        #expect(textLines.contains(where: { $0.contains("Today: 100 points") }))
-        #expect(textLines.contains(where: { $0.contains("7d: 300 points") }))
-        #expect(textLines.contains(where: { $0.contains("30d: 300 points") }))
-        #expect(textLines.contains(where: { $0.contains("Top model: Claude-3.7-Sonnet") }))
+        #expect(textLines.contains(where: { $0.contains("Today: 100 points · 1 requests") }))
+        #expect(textLines.contains(where: { $0.contains("Last 7 days: 300 points · 2 requests") }))
+        #expect(textLines.contains(where: { $0.contains("Last 30 days: 300 points · 2 requests") }))
+        #expect(textLines.contains(where: { $0.contains("Top model: Claude-3.7-Sonnet · 200 points") }))
         #expect(textLines.contains(where: { $0.contains("Usage mix: chat: 300 points") }))
         #expect(textLines.contains(where: { $0.contains("Recent activity:") }))
     }

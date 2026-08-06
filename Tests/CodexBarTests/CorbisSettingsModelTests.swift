@@ -4,7 +4,7 @@ import Testing
 @MainActor
 struct CorbisSettingsModelTests {
     @Test
-    func connectPassesTrimmedTokenToCallback() {
+    func `connect passes trimmed token to callback`() {
         let model = CorbisSettingsModel()
         model.tokenField = "  corbis_mcp_abcdef123  "
         var received: String?

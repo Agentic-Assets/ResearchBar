@@ -7,7 +7,7 @@ import Testing
 @Suite(.serialized)
 struct ResearchBarTabSwitcherTests {
     @Test
-    func corbisIsAFourthPeerOnTheCompactSingleRowRail() {
+    func `corbis is A fourth peer on the compact single row rail`() {
         var selections: [ProviderSwitcherSelection] = []
         let switcher = ProviderSwitcherView(
             providers: [.codex, .claude],
@@ -31,7 +31,7 @@ struct ResearchBarTabSwitcherTests {
     }
 
     @Test
-    func corbisRefreshIsGatedToTheSelectedTabAndProviderContentStaysSeparate() async throws {
+    func `corbis refresh is gated to the selected tab and provider content stays separate`() async throws {
         let previousOwnerOverride = StatusItemController.researchBarStatusItemOwnerOverrideForTesting
         let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
         let previousMenuRefresh = StatusItemController.menuRefreshEnabled
@@ -119,7 +119,7 @@ struct ResearchBarTabSwitcherTests {
     }
 
     @Test
-    func corbisRemainsReachableWithoutProvidersAndAsTheSecondPeerTab() throws {
+    func `corbis remains reachable without providers and as the second peer tab`() throws {
         let previousOwnerOverride = StatusItemController.researchBarStatusItemOwnerOverrideForTesting
         let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
         let previousMenuRefresh = StatusItemController.menuRefreshEnabled
@@ -175,7 +175,7 @@ struct ResearchBarTabSwitcherTests {
     }
 
     @Test
-    func corbisPointerSelectionRebuildsOnlyAfterMouseUp() async throws {
+    func `corbis pointer selection rebuilds only after mouse up`() async throws {
         let previousOwnerOverride = StatusItemController.researchBarStatusItemOwnerOverrideForTesting
         let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
         let previousMenuRefresh = StatusItemController.menuRefreshEnabled

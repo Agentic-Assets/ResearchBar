@@ -35,7 +35,7 @@ extension StatusItemController {
 
     func isResearchBarTabSelected(enabledProviders: [UsageProvider]? = nil) -> Bool {
         guard self.includesResearchBarTab() else { return false }
-        let providers = enabledProviders ?? self.store.enabledProvidersForDisplay()
+        let providers = enabledProviders ?? self.store.enabledFirstPartyProvidersForDisplay()
         guard self.shouldShowMergedProviderSwitcher(
             enabledProviders: providers,
             includesResearchBar: true)
@@ -51,7 +51,7 @@ extension StatusItemController {
     /// ResearchBar fallback has no peer provider menu to protect, so it can still refresh.
     func shouldRefreshResearchPulseForMenuOpen(enabledProviders: [UsageProvider]? = nil) -> Bool {
         guard self.includesResearchBarTab() else { return false }
-        let providers = enabledProviders ?? self.store.enabledProvidersForDisplay()
+        let providers = enabledProviders ?? self.store.enabledFirstPartyProvidersForDisplay()
         let hasPeerTabs = self.shouldShowMergedProviderSwitcher(
             enabledProviders: providers,
             includesResearchBar: true)

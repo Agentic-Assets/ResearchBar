@@ -28,9 +28,9 @@ read_when:
 
 ### Development Workflow
 
-1. **Make code changes** in `Sources/CodexBar/`
+1. **Make code changes** in `Sources/ResearchBar/`
 2. **Run** `./Scripts/compile_and_run.sh --test` to test, rebuild, and launch
-3. **Check logs** in Console.app (filter by "com.corbis.researchbar")
+3. **Check logs** in Console.app (filter by "researchbar")
 4. **Optional file log**: enable Debug → Logging → "Enable file logging" to write
    `~/Library/Logs/ResearchBar/ResearchBar.log` (verbosity defaults to "Verbose")
 
@@ -52,7 +52,7 @@ when you intentionally want to reset ad-hoc keychain state.
 
 ### Reset Migration (Testing)
 ```bash
-defaults delete com.corbis.researchbar KeychainMigrationV1Completed
+defaults delete com.steipete.researchbar KeychainMigrationV1Completed
 ```
 
 ## Augment Cookie Refresh
@@ -63,7 +63,8 @@ browser-cookie web path. The web path reuses cached cookies when possible and im
 the cache is missing or rejected.
 
 ### Refresh Frequency
-- Default: Every 5 minutes (configurable in Preferences → General)
+- Fresh-install default: Adaptive, between 2 and 30 minutes (configurable in Preferences → General). Existing installs
+  without a stored cadence retain the legacy 5-minute fallback.
 - Minimum: 1 minute
 - Cookie import happens automatically when cached cookies need refresh
 
@@ -78,39 +79,52 @@ If automatic import fails:
 
 ## Project Structure
 
+Key source, test, and packaging paths (not exhaustive):
+
 ```
 ResearchBar/
-├── Sources/CodexBar/          # Main app (SwiftUI + AppKit)
-│   ├── CodexBarApp.swift      # App entry point
-│   ├── StatusItemController.swift  # Menu bar icon
-│   ├── UsageStore.swift       # Usage data management
-│   ├── SettingsStore.swift    # User preferences
-│   ├── Providers/             # Provider-specific code
-│   │   ├── Augment/           # Augment Code integration
-│   │   ├── Claude/            # Anthropic Claude
-│   │   ├── Codex/             # OpenAI Codex
-│   │   └── ...
-│   └── KeychainMigration.swift  # One-time keychain migration
-├── Sources/CodexBarCore/      # Shared business logic
-├── Tests/CodexBarTests/       # XCTest suite
+├── Sources/ResearchBar/          # Main app (SwiftUI + AppKit)
+│   ├── CodexbarApp.swift      # App entry point
+│   ├── StatusItemController*.swift  # Menu bar icon, menu rendering, and actions
+│   ├── UsageStore*.swift      # Usage refresh, caching, widgets, and history
+│   ├── SettingsStore*.swift   # User preferences and config persistence
+│   ├── Providers/             # App-side provider settings/runtime glue
+│   └── Resources/             # Assets and localized strings
+├── Sources/ResearchBarCore/      # Shared business logic used by app, CLI, and widgets
+│   ├── Config/                # Config file model, reader, writer, and validation
+│   ├── Providers/             # Provider descriptors, fetchers, parsers, and status probes
+│   ├── OpenAIWeb/             # OpenAI dashboard integration helpers
+│   ├── WebKit/                # Web session helpers
+│   └── Vendored/              # Embedded support code
+├── Sources/ResearchBarCLI/       # Bundled researchbar command-line tool
+├── Sources/ResearchBarWidget/    # WidgetKit support
+├── WidgetExtension/           # Xcode wrapper for the packaged widget extension
+├── Tests/ResearchBarTests/       # macOS app/core test suite (XCTest + Swift Testing)
+├── TestsLinux/                # Linux-specific CLI/core test coverage
 └── Scripts/                   # Build and packaging scripts
 ```
 
 ## Common Tasks
 
 ### Add a New Provider
-1. Add a `UsageProvider` case in `Sources/CodexBarCore/Providers/Providers.swift`
-2. Add core descriptor/fetcher wiring under `Sources/CodexBarCore/Providers/YourProvider/`
-3. Add app-side implementation under `Sources/CodexBar/Providers/YourProvider/`
-4. Register the descriptor in `ProviderDescriptorRegistry`
-5. Register the implementation in `ProviderImplementationRegistry`
-6. Add icon assets such as `Resources/ProviderIcon-yourprovider.svg`
+See the canonical [provider authoring guide](provider.md#adding-a-new-provider) for the complete flow.
+
+1. Add the provider identity to `Sources/ResearchBarCore/Providers/Providers.swift`.
+2. Add the descriptor and the fetcher, parser, settings-reader, or status-probe pieces the provider needs under
+   `Sources/ResearchBarCore/Providers/YourProvider/`.
+3. Register the descriptor from `Sources/ResearchBarCore/Providers/ProviderDescriptor.swift`.
+4. Add an app-side `ProviderImplementation` under `Sources/ResearchBar/Providers/YourProvider/`; implementations can use
+   protocol defaults when no custom UI or macOS integration is needed.
+5. Add the provider's exhaustive switch case to
+   `Sources/ResearchBar/Providers/Shared/ProviderImplementationRegistry.swift`.
+6. Add icon assets under `Sources/ResearchBar/Resources/`.
+7. Add focused tests under `Tests/ResearchBarTests/` and, for CLI/core behavior that must run on Linux, `TestsLinux/`.
 
 ### Debug Cookie Issues
 1. Enable Debug → Logging → "Enable file logging" or raise verbosity in the app settings.
 2. Reproduce with `./Scripts/compile_and_run.sh`.
 3. Check logs in Console.app:
-   - Filter: `subsystem:com.corbis.researchbar category:augment`
+   - Filter: `subsystem:com.steipete.researchbar category:augment`
    - Importer messages include the `[augment-cookie]` prefix
 
 ### Run Tests Only
@@ -129,7 +143,7 @@ swiftlint --strict
 ### Local Development Build
 ```bash
 ./Scripts/package_app.sh
-# Creates: ResearchBar.app (Developer ID by default; set CODEXBAR_SIGNING=adhoc for ad-hoc signing)
+# Creates: ResearchBar.app with ad-hoc signing by default
 ```
 
 ### Release Build (Notarized)
@@ -145,16 +159,16 @@ See `docs/RELEASING.md` for full release process.
 ### App Won't Launch
 ```bash
 # Check crash logs
-ls -lt ~/Library/Logs/DiagnosticReports/ResearchBar* ~/Library/Logs/DiagnosticReports/CodexBar* 2>/dev/null | head -5
+ls -lt ~/Library/Logs/DiagnosticReports/ResearchBar* | head -5
 
 # Check Console.app for errors
-# Filter: process:CodexBar or subsystem:com.corbis.researchbar
+# Filter: process:ResearchBar
 ```
 
 ### Keychain Prompts Keep Appearing
 ```bash
 # Verify migration completed
-defaults read com.corbis.researchbar KeychainMigrationV1Completed
+defaults read com.steipete.researchbar KeychainMigrationV1Completed
 # Should output: 1
 
 # Check migration logs
@@ -173,14 +187,14 @@ Debug builds start the hang watchdog automatically. To diagnose a release build,
 enable it explicitly and restart ResearchBar:
 
 ```bash
-defaults write com.corbis.researchbar debugMainThreadHangWatchdog -bool true
+defaults write com.steipete.researchbar debugMainThreadHangWatchdog -bool true
 ```
 
 Hangs are written to the app log. Hangs over two seconds also request a process
 sample under `~/Library/Logs/ResearchBar/`. Disable the release opt-in with:
 
 ```bash
-defaults delete com.corbis.researchbar debugMainThreadHangWatchdog
+defaults delete com.steipete.researchbar debugMainThreadHangWatchdog
 ```
 
 ## Architecture Notes

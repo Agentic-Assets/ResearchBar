@@ -7,8 +7,8 @@ import Security
 enum KeychainMigration {
     private static let log = CodexBarLog.logger(LogCategories.keychainMigration)
     private static let migrationKey = "KeychainMigrationV1Completed"
-    /// Gates the one-time service-rename copy. A separate flag from `migrationKey` so a dev
-    /// build that already set `migrationKey` still runs the rename exactly once.
+    /// Gates the one-time service-rename copy. A separate flag from `migrationKey` so a build
+    /// that already completed the accessibility migration still copies legacy secrets once.
     static let serviceRenameKey = "KeychainServiceRenameV1Completed"
 
     struct MigrationItem: Hashable {
@@ -41,8 +41,6 @@ enum KeychainMigration {
             return
         }
 
-        // Bridge inherited CodexBar secrets to the new ResearchBar service name first, so the
-        // accessibility upgrade below operates on the items at their current service.
         self.renameLegacyServiceIfNeeded()
 
         if !UserDefaults.standard.bool(forKey: self.migrationKey) {
@@ -73,16 +71,14 @@ enum KeychainMigration {
         }
     }
 
-    /// One-time copy of inherited secrets from the legacy `com.steipete.CodexBar` service to
-    /// the new `AppIdentity.keychainSecretsService`. Without this, secrets written by an
-    /// earlier build (same signing identity, old service attribute) are orphaned after the
-    /// rename and every provider has to be re-authenticated. Copy-only and idempotent: an
-    /// item already present under the new service is left untouched, and the legacy copy is
-    /// never deleted, so a partial run cannot lose data.
+    /// Copy inherited CodexBar secrets to ResearchBar's service exactly once. Existing new
+    /// service entries win and the legacy copy is retained, making the operation idempotent
+    /// and non-destructive if a migration is interrupted.
     static func renameLegacyServiceIfNeeded() {
         guard !UserDefaults.standard.bool(forKey: self.serviceRenameKey) else { return }
-        let newService = AppIdentity.keychainSecretsService
+
         let legacyService = AppIdentity.legacyKeychainSecretsService
+        let newService = AppIdentity.keychainSecretsService
         guard legacyService != newService else {
             UserDefaults.standard.set(true, forKey: self.serviceRenameKey)
             return
@@ -104,17 +100,12 @@ enum KeychainMigration {
         UserDefaults.standard.set(true, forKey: self.serviceRenameKey)
     }
 
-    /// Copy one generic-password item from `legacyService` to `newService`, preserving the
-    /// secret bytes and writing with the no-prompt accessibility level. Returns true when a
-    /// new item was written, false when the legacy item is absent or the new item already
-    /// exists. Only items in the running app's own keychain access group are visible, so this
-    /// never touches another team's CodexBar items.
     private static func copyItemAcrossService(
         account: String,
         from legacyService: String,
         to newService: String) throws -> Bool
     {
-        var readQuery: [String: Any] = [
+        let readQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: legacyService,
             kSecAttrAccount as String: account,
@@ -122,11 +113,8 @@ enum KeychainMigration {
             kSecReturnData as String: true,
         ]
         var result: CFTypeRef?
-        let readStatus = SecItemCopyMatching(readQuery as CFDictionary, &result)
-        readQuery.removeAll()
-        if readStatus == errSecItemNotFound {
-            return false
-        }
+        let readStatus = KeychainSecurity.copyMatching(readQuery as CFDictionary, &result)
+        if readStatus == errSecItemNotFound { return false }
         guard readStatus == errSecSuccess, let data = result as? Data else {
             throw KeychainMigrationError.readFailed(readStatus)
         }
@@ -137,8 +125,7 @@ enum KeychainMigration {
             kSecAttrAccount as String: account,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
-        if SecItemCopyMatching(existsQuery as CFDictionary, nil) == errSecSuccess {
-            // Already migrated; leave the existing item untouched.
+        if KeychainSecurity.copyMatching(existsQuery as CFDictionary, nil) == errSecSuccess {
             return false
         }
 
@@ -149,11 +136,10 @@ enum KeychainMigration {
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
-        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        let addStatus = KeychainSecurity.add(addQuery as CFDictionary, nil)
         guard addStatus == errSecSuccess else {
             throw KeychainMigrationError.addFailed(addStatus)
         }
-        self.log.info("Copied \(account) from legacy keychain service to ResearchBar service")
         return true
     }
 
@@ -173,7 +159,7 @@ enum KeychainMigration {
             query[kSecAttrAccount as String] = account
         }
 
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        let status = KeychainSecurity.copyMatching(query as CFDictionary, &result)
 
         if status == errSecItemNotFound {
             // Item doesn't exist, nothing to migrate
@@ -206,7 +192,7 @@ enum KeychainMigration {
             deleteQuery[kSecAttrAccount as String] = account
         }
 
-        let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
+        let deleteStatus = KeychainSecurity.delete(deleteQuery as CFDictionary)
         guard deleteStatus == errSecSuccess else {
             throw KeychainMigrationError.deleteFailed(deleteStatus)
         }
@@ -222,7 +208,7 @@ enum KeychainMigration {
             addQuery[kSecAttrAccount as String] = account
         }
 
-        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        let addStatus = KeychainSecurity.add(addQuery as CFDictionary, nil)
         guard addStatus == errSecSuccess else {
             throw KeychainMigrationError.addFailed(addStatus)
         }

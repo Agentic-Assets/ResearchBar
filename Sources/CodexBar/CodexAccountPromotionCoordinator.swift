@@ -83,27 +83,27 @@ final class CodexAccountPromotionCoordinator {
         if let error = error as? CodexAccountPromotionError {
             let message = switch error {
             case .targetManagedAccountNotFound:
-                L("That account is no longer available in ResearchBar. Refresh the account list and try again.")
+                L("That account is no longer available in CodexBar. Refresh the account list and try again.")
             case .targetManagedAccountAuthMissing:
-                L("ResearchBar could not find saved auth for that account. Re-authenticate it and try again.")
+                L("CodexBar could not find saved auth for that account. Re-authenticate it and try again.")
             case .targetManagedAccountAuthUnreadable:
-                L("ResearchBar could not read saved auth for that account. Re-authenticate it and try again.")
+                L("CodexBar could not read saved auth for that account. Re-authenticate it and try again.")
             case .liveAccountUnreadable:
-                L("ResearchBar could not read the current system account on this Mac.")
+                L("CodexBar could not read the current system account on this Mac.")
             case .liveAccountMissingIdentityForPreservation:
-                L("ResearchBar could not safely preserve the current system account before switching.")
+                L("CodexBar could not safely preserve the current system account before switching.")
             case .liveAccountAPIKeyOnlyUnsupported:
-                L("ResearchBar can't replace a system account that is signed in with an API key only setup.")
+                L("CodexBar can't replace a system account that is signed in with an API key only setup.")
             case .displacedLiveManagedAccountConflict:
                 L(
-                    "ResearchBar found another managed account that already uses the current system account. " +
+                    "CodexBar found another managed account that already uses the current system account. " +
                         "Resolve the duplicate account before switching.")
             case .displacedLiveImportFailed:
-                L("ResearchBar could not save the current system account before switching.")
+                L("CodexBar could not save the current system account before switching.")
             case .managedStoreCommitFailed:
-                L("ResearchBar could not update managed account storage.")
+                L("CodexBar could not update managed account storage.")
             case .liveAuthSwapFailed:
-                L("ResearchBar could not replace the live Codex auth on this Mac.")
+                L("CodexBar could not replace the live Codex auth on this Mac.")
             }
 
             return CodexSystemAccountPromotionUserFacingError(title: title, message: message)

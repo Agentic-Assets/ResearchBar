@@ -1,8 +1,20 @@
-#!/usr/bin/env bash
-# Create a review branch for upstream changes
-# Usage: ./Scripts/review_upstream.sh [upstream|quotio]
+#!/bin/bash
+# Compatibility entrypoint for the safe CodexBar worktree workflow.
+# Usage: ./Scripts/review_upstream.sh [upstream]
 
 set -euo pipefail
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+TARGET=${1:-upstream}
+
+if [[ "$TARGET" != "upstream" ]]; then
+    echo "ERROR: This legacy entrypoint now supports only CodexBar. See docs/UPSTREAM_SYNC.md." >&2
+    exit 1
+fi
+
+exec "$ROOT/Scripts/sync_codexbar.sh" --plan
+
+: <<'LEGACY_REVIEW_UPSTREAM'
 
 UPSTREAM=${1:-upstream}
 DATE=$(date +%Y%m%d)
@@ -135,3 +147,4 @@ echo "File changes:" >> "$LOG_FILE"
 git diff --stat "main..${REMOTE_REF}" >> "$LOG_FILE"
 
 echo -e "${GREEN}Review log saved to: $LOG_FILE${NC}"
+LEGACY_REVIEW_UPSTREAM

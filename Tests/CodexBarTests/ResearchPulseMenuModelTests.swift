@@ -6,7 +6,7 @@ struct ResearchPulseMenuModelTests {
     // MARK: Connection / error states
 
     @Test
-    func notConnectedShowsConnectAndNoMetrics() {
+    func `not connected shows connect and no metrics`() {
         let model = ResearchPulseMenuModel.make(from: .notConnected)
         #expect(model.state == .notConnected)
         #expect(model.actions.contains(.connect))
@@ -15,7 +15,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func invalidCredentialShowsReconnect() {
+    func `invalid credential shows reconnect`() {
         let model = ResearchPulseMenuModel.make(from: .invalidCredential)
         #expect(model.state == .invalidCredential)
         #expect(model.actions.contains(.reconnect))
@@ -24,7 +24,7 @@ struct ResearchPulseMenuModelTests {
     // MARK: profileStatus → state mapping (all four states)
 
     @Test
-    func unlinkedRendersIdentityConfirmationNotAProfile() throws {
+    func `unlinked renders identity confirmation not A profile`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-unlinked"),
             fromStaleCache: false))
@@ -36,7 +36,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func industryProfileShowsProfessionalPulseWithoutZeroedMetrics() throws {
+    func `industry profile shows professional pulse without zeroed metrics`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-industry-profile"),
             fromStaleCache: false))
@@ -49,7 +49,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func linkedNotTrackedAndTrackingOmitTrendNumbers() throws {
+    func `linked not tracked and tracking omit trend numbers`() throws {
         let notTracked = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-linked-not-tracked"),
             fromStaleCache: false))
@@ -66,7 +66,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func linkedTrackedShowsTrendsAndSparkline() throws {
+    func `linked tracked shows trends and sparkline`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-linked-tracked"),
             fromStaleCache: false))
@@ -76,7 +76,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func trackedBeforeFiftyTwoWeekComparatorRendersAvailableTrendOnly() throws {
+    func `tracked before fifty two week comparator renders available trend only`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-tracked-no-52w-comparator"),
             fromStaleCache: false))
@@ -89,7 +89,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func lowConfidenceShowsNoticeAndReviewAction() throws {
+    func `low confidence shows notice and review action`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-low-confidence"),
             fromStaleCache: false))
@@ -98,7 +98,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func academicProfileRendersElegantProviderNeutralEvidenceWithUncertainty() throws {
+    func `academic profile renders elegant provider neutral evidence with uncertainty`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-academic-profile-v1"),
             fromStaleCache: false))
@@ -134,7 +134,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func sparseAcademicSourcesUseOneConsistentOrdinalAndPreserveMetricContext() throws {
+    func `sparse academic sources use one consistent ordinal and preserve metric context`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])
@@ -161,7 +161,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func unsupportedAcademicContractHidesLegacyAlternateTruth() throws {
+    func `unsupported academic contract hides legacy alternate truth`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])
@@ -178,7 +178,7 @@ struct ResearchPulseMenuModelTests {
     // MARK: Cross-cutting modifiers
 
     @Test
-    func staleCacheShowsFetchedTimeAndRefresh() throws {
+    func `stale cache shows fetched time and refresh`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-linked-tracked"),
             fromStaleCache: true))
@@ -188,7 +188,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func creditLimitedHasNoAutomaticRefreshAction() throws {
+    func `credit limited has no automatic refresh action`() throws {
         let model = try ResearchPulseMenuModel
             .make(from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-credit-limited")))
         #expect(model.state == .creditLimited)
@@ -196,7 +196,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func creditAndWorksRowsUseDualContractWithoutFabricatingValues() throws {
+    func `credit and works rows use dual contract without fabricating values`() throws {
         let limited = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-contract-limited"),
             fromStaleCache: false))
@@ -233,7 +233,7 @@ struct ResearchPulseMenuModelTests {
     // MARK: Redaction + semantic safety
 
     @Test
-    func leakLikePulseCollapsesToSafeErrorWithNoLeakInRows() throws {
+    func `leak like pulse collapses to safe error with no leak in rows`() throws {
         let model = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-leak-like"),
             fromStaleCache: false))
@@ -245,7 +245,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func trackedButIncompleteTrendsCollapsesToSafeError() {
+    func `tracked but incomplete trends collapses to safe error`() {
         let broken = Self.makeLinkedPulse(citationHistoryStatus: .tracked, citationDelta7d: 5, sparkline52w: nil)
         let model = ResearchPulseMenuModel.make(from: .loaded(pulse: broken, fromStaleCache: false))
         #expect(model.state == .safeError)
@@ -253,7 +253,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func trackedWithoutSevenDayDeltaCollapsesToSafeError() {
+    func `tracked without seven day delta collapses to safe error`() {
         let broken = Self.makeLinkedPulse(citationHistoryStatus: .tracked, sparkline52w: [95, 100])
         let model = ResearchPulseMenuModel.make(from: .loaded(pulse: broken, fromStaleCache: false))
         #expect(model.state == .safeError)
@@ -261,7 +261,7 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
-    func noStateLeaksBackendNamesOrInternalIDs() throws {
+    func `no state leaks backend names or internal identifiers`() throws {
         for name in ResearchBarFixtures.allPulseNames {
             let pulse = try ResearchBarFixtures.pulse(name)
             let model = ResearchPulseMenuModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))

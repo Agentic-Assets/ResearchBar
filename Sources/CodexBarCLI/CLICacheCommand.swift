@@ -142,12 +142,11 @@ private struct CacheClearResult: Encodable {
 }
 
 extension CodexBarCLI {
-    /// Mirrors the cost usage cache directory used by the app
-    /// (UsageStore+TokenCost.costUsageCacheDirectory / CostUsageCache.defaultCacheRoot).
+    /// Mirrors the cost usage cache directory used by the app (UsageStore.costUsageCacheDirectory).
     static func costUsageCacheDirectory(fileManager: FileManager = .default) -> URL {
         let root = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
         return root
-            .appendingPathComponent(AppIdentity.applicationSupportDirectoryName, isDirectory: true)
+            .appendingPathComponent("CodexBar", isDirectory: true)
             .appendingPathComponent("cost-usage", isDirectory: true)
     }
 }

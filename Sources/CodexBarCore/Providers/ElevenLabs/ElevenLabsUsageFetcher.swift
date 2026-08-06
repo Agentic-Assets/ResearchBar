@@ -75,7 +75,9 @@ public struct ElevenLabsUsageSnapshot: Codable, Sendable, Equatable {
 
     public var usedPercent: Double {
         guard self.characterLimit > 0 else { return 0 }
-        return max(0, Double(self.characterCount) / Double(self.characterLimit) * 100)
+        return UsagePercent(
+            used: Double(self.characterCount),
+            limit: Double(self.characterLimit)).displayClamped
     }
 
     public var remainingCharacters: Int {
@@ -127,7 +129,7 @@ public struct ElevenLabsUsageSnapshot: Codable, Sendable, Equatable {
                 id: "voice-slots",
                 title: "Voice slots",
                 window: RateWindow(
-                    usedPercent: Double(used) / Double(limit) * 100,
+                    usedPercent: UsagePercent(used: Double(used), limit: Double(limit)).displayClamped,
                     windowMinutes: nil,
                     resetsAt: nil,
                     resetDescription: "\(used) / \(limit)")))
@@ -137,7 +139,7 @@ public struct ElevenLabsUsageSnapshot: Codable, Sendable, Equatable {
                 id: "professional-voices",
                 title: "Professional voices",
                 window: RateWindow(
-                    usedPercent: Double(used) / Double(limit) * 100,
+                    usedPercent: UsagePercent(used: Double(used), limit: Double(limit)).displayClamped,
                     windowMinutes: nil,
                     resetsAt: nil,
                     resetDescription: "\(used) / \(limit)")))
@@ -165,7 +167,7 @@ public enum ElevenLabsUsageError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .missingCredentials:
-            "Missing ElevenLabs API key. Set apiKey in ~/.config/researchbar/config.json or ELEVENLABS_API_KEY."
+            "Missing ElevenLabs API key. Set apiKey in ~/.codexbar/config.json or ELEVENLABS_API_KEY."
         case let .networkError(message):
             "ElevenLabs network error: \(message)"
         case let .apiError(message):
@@ -177,7 +179,7 @@ public enum ElevenLabsUsageError: LocalizedError, Sendable {
 }
 
 public struct ElevenLabsUsageFetcher: Sendable {
-    private static let log = CodexBarLog.logger(LogCategories.elevenLabsUsage)
+    private static let log = CodexBarLog.logger(LogCategories.provider(.elevenlabs, scope: "usage"))
     private static let timeoutSeconds: TimeInterval = 15
 
     public static func fetchUsage(

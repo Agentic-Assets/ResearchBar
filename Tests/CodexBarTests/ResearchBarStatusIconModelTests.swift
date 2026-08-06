@@ -6,13 +6,13 @@ struct ResearchBarStatusIconModelTests {
     // MARK: build/09 accessibility table
 
     @Test
-    func notConnectedReadsNotConnected() {
+    func `not connected reads not connected`() {
         let model = ResearchPulseStatusIconModel.make(from: .notConnected)
         #expect(model.accessibilityValue == "Not connected")
     }
 
     @Test
-    func notTrackedReadsTrackingNotStarted() throws {
+    func `not tracked reads tracking not started`() throws {
         let model = try ResearchPulseStatusIconModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-linked-not-tracked"),
             fromStaleCache: false))
@@ -20,7 +20,7 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func trackedReadsTotalCitationsAndSevenDayDelta() throws {
+    func `tracked reads total citations and seven day delta`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-linked-tracked")
         let model = ResearchPulseStatusIconModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
         let citations = try #require(pulse.totalCitations)
@@ -29,7 +29,7 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func staleCacheReadsCurrentValuePlusStaleLabel() throws {
+    func `stale cache reads current value plus stale label`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-linked-tracked")
         let model = ResearchPulseStatusIconModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
         let citations = try #require(pulse.totalCitations)
@@ -38,7 +38,7 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func sourceAwareAcademicProfileDoesNotSurfaceLegacyAggregateInStatusItem() throws {
+    func `source aware academic profile does not surface legacy aggregate in status item`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         object["totalCitations"] = 999
@@ -56,14 +56,14 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func creditLimitedReadsCreditLabel() throws {
+    func `credit limited reads credit label`() throws {
         let model = try ResearchPulseStatusIconModel
             .make(from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-credit-limited")))
         #expect(model.accessibilityValue.localizedCaseInsensitiveContains("credit"))
     }
 
     @Test
-    func uncleanCreditLimitedPulseReadsOnlyCreditNotice() throws {
+    func `unclean credit limited pulse reads only credit notice`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-leak-like")
         let model = ResearchPulseStatusIconModel.make(from: .creditLimited(pulse: pulse))
 
@@ -73,7 +73,7 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func safeErrorReadsNeutralLabel() {
+    func `safe error reads neutral label`() {
         let model = ResearchPulseStatusIconModel.make(from: .safeError)
         #expect(model.accessibilityValue == "Pulse unavailable right now")
     }
@@ -81,7 +81,7 @@ struct ResearchBarStatusIconModelTests {
     // MARK: No-leak guarantees
 
     @Test
-    func leakLikePulseCollapsesToNeutralSafeError() throws {
+    func `leak like pulse collapses to neutral safe error`() throws {
         let model = try ResearchPulseStatusIconModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-leak-like"),
             fromStaleCache: false))
@@ -92,7 +92,7 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func noFixtureLeaksSensitiveTextIntoIconModel() throws {
+    func `no fixture leaks sensitive text into icon model`() throws {
         for name in ResearchBarFixtures.allPulseNames {
             let pulse = try ResearchBarFixtures.pulse(name)
             let model = ResearchPulseStatusIconModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
@@ -104,7 +104,7 @@ struct ResearchBarStatusIconModelTests {
     }
 
     @Test
-    func everyInputProducesANonEmptySymbol() throws {
+    func `every input produces A non empty symbol`() throws {
         let inputs: [ResearchPulseMenuInput] = try [
             .notConnected,
             .invalidCredential,

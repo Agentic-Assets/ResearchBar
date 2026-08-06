@@ -57,7 +57,7 @@ See [CLI configuration](docs/cli-configuration.md) for the full flow.
 
 ## Inherited Provider Surface
 
-The sections below document inherited CodexBar provider behavior that still exists in the codebase. It is useful for upstream sync, diagnostics, and optional beta surfaces, but it is not the primary ResearchBar product surface.
+The sections below document inherited CodexBar provider behavior that still exists in the codebase. It is useful for upstream sync, diagnostics, and optional beta surfaces, but it is not the primary ResearchBar product surface. ResearchBar currently retains 67 inherited provider IDs.
 
 ## Providers
 
@@ -79,7 +79,6 @@ The sections below document inherited CodexBar provider behavior that still exis
 - [MiniMax](docs/minimax.md) — API token, cookie header, or browser cookies for coding-plan usage.
 - [T3 Chat](docs/providers.md#t3-chat) — Browser cookies capture for Base and Overage usage buckets.
 - [Kimi](docs/kimi.md) — Auth token (JWT from `kimi-auth` cookie) for weekly quota + 5‑hour rate limit.
-- [Kimi K2 (unofficial)](docs/kimi-k2.md) — Legacy API key flow for credit-based usage totals.
 - [Kilo](docs/kilo.md) — API token with CLI-auth fallback for Kilo Pass usage.
 - [Kiro](docs/kiro.md) — CLI-based usage; monthly credits + bonus credits.
 - [Vertex AI](docs/vertexai.md) — Google Cloud gcloud OAuth with token cost tracking from local Claude logs.
@@ -127,15 +126,15 @@ show an incident indicator.
 - Provider status polling with incident badges in the menu and icon overlay.
 - Merge Icons mode to combine providers into one status item + switcher.
 - Display controls for provider icons, labels, bars, reset-time style, and highest-usage auto-selection.
-- Refresh cadence presets (manual, 1m, 2m, 5m, 15m).
-- Bundled CLI (`researchbar`) for scripts and CI (including `researchbar cost --provider codex`, `claude`, or `both` for local cost usage); macOS and Linux CLI builds available.
+- Adaptive refresh defaults to a conservative cadence; fixed manual, 1m, 2m, 5m, 15m, and 30m alternatives remain available. Agent-aware activity inspection is separately consented.
+- Bundled CLI (`researchbar`) for scripts and local validation (including `researchbar cost --provider codex`, `claude`, or `both` for local cost usage).
 - WidgetKit widgets for supported providers.
 - Localized app and website with a shared 21-language catalog, automatic website detection, persistent pickers, and RTL support.
 - Optional session quota notifications and weekly-reset confetti.
 - Privacy-first: on-device parsing by default; browser cookies are opt-in and reused (no passwords stored).
 
 ## Privacy note
-Wondering if ResearchBar scans your disk? It doesn’t crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, provider config files, local JSONL logs) when the related features are enabled. Provider tokens and token-account settings live in the ResearchBar config file with restrictive file permissions. See the upstream CodexBar discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
+Wondering if ResearchBar scans your disk? It doesn’t crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, provider config files, local JSONL logs) when the related features are enabled. Plain Adaptive refresh never inspects local agent activity. The separate agent-aware option asks before inspecting the running-process list and bounded known-session metadata; declining returns to plain Adaptive. Provider tokens and token-account settings live in the ResearchBar config file with restrictive file permissions. See the upstream CodexBar discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
 
 ## macOS permissions (why they’re needed)
 - **Full Disk Access (optional)**: only required to read Safari cookies/local storage for web-based providers. If you don’t grant it, use another supported browser, manual cookies/API keys, OAuth, or CLI/local sources where that provider supports them.
@@ -154,6 +153,7 @@ Wondering if ResearchBar scans your disk? It doesn’t crawl your filesystem; it
     - Open the item → **Access Control** → add `ResearchBar.app` under “Always allow access by these applications”.
     - This removes the prompt when ResearchBar decrypts cookies for that browser.
   - **Last resort: stop all Keychain reads entirely**: if "Always Allow" does not stick (for example, macOS resets the ACL after a Chromium update or a `partition_id` reset), open **ResearchBar → Settings → Advanced → Keychain access** and enable **Disable Keychain access**. ResearchBar will no longer touch the Keychain. Browser-cookie-based providers will be skipped, but Claude/Codex OAuth via the CLI still works because it reads `~/.codex` / `~/.claude` config files, not the Keychain.
+  - **Prompt after uninstall?** Deleting the app prevents a new launch from that bundle, but an already-running ResearchBar process can keep requesting Keychain access until it quits. Check for that process, a Login Item, another installed copy, or a prompt that names a different requesting binary/path. See [Keychain prompt troubleshooting](docs/keychain-prompts.md) for safe checks and support-report guidance that does not expose secrets.
 - **Files & Folders prompts (folder/volume access)**: ResearchBar launches provider CLIs and local probes for some providers. If those helpers read a project directory or external drive, macOS may ask ResearchBar for that folder/volume (e.g., Desktop or an external volume). This is driven by the helper’s working directory, not background disk scanning.
 - **What we do not request in the background**: no Screen Recording or Accessibility permissions; user-triggered helper actions may ask macOS for Automation permission to open Terminal. No passwords are stored (browser cookies are reused when you opt in).
 

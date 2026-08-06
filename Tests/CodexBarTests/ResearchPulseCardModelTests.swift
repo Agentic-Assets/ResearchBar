@@ -4,7 +4,7 @@ import Testing
 
 struct ResearchPulseCardModelTests {
     @Test
-    func academicProfileUsesABoundedSourceSpecificCard() throws {
+    func `academic profile uses A bounded source specific card`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-academic-profile-v1")
         let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
 
@@ -35,7 +35,7 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func trackedLegacyPulseUsesOnlyVerifiedTrendValues() throws {
+    func `tracked legacy pulse uses only verified trend values`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-linked-tracked")
         let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
 
@@ -44,7 +44,7 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func creditLimitedCardDoesNotOfferRefresh() throws {
+    func `credit limited card does not offer refresh`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-credit-limited")
         let model = ResearchPulseCardModel.make(from: .creditLimited(pulse: pulse))
 
@@ -54,7 +54,7 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func uncleanCreditLimitedPulseFailsClosed() throws {
+    func `unclean credit limited pulse fails closed`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-leak-like")
         let model = ResearchPulseCardModel.make(from: .creditLimited(pulse: pulse))
 
@@ -72,7 +72,7 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func unlinkedPulseDoesNotExposeIdentityOrProfileLinks() throws {
+    func `unlinked pulse does not expose identity or profile links`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-unlinked")
         let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
 
@@ -85,7 +85,7 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func unsupportedAcademicProfileDoesNotFallBackToLegacyMetrics() throws {
+    func `unsupported academic profile does not fall back to legacy metrics`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])

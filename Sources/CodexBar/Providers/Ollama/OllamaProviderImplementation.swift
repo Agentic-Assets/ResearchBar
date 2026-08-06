@@ -97,7 +97,21 @@ struct OllamaProviderImplementation: ProviderImplementation {
                 binding: cookieBinding,
                 options: cookieOptions,
                 isVisible: nil,
-                onChange: nil),
+                onChange: nil,
+                trailingText: {
+                    guard context.settings.ollamaUsageDataSource != .api else { return nil }
+                    return ProviderCookieRefreshAction.trailingText(
+                        provider: .ollama,
+                        cookieSource: context.settings.ollamaCookieSource,
+                        context: context)
+                },
+                trailingActions: [
+                    ProviderCookieRefreshAction.descriptor(
+                        provider: .ollama,
+                        cookieSource: { context.settings.ollamaCookieSource },
+                        additionalVisibility: { context.settings.ollamaUsageDataSource != .api },
+                        context: context),
+                ]),
         ]
     }
 
@@ -107,7 +121,7 @@ struct OllamaProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "ollama-api-key",
                 title: "API key",
-                subtitle: "Stored in ~/.config/researchbar/config.json. Get your key from Ollama settings.",
+                subtitle: "Stored in ~/.codexbar/config.json. Get your key from Ollama settings.",
                 kind: .secure,
                 placeholder: "ollama-...",
                 binding: context.stringBinding(\.ollamaAPIToken),

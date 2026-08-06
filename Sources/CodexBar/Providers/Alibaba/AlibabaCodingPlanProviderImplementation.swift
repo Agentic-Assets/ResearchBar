@@ -67,9 +67,7 @@ struct AlibabaCodingPlanProviderImplementation: ProviderImplementation {
                 isVisible: nil,
                 onChange: nil,
                 trailingText: {
-                    guard let entry = CookieHeaderCache.loadForDisplay(provider: .alibaba) else { return nil }
-                    let when = entry.storedAt.relativeDescription()
-                    return "Cached: \(entry.sourceLabel) • \(when)"
+                    ProviderCookieSourceUI.cachedTrailingText(provider: .alibaba)
                 }),
             ProviderSettingsPickerDescriptor(
                 id: "alibaba-coding-plan-region",
@@ -88,8 +86,7 @@ struct AlibabaCodingPlanProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "alibaba-coding-plan-api-key",
                 title: "API key",
-                subtitle: "Stored in ~/.config/researchbar/config.json. "
-                    + "Paste your Coding Plan API key from Model Studio.",
+                subtitle: "Stored in ~/.codexbar/config.json. Paste your Coding Plan API key from Model Studio.",
                 kind: .secure,
                 placeholder: "cpk-...",
                 binding: context.stringBinding(\.alibabaCodingPlanAPIToken),

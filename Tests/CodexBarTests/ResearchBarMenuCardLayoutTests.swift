@@ -7,7 +7,7 @@ import Testing
 @MainActor
 struct ResearchBarMenuCardLayoutTests {
     @Test
-    func academicPulseUsesTheSharedCompactProviderCardWidth() throws {
+    func `academic pulse uses the shared compact provider card width`() throws {
         let width = StatusItemController.menuCardBaseWidth
         let model = try ResearchPulseCardModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-academic-profile-v1"),
