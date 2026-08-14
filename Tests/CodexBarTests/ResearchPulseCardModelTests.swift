@@ -44,13 +44,14 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func `credit limited card does not offer refresh`() throws {
-        let pulse = try ResearchBarFixtures.pulse("pulse-credit-limited")
+    func `credit limited card treats retained pulse as cached evidence`() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-contract-limited")
         let model = ResearchPulseCardModel.make(from: .creditLimited(pulse: pulse))
 
         #expect(model.state == .creditLimited)
         #expect(model.notice == "Corbis credits are used up")
-        #expect(model.credit?.summary == "0 credits remaining")
+        #expect(model.credit == nil)
+        #expect(model.freshness?.hasPrefix("Cached · ") == true)
         #expect(!model.actions.contains(.menuAction(.refresh)))
     }
 
@@ -61,6 +62,24 @@ struct ResearchPulseCardModelTests {
 
         #expect(model.plan == pulse.plan)
         #expect(model.credit?.summary == "12.5 credits remaining")
+        #expect(model.freshness?.hasPrefix("Updated ") == true)
+
+        let stale = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+        #expect(stale.state == .staleCache)
+        #expect(stale.credit?.summary == "12.5 credits remaining")
+        #expect(stale.freshness?.hasPrefix("Cached · ") == true)
+    }
+
+    @Test
+    func `card omits a whitespace only plan`() throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["plan"] = " \n\t "
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
+
+        #expect(model.plan == nil)
     }
 
     @Test

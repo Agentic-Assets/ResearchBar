@@ -142,7 +142,9 @@ struct ResearchBarMenuContent: View {
     }
 
     private func trend(_ trend: ResearchPulseCardModel.Trend) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let presentation = Self.citationTrendPresentation(for: trend)
+
+        return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 7) {
                 Image(systemName: trend.sparkline == nil ? "clock" : "chart.line.uptrend.xyaxis")
                     .font(.caption.weight(.semibold))
@@ -152,14 +154,15 @@ struct ResearchBarMenuContent: View {
                     .font(.subheadline)
                     .lineLimit(1)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(presentation.summaryAccessibilityLabel)
 
-            if let chart = Self.citationChart(for: trend) {
+            if let chart = presentation.chart {
                 MenuCardChartContent(chart: chart, color: .accentColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Citation trend: \(trend.summary)")
+        .accessibilityElement(children: .contain)
     }
 
     private func dataQuality(_ quality: ResearchPulseCardModel.DataQuality) -> some View {
@@ -289,5 +292,22 @@ struct ResearchBarMenuContent: View {
         }
 
         return try? ProviderDetailSection.Chart(kind: .line, title: nil, unit: "citations", points: points)
+    }
+
+    struct CitationTrendPresentation {
+        let summaryAccessibilityLabel: String
+        let chart: ProviderDetailSection.Chart?
+
+        @MainActor
+        var chartAccessibilityLabel: String? {
+            guard let chart = self.chart else { return nil }
+            return MenuCardChartContent.accessibilityLabel(for: chart)
+        }
+    }
+
+    static func citationTrendPresentation(for trend: ResearchPulseCardModel.Trend) -> CitationTrendPresentation {
+        CitationTrendPresentation(
+            summaryAccessibilityLabel: "Citation trend: \(trend.summary)",
+            chart: self.citationChart(for: trend))
     }
 }

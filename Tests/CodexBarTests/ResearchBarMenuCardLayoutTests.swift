@@ -48,6 +48,23 @@ struct ResearchBarMenuCardLayoutTests {
     }
 
     @Test
+    func `composed citation trend exposes summary and every weekly value`() throws {
+        let model = try ResearchPulseCardModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-linked-tracked"),
+            fromStaleCache: false))
+        let trend = try #require(model.trend)
+        let weeklyValues = try #require(trend.sparkline)
+
+        let presentation = ResearchBarMenuContent.citationTrendPresentation(for: trend)
+        let expectedWeeklyDescription = weeklyValues.enumerated()
+            .map { "Week \($0.offset + 1) \(Double($0.element)) citations" }
+            .joined(separator: ", ")
+
+        #expect(presentation.summaryAccessibilityLabel == "Citation trend: +7 this week")
+        #expect(presentation.chartAccessibilityLabel == expectedWeeklyDescription)
+    }
+
+    @Test
     func `citation chart rejects malformed and text only histories`() {
         let empty = ResearchPulseCardModel.Trend(summary: "Citation history is accruing", sparkline: [])
         let negative = ResearchPulseCardModel.Trend(summary: "Citation history is invalid", sparkline: [1, -1, 2])

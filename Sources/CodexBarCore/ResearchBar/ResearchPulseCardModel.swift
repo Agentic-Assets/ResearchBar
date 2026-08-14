@@ -144,7 +144,7 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
             title: pulse.displayName ?? "Research pulse",
             subtitle: identity,
             plan: plan.isEmpty ? nil : plan,
-            credit: Self.credit(for: pulse),
+            credit: Self.credit(for: pulse, state: menuModel.state),
             freshness: freshness,
             metrics: metrics,
             dataQuality: dataQuality,
@@ -229,7 +229,8 @@ extension ResearchPulseCardModel {
         return summary.isEmpty ? nil : summary.joined(separator: " · ")
     }
 
-    fileprivate static func credit(for pulse: ResearchPulse) -> Credit? {
+    fileprivate static func credit(for pulse: ResearchPulse, state: ResearchPulseMenuModel.State) -> Credit? {
+        guard state != .creditLimited else { return nil }
         guard let balance = pulse.resolvedCreditBalance else { return nil }
         return switch balance {
         case let .limited(remaining):
@@ -244,7 +245,10 @@ extension ResearchPulseCardModel {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         let timestamp = formatter.string(from: pulse.fetchedAt)
-        return state == .staleCache ? "Cached · \(timestamp)" : "Updated \(timestamp)"
+        return switch state {
+        case .staleCache, .creditLimited: "Cached · \(timestamp)"
+        default: "Updated \(timestamp)"
+        }
     }
 
     fileprivate static func academicMetrics(for profile: AcademicProfile) -> [Metric] {
