@@ -37,6 +37,7 @@ debug_*.swift
 .vscode/
 .codex/environments/
 .superpowers/
+.worktrees/
 .swiftpm-cache/
 .tmp-clang/
 __pycache__/
