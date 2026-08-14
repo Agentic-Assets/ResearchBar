@@ -145,6 +145,9 @@ struct ResearchPulseRedactorTests {
         #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic user-id-48291"))
         #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic acct-48291"))
         #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic account_id_48291"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic acct-12"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic user-id-7"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic account id 42"))
         #expect(!ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic Research Plan"))
 
         let base = try ResearchBarFixtures.data("pulse-contract-limited")
