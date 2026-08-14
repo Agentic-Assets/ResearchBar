@@ -11,6 +11,8 @@ struct CLIProviderSelectionTests {
 
         #expect(usage.hasPrefix("ResearchBar 0.0.0"))
         #expect(!usage.contains("codexbar"))
+        #expect(usage.contains("resolved ResearchBar config file"))
+        #expect(!usage.contains("resolved CodexBar config file"))
         #expect(root.hasPrefix("ResearchBar 0.0.0"))
         #expect(!root.contains("codexbar"))
 
