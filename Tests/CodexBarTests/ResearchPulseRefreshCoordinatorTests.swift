@@ -72,7 +72,7 @@ struct ResearchPulseRefreshCoordinatorTests {
     // MARK: - Tests
 
     @Test
-    func menuOpenWithFreshCacheDoesNotHitTransport() async throws {
+    func `menu open with fresh cache does not hit transport`() async throws {
         let counter = CallCounter()
         let transport = ProviderHTTPTransportHandler { request in
             await counter.bump()
@@ -112,7 +112,7 @@ struct ResearchPulseRefreshCoordinatorTests {
     }
 
     @Test
-    func successfulRefreshStoresValidatedStructuredJSONWithoutDroppingUnknownFields() async throws {
+    func `successful refresh stores validated structured JSON without dropping unknown fields`() async throws {
         let transport = ProviderHTTPTransportHandler { request in
             let envelope = try Self.successEnvelope(extraStructuredField: "kept")
             return (envelope, Self.http(200, url: request.url))
@@ -141,7 +141,7 @@ struct ResearchPulseRefreshCoordinatorTests {
     }
 
     @Test
-    func concurrentManualRefreshesCoalesceToOneTransportHit() async throws {
+    func `concurrent manual refreshes coalesce to one transport hit`() async throws {
         let counter = CallCounter()
         let gate = Gate()
         let transport = ProviderHTTPTransportHandler { request in
@@ -176,7 +176,7 @@ struct ResearchPulseRefreshCoordinatorTests {
     }
 
     @Test
-    func creditLimitedResultDoesNotTriggerAutoRefreshLoop() async {
+    func `credit limited result does not trigger auto refresh loop`() async {
         let counter = CallCounter()
         let transport = ProviderHTTPTransportHandler { request in
             await counter.bump()
@@ -206,7 +206,7 @@ struct ResearchPulseRefreshCoordinatorTests {
     }
 
     @Test
-    func notConnectedReturnsNotConnected() async {
+    func `not connected returns not connected`() async {
         let counter = CallCounter()
         let transport = ProviderHTTPTransportHandler { request in
             await counter.bump()

@@ -194,10 +194,6 @@ enum MenuBarVisibilityWatcher {
             detectTahoeBlockedStatusItem: detectTahoeBlockedStatusItem)
     }
 
-    static func shouldRefreshStartupPlacement(snapshots: [StatusItemVisibilitySnapshot]) -> Bool {
-        self.hasAnyDisplacedVisibleSnapshot(snapshots)
-    }
-
     static func shouldRefreshScreenChangePlacement(
         previousScreenCount _: Int,
         currentScreenCount _: Int,
@@ -232,13 +228,10 @@ enum MenuBarVisibilityWatcher {
         self.markGuidanceShown(defaults: defaults, now: now)
 
         let alert = NSAlert()
-        alert.messageText = L("ResearchBar can't show its menu bar icon")
+        alert.messageText = L("CodexBar can't show its menu bar icon")
         alert.informativeText = L(
             "macOS Tahoe can block menu bar apps in System Settings → Menu Bar → Allow in the Menu Bar. "
-                +
-                "ResearchBar is running, but macOS may be hiding its icon. "
-                +
-                "Open Menu Bar settings and turn ResearchBar on.")
+                + "CodexBar is running, but macOS may be hiding its icon. Open Menu Bar settings and turn CodexBar on.")
         alert.alertStyle = .warning
         alert.addButton(withTitle: L("Open Menu Bar Settings"))
         alert.addButton(withTitle: L("Dismiss"))
@@ -263,18 +256,6 @@ extension StatusItemController {
         let evidence = self.startupStatusItemVisibilityEvidence()
         let snapshots = evidence.map(\.snapshot)
         let windowSnapshots = self.statusItemWindowSnapshots()
-        if self.isResearchBarStatusItemOwner,
-           MenuBarVisibilityWatcher.shouldRefreshStartupPlacement(snapshots: snapshots)
-        {
-            self.menuLogger.info(
-                "ResearchBar status item launched displaced; recreating status item placement",
-                metadata: [
-                    "snapshots": snapshots.map(\.description).joined(separator: " | "),
-                    "windows": self.statusItemWindowDiagnosticsDescription(windowSnapshots),
-                ])
-            self.recreateStatusItemsForVisibilityRecovery()
-            return
-        }
         guard MenuBarVisibilityWatcher.shouldAttemptStartupRecovery(
             appLaunchedAt: appLaunchedAt,
             now: now,

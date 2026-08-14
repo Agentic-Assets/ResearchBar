@@ -33,6 +33,7 @@ extension StatusItemController {
             section.entries.contains { entry in
                 if case .action = entry { return true }
                 if case .submenu = entry { return true }
+                if case .unavailable = entry { return true }
                 return false
             }
         }
@@ -49,6 +50,11 @@ extension StatusItemController {
             self.addActionableTextItem(text, style: style, to: menu, width: width)
         case let .action(title, action):
             self.addActionableMenuItem(title, action: action, to: menu, width: width, captureMenu: captureMenu)
+        case let .unavailable(title, message):
+            self.addActionableTextItem(title, style: .headline, to: menu, width: width)
+            if let message, !message.isEmpty {
+                self.addActionableTextItem(message, style: .secondary, to: menu, width: width)
+            }
         case let .submenu(title, systemImageName, submenuItems):
             menu.addItem(self.makeActionableSubmenuItem(
                 title: title,
@@ -86,14 +92,8 @@ extension StatusItemController {
         captureMenu: NSMenu?)
     {
         let localizedTitle = L(title)
-        if self.usesPersistentMenuActionItem(for: action) {
-            menu.addItem(self.makePersistentMenuActionItem(
-                title: localizedTitle,
-                action: action,
-                menu: captureMenu ?? menu,
-                width: width))
-            return
-        }
+        _ = width
+        _ = captureMenu
         menu.addItem(self.makeActionableMenuItem(title: localizedTitle, action: action))
     }
 

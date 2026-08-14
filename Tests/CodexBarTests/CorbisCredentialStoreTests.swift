@@ -5,7 +5,7 @@ import Testing
 @Suite(.serialized)
 struct CorbisCredentialStoreTests {
     @Test
-    func fingerprintIsDeterministicAndHidesToken() {
+    func `fingerprint is deterministic and hides token`() {
         let token = "secret-bearer-token-abc123"
         let first = CorbisAccountIdentity.fingerprint(forToken: token)
         let second = CorbisAccountIdentity.fingerprint(forToken: token)
@@ -15,14 +15,14 @@ struct CorbisCredentialStoreTests {
     }
 
     @Test
-    func fingerprintDiffersPerToken() {
+    func `fingerprint differs per token`() {
         let one = CorbisAccountIdentity.fingerprint(forToken: "token-one")
         let two = CorbisAccountIdentity.fingerprint(forToken: "token-two")
         #expect(one != two)
     }
 
     @Test
-    func cacheKeyComponentPrefersAccountIDElseAnonFingerprint() {
+    func `cache key component prefers account ID else anon fingerprint`() {
         let linked = CorbisAccountIdentity.make(accountID: "acct-42", token: "t")
         #expect(linked.cacheKeyComponent == "acct-42")
 
@@ -31,7 +31,7 @@ struct CorbisCredentialStoreTests {
     }
 
     @Test
-    func credentialDescriptionsNeverContainTheToken() {
+    func `credential descriptions never contain the token`() {
         let token = "super-secret-xyz-987"
         let credential = CorbisCredential(
             token: token,
@@ -46,7 +46,7 @@ struct CorbisCredentialStoreTests {
     }
 
     @Test
-    func saveThenLoadReturnsEqualCredential() async throws {
+    func `save then load returns equal credential`() async throws {
         try await Self.withStore { store in
             let credential = Self.sampleCredential()
             try await store.saveCredential(credential)
@@ -56,7 +56,7 @@ struct CorbisCredentialStoreTests {
     }
 
     @Test
-    func loadOnEmptyStoreReturnsNil() async throws {
+    func `load on empty store returns nil`() async throws {
         try await Self.withStore { store in
             let loaded = try await store.loadCredential()
             #expect(loaded == nil)
@@ -64,7 +64,7 @@ struct CorbisCredentialStoreTests {
     }
 
     @Test
-    func deleteThenLoadReturnsNil() async throws {
+    func `delete then load returns nil`() async throws {
         try await Self.withStore { store in
             try await store.saveCredential(Self.sampleCredential())
             try await store.deleteCredential()

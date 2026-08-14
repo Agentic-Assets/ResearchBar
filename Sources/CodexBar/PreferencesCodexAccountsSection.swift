@@ -132,7 +132,7 @@ struct CodexAccountsSectionView: View {
     let addAccount: () -> Void
 
     var body: some View {
-        ProviderSettingsSection(title: L("Accounts")) {
+        Section {
             if let selection = self.activeSelectionBinding {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -152,7 +152,7 @@ struct CodexAccountsSectionView: View {
                         Spacer(minLength: 0)
                     }
 
-                    Text(L("Choose which Codex account ResearchBar should follow."))
+                    Text(L("Choose which Codex account CodexBar should follow."))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
@@ -212,6 +212,8 @@ struct CodexAccountsSectionView: View {
             .buttonStyle(.bordered)
             .controlSize(.small)
             .disabled(self.state.canAddAccount == false)
+        } header: {
+            Text(L("Accounts"))
         }
     }
 

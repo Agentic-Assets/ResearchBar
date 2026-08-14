@@ -4,14 +4,14 @@ import Testing
 
 struct ResearchPulseDecodingTests {
     @Test
-    func decodesEveryFixtureWithoutThrowing() throws {
+    func `decodes every fixture without throwing`() throws {
         for name in ResearchBarFixtures.allPulseNames {
             _ = try ResearchBarFixtures.pulse(name)
         }
     }
 
     @Test
-    func decodesLinkedNotTrackedFields() throws {
+    func `decodes linked not tracked fields`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-linked-not-tracked")
 
         #expect(pulse.profileStatus == .linkedResearcher)
@@ -37,7 +37,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesTrackedTrendsAndFractionalSecondDates() throws {
+    func `decodes tracked trends and fractional second dates`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-linked-tracked")
 
         #expect(pulse.citationHistoryStatus == .tracked)
@@ -50,7 +50,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func trackedWithSevenDayComparatorDoesNotRequireFiftyTwoWeekComparator() throws {
+    func `tracked with seven day comparator does not require fifty two week comparator`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-tracked-no-52w-comparator")
 
         #expect(pulse.citationHistoryStatus == .tracked)
@@ -62,7 +62,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesUnlinkedAsFirstClassNullState() throws {
+    func `decodes unlinked as first class null state`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-unlinked")
 
         #expect(pulse.profileStatus == .unlinked)
@@ -76,7 +76,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesIndustryProfileWithNullPublicationMetrics() throws {
+    func `decodes industry profile with null publication metrics`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-industry-profile")
 
         #expect(pulse.profileStatus == .industryProfile)
@@ -89,7 +89,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesProfileOnlyAndTrackingStates() throws {
+    func `decodes profile only and tracking states`() throws {
         let profileOnly = try ResearchBarFixtures.pulse("pulse-profile-only")
         #expect(profileOnly.profileStatus == .profileOnly)
         #expect(profileOnly.totalCitations == nil)
@@ -103,7 +103,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesLimitedCreditBalanceAndPrefersIndexedWorksCount() throws {
+    func `decodes limited credit balance and prefers indexed works count`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-contract-limited")
 
         #expect(pulse.creditBalance == .limited(remaining: 12.5))
@@ -114,7 +114,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesCurrentUnlimitedDualEmission() throws {
+    func `decodes current unlimited dual emission`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-contract-unlimited")
 
         #expect(pulse.creditBalance == .unlimited)
@@ -126,7 +126,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func futurePostWindowPayloadToleratesOmittedLegacyFields() throws {
+    func `future post window payload tolerates omitted legacy fields`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-future-post-window-unlimited")
 
         #expect(pulse.creditBalance == .unlimited)
@@ -136,7 +136,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func futureMalformedNewFieldsFallBackToLegacyWithoutFailingPulse() throws {
+    func `future malformed new fields fall back to legacy without failing pulse`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-contract-malformed-new-fields")
 
         #expect(pulse.creditBalance == nil)
@@ -146,7 +146,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func malformedNewCreditBalanceDoesNotExposeNegativeLegacyFallback() throws {
+    func `malformed new credit balance does not expose negative legacy fallback`() throws {
         let base = try ResearchBarFixtures.data("pulse-contract-malformed-new-fields")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         object["creditsRemaining"] = -1
@@ -158,7 +158,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func futureMixedVersionExplicitNullIndexedWorksCountDoesNotFallBackToLegacyMirror() throws {
+    func `future mixed version explicit null indexed works count does not fall back to legacy mirror`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-contract-null-indexed-works")
 
         #expect(pulse.indexedWorksCount == nil)
@@ -168,7 +168,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func futurePayloadMissingBothCreditRepresentationsDoesNotFabricateZero() throws {
+    func `future payload missing both credit representations does not fabricate zero`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-contract-no-balances")
 
         #expect(pulse.creditBalance == nil)
@@ -177,7 +177,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func decodesCurrentAcademicProfileContractWithoutLosingNullsOrStableIdentities() throws {
+    func `decodes current academic profile contract without losing nulls or stable identities`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-academic-profile-v1")
         let profile = try #require(pulse.academicProfile)
 
@@ -201,7 +201,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func acceptsEveryCurrentConfirmedFamilyBasis() throws {
+    func `accepts every current confirmed family basis`() throws {
         let bases = [
             "exact_doi",
             "manifestation_identity",
@@ -224,7 +224,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func quarantinesUnknownNestedContractWithoutLosingSafeTopLevelPulse() throws {
+    func `quarantines unknown nested contract without losing safe top level pulse`() throws {
         let data = try Self.mutatedAcademicProfileFixture { profile in
             var families = try #require(profile["workFamilies"] as? [[String: Any]])
             families[0]["matchBasis"] = "future_match_basis"
@@ -238,7 +238,7 @@ struct ResearchPulseDecodingTests {
     }
 
     @Test
-    func preservesAcademicProfileWhenReencodingThePulse() throws {
+    func `preserves academic profile when reencoding the pulse`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-academic-profile-v1")
         let encoded = try JSONEncoder().encode(pulse)
         let object = try #require(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])

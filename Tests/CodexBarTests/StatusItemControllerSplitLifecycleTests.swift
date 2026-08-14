@@ -66,6 +66,42 @@ struct StatusItemControllerSplitLifecycleTests {
     }
 
     @Test
+    func `provider config notifications relay background work impact between settings stores`() {
+        self.disableMenuCardsForTesting()
+        let sourceSettings = self.makeSettings()
+        let controllerSettings = self.makeSettings()
+        controllerSettings.statusChecksEnabled = false
+        controllerSettings.refreshFrequency = .manual
+
+        let fetcher = UsageFetcher()
+        let store = UsageStore(
+            fetcher: fetcher,
+            browserDetection: BrowserDetection(cacheTTL: 0),
+            settings: controllerSettings)
+        let controller = StatusItemController(
+            store: store,
+            settings: controllerSettings,
+            account: fetcher.loadAccountInfo(),
+            updater: DisabledUpdaterController(),
+            preferencesSelection: PreferencesSelection(),
+            statusBar: self.makeStatusBarForTesting(),
+            observeProviderConfigNotifications: true)
+        defer { controller.releaseStatusItemsForTesting() }
+
+        let initialBackgroundRevision = controllerSettings.backgroundWorkSettingsRevision
+        let reorderedProviders = Array(sourceSettings.orderedProviders().reversed())
+        sourceSettings.setProviderOrder(reorderedProviders)
+
+        #expect(controllerSettings.orderedProviders() == reorderedProviders)
+        #expect(controllerSettings.backgroundWorkSettingsRevision == initialBackgroundRevision)
+
+        sourceSettings.codexUsageDataSource = .cli
+
+        #expect(controllerSettings.codexUsageDataSource == .cli)
+        #expect(controllerSettings.backgroundWorkSettingsRevision == initialBackgroundRevision + 1)
+    }
+
+    @Test
     func `merged mode removes split provider status items`() throws {
         let (settings, controller) = try self.makeSplitController()
         defer { controller.releaseStatusItemsForTesting() }
@@ -88,7 +124,7 @@ struct StatusItemControllerSplitLifecycleTests {
         defer { controller.releaseStatusItemsForTesting() }
 
         let menus = try [UsageProvider.codex, .claude].map { provider in
-            try #require(controller.providerMenus[provider])
+            try #require(controller.providerMenus[provider.instanceID])
         }
         let keys = menus.map(ObjectIdentifier.init)
         for (menu, key) in zip(menus, keys) {
@@ -112,6 +148,8 @@ struct StatusItemControllerSplitLifecycleTests {
             _ = controller.openMenuRebuildRequests.replaceRequest(for: key)
             controller.openMenuRebuildsClosingHostedSubviewMenus.insert(key)
             controller.highlightedMenuItems[key] = NSMenuItem(title: "Highlighted", action: nil, keyEquivalent: "")
+            controller.nativeHighlightDeferredMenuRebuilds[key] = .init(provider: .codex)
+            controller.pendingMenuBaselineResyncs.insert(key)
         }
 
         settings.mergeIcons = true
@@ -132,6 +170,8 @@ struct StatusItemControllerSplitLifecycleTests {
             #expect(controller.openMenuRebuildRequests.tokens[key] == nil)
             #expect(!controller.openMenuRebuildsClosingHostedSubviewMenus.contains(key))
             #expect(controller.highlightedMenuItems[key] == nil)
+            #expect(controller.nativeHighlightDeferredMenuRebuilds[key] == nil)
+            #expect(!controller.pendingMenuBaselineResyncs.contains(key))
         }
     }
 
@@ -153,65 +193,6 @@ struct StatusItemControllerSplitLifecycleTests {
     }
 
     @Test
-    func `researchbar owner renders standard cap status item`() throws {
-        StatusItemController.researchBarStatusItemOwnerOverrideForTesting = true
-        defer {
-            StatusItemController.researchBarStatusItemOwnerOverrideForTesting = nil
-        }
-
-        let (_, controller) = try self.makeSplitController()
-        defer { controller.releaseStatusItemsForTesting() }
-
-        let button = try #require(controller.statusItem.button)
-        #expect(controller.statusItem.isVisible)
-        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
-        #expect(ResearchBarStatusItemIcon.statusItemLength == NSStatusItem.squareLength)
-        #expect(controller.statusItem.autosaveName == "researchbar-merged")
-        #expect(controller.statusItems.isEmpty)
-        #expect(controller.statusItem.menu === controller.mergedMenu)
-        #expect(button.title.isEmpty)
-        #expect(button.attributedTitle.string.isEmpty)
-        #expect(button.image != nil)
-        #expect(button.image?.isTemplate == true)
-        #expect(button.imagePosition == .imageOnly)
-        #expect(button.imageScaling == .scaleProportionallyDown)
-        #expect(button.toolTip == "ResearchBar: Not connected")
-        #expect(button.accessibilityIdentifier() == "ResearchBar.StatusItem")
-        #expect(button.accessibilityTitle() == "ResearchBar")
-        #expect(button.accessibilityValue() as? String == "Not connected")
-
-        _ = controller.applyIcon(phase: nil)
-
-        #expect(controller.statusItem.isVisible)
-        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
-        #expect(controller.statusItems.isEmpty)
-        #expect(button.title.isEmpty)
-        #expect(button.image != nil)
-        #expect(button.image?.isTemplate == true)
-        #expect(button.imagePosition == .imageOnly)
-        #expect(button.imageScaling == .scaleProportionallyDown)
-
-        controller.recreateStatusItemsForVisibilityRecovery()
-
-        let recoveredButton = try #require(controller.statusItem.button)
-        #expect(controller.statusItem.isVisible)
-        #expect(controller.statusItem.length == ResearchBarStatusItemIcon.statusItemLength)
-        #expect(controller.statusItem.autosaveName == "researchbar-merged")
-        #expect(controller.statusItems.isEmpty)
-        #expect(controller.statusItem.menu === controller.mergedMenu)
-        #expect(recoveredButton.title.isEmpty)
-        #expect(recoveredButton.attributedTitle.string.isEmpty)
-        #expect(recoveredButton.image != nil)
-        #expect(recoveredButton.image?.isTemplate == true)
-        #expect(recoveredButton.imagePosition == .imageOnly)
-        #expect(recoveredButton.imageScaling == .scaleProportionallyDown)
-        #expect(recoveredButton.toolTip == "ResearchBar: Not connected")
-        #expect(recoveredButton.accessibilityIdentifier() == "ResearchBar.StatusItem")
-        #expect(recoveredButton.accessibilityTitle() == "ResearchBar")
-        #expect(recoveredButton.accessibilityValue() as? String == "Not connected")
-    }
-
-    @Test
     func `status items publish stable manager identity`() throws {
         let (_, controller) = try self.makeSplitController()
         defer { controller.releaseStatusItemsForTesting() }
@@ -228,6 +209,9 @@ struct StatusItemControllerSplitLifecycleTests {
         #expect(controller.statusItem.button?.accessibilityTitle() == "ResearchBar")
         #expect(codexButton.accessibilityTitle() == "ResearchBar")
         #expect(claudeButton.accessibilityTitle() == "ResearchBar")
+        #expect(controller.statusItem.button?.toolTip == nil)
+        #expect(codexButton.toolTip == nil)
+        #expect(claudeButton.toolTip == nil)
     }
 
     @Test
@@ -315,11 +299,11 @@ struct StatusItemControllerSplitLifecycleTests {
         defer { defaults.removePersistentDomain(forName: suite) }
         defaults.set(42, forKey: "NSStatusItem Preferred Position Item-0")
         defaults.set(11298, forKey: "NSStatusItem Preferred Position Item-1")
-        let key = MenuBarStatusItemPlacementPreflight.preferredPositionKey(autosaveName: "codexbar-codex")
+        let key = MenuBarStatusItemPlacementPreflight.preferredPositionKey(autosaveName: "researchbar-codex")
 
         #expect(MenuBarStatusItemPlacementPreflight.prepare(
             defaults: defaults,
-            autosaveName: "codexbar-codex",
+            autosaveName: "researchbar-codex",
             legacyDefaultItemIndex: 1,
             maximumPreferredPosition: 3000))
 
@@ -335,11 +319,11 @@ struct StatusItemControllerSplitLifecycleTests {
         defaults.removePersistentDomain(forName: suite)
         defer { defaults.removePersistentDomain(forName: suite) }
         defaults.set(42, forKey: "NSStatusItem Preferred Position Item-0")
-        let key = MenuBarStatusItemPlacementPreflight.preferredPositionKey(autosaveName: "codexbar-codex")
+        let key = MenuBarStatusItemPlacementPreflight.preferredPositionKey(autosaveName: "researchbar-codex")
 
         #expect(!MenuBarStatusItemPlacementPreflight.prepare(
             defaults: defaults,
-            autosaveName: "codexbar-codex",
+            autosaveName: "researchbar-codex",
             legacyDefaultItemIndex: 1))
 
         #expect(defaults.object(forKey: key) == nil)
@@ -354,11 +338,11 @@ struct StatusItemControllerSplitLifecycleTests {
         defer { defaults.removePersistentDomain(forName: suite) }
         defaults.set(42, forKey: "NSStatusItem Preferred Position Item-0")
         defaults.set(58, forKey: "NSStatusItem Preferred Position Item-1")
-        let key = MenuBarStatusItemPlacementPreflight.preferredPositionKey(autosaveName: "codexbar-codex")
+        let key = MenuBarStatusItemPlacementPreflight.preferredPositionKey(autosaveName: "researchbar-codex")
 
         #expect(!MenuBarStatusItemPlacementPreflight.prepare(
             defaults: defaults,
-            autosaveName: "codexbar-codex",
+            autosaveName: "researchbar-codex",
             legacyDefaultItemIndex: 1))
 
         #expect(defaults.object(forKey: key) == nil)
@@ -492,60 +476,6 @@ struct StatusItemControllerSplitLifecycleTests {
         #expect(MenuBarStatusItemDefaultsRepair.visibilityDefault(
             defaults: defaults,
             autosaveName: "researchbar-codex") == nil)
-    }
-
-    @Test
-    func `researchbar legacy visibility repair runs after generic repair is complete`() throws {
-        let suite = "StatusItemControllerSplitLifecycleTests-researchbar-repair-\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defaults.removePersistentDomain(forName: suite)
-        defer {
-            defaults.removePersistentDomain(forName: suite)
-        }
-
-        let legacyKey = "NSStatusItem VisibleCC Item-0"
-        defaults.set(true, forKey: MenuBarStatusItemDefaultsRepair.didRepairKey)
-        defaults.set(false, forKey: legacyKey)
-
-        #expect(MenuBarStatusItemDefaultsRepair.repairHiddenVisibilityDefaultsIfNeeded(defaults: defaults).isEmpty)
-        #expect(MenuBarStatusItemDefaultsRepair.repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults) == [
-            legacyKey,
-        ])
-        #expect(defaults.object(forKey: legacyKey) == nil)
-        #expect(defaults.bool(forKey: MenuBarStatusItemDefaultsRepair.didRepairResearchBarLegacyItemKey))
-
-        defaults.set(false, forKey: legacyKey)
-        let secondRepair = MenuBarStatusItemDefaultsRepair
-            .repairResearchBarLegacyItemVisibilityIfNeeded(defaults: defaults)
-        #expect(secondRepair.isEmpty)
-        #expect(defaults.object(forKey: legacyKey) != nil)
-    }
-
-    @Test
-    func `researchbar removes the retired placement sentinel defaults once`() throws {
-        let suite = "StatusItemControllerSplitLifecycleTests-placement-sentinel-\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defaults.removePersistentDomain(forName: suite)
-        defer { defaults.removePersistentDomain(forName: suite) }
-
-        let visibleKey = "NSStatusItem VisibleCC researchbar-placement-sentinel"
-        let positionKey = "NSStatusItem Preferred Position researchbar-placement-sentinel"
-        defaults.set(true, forKey: visibleKey)
-        defaults.set(73, forKey: positionKey)
-
-        #expect(MenuBarStatusItemDefaultsRepair
-            .removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: defaults) == [
-                visibleKey,
-                positionKey,
-            ])
-        #expect(defaults.object(forKey: visibleKey) == nil)
-        #expect(defaults.object(forKey: positionKey) == nil)
-        #expect(defaults.bool(forKey: MenuBarStatusItemDefaultsRepair.didRemoveResearchBarPlacementSentinelKey))
-
-        defaults.set(true, forKey: visibleKey)
-        #expect(MenuBarStatusItemDefaultsRepair.removeResearchBarPlacementSentinelDefaultsIfNeeded(defaults: defaults)
-            .isEmpty)
-        #expect(defaults.object(forKey: visibleKey) != nil)
     }
 
     @Test

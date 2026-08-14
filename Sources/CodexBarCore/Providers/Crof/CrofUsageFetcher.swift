@@ -1,3 +1,5 @@
+// Linux compatibility only. JavaScriptCore platforms use the bundled Crof plugin.
+#if !canImport(JavaScriptCore)
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -5,8 +7,8 @@ import FoundationNetworking
 
 public struct CrofUsageResponse: Decodable, Sendable {
     public let credits: Double
-    public let requestsPlan: Double
-    public let usableRequests: Double
+    public let requestsPlan: Double?
+    public let usableRequests: Double?
 
     enum CodingKeys: String, CodingKey {
         case credits
@@ -87,3 +89,4 @@ public enum CrofUsageFetcher {
             updatedAt: Date())
     }
 }
+#endif

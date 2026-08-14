@@ -25,7 +25,7 @@ extension StatusItemController {
         _ includesOverview: Bool,
         _ includesResearchBar: Bool)
     {
-        self.lastSwitcherProviders = providers
+        self.lastSwitcherProviders = providers.map(\.instanceID)
         self.lastSwitcherUsageBarsShowUsed = self.settings.usageBarsShowUsed
         self.lastMergedSwitcherSelection = selection
         self.lastMergedMenuContentSelection = selection

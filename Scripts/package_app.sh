@@ -1,8 +1,41 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
+
+resolve_package_signing_mode() {
+  local requested="${CODEXBAR_SIGNING:-adhoc}"
+  case "$requested" in
+    adhoc|identity) ;;
+    *)
+      echo "ERROR: Unsupported CODEXBAR_SIGNING: $requested (expected adhoc or identity)" >&2
+      return 1
+      ;;
+  esac
+  SIGNING_MODE="$requested"
+}
+
+verify_no_quarantine_attribute() {
+  local bundle="$1"
+  local quarantined
+  quarantined="$(xattr -r -p com.apple.quarantine "$bundle" 2>/dev/null || true)"
+  if [[ -n "$quarantined" ]]; then
+    echo "ERROR: Packaged app still has com.apple.quarantine: ${bundle}" >&2
+    return 1
+  fi
+}
+
+verify_packaged_app_integrity() {
+  local bundle="$1"
+  local sparkle="$bundle/Contents/Frameworks/Sparkle.framework"
+
+  verify_no_quarantine_attribute "$bundle" || return 1
+  codesign --verify --deep --strict --verbose=2 "$sparkle" || return 1
+  codesign --verify --deep --strict --verbose=2 "$bundle" || return 1
+}
+
 CONF=${1:-release}
 ALLOW_LLDB=${CODEXBAR_ALLOW_LLDB:-0}
-SIGNING_MODE=${CODEXBAR_SIGNING:-}
+SIGNING_MODE=
+resolve_package_signing_mode
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 LOWER_CONF=$(printf "%s" "$CONF" | tr '[:upper:]' '[:lower:]')
@@ -16,6 +49,7 @@ esac
 
 # Load version info
 source "$ROOT/version.env"
+source "$ROOT/ResearchBar/branding/identity.env"
 source "$ROOT/Scripts/package_product_paths.sh"
 source "$ROOT/Scripts/sparkle_signing_paths.sh"
 
@@ -169,8 +203,8 @@ for ARCH in "${ARCH_LIST[@]}"; do
   stage_build_products "$ARCH"
 done
 
-APP_FINAL="$ROOT/ResearchBar.app"
-APP_STAGE="$ROOT/.build/package/ResearchBar.app"
+APP_FINAL="$ROOT/$RESEARCHBAR_APP_BUNDLE"
+APP_STAGE="$ROOT/.build/package/$RESEARCHBAR_APP_BUNDLE"
 rm -rf "$APP_STAGE"
 APP="$APP_STAGE"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
@@ -183,11 +217,11 @@ if [[ -f "$ICON_SOURCE" ]]; then
   iconutil --convert icns --output "$ICON_TARGET" "$ICON_SOURCE"
 fi
 
-BUNDLE_ID="com.corbis.researchbar"
+BUNDLE_ID="$RESEARCHBAR_BUNDLE_ID"
 FEED_URL=""
 AUTO_CHECKS=false
 if [[ "$LOWER_CONF" == "debug" ]]; then
-  BUNDLE_ID="com.corbis.researchbar.debug"
+  BUNDLE_ID="$RESEARCHBAR_DEBUG_BUNDLE_ID"
   FEED_URL=""
   AUTO_CHECKS=false
 fi
@@ -197,9 +231,9 @@ if [[ "$SIGNING_MODE" == "adhoc" ]]; then
 fi
 WIDGET_BUNDLE_ID="${BUNDLE_ID}.widget"
 APP_TEAM_ID="${APP_TEAM_ID:-Y5PE65HELJ}"
-APP_GROUP_ID="${APP_TEAM_ID}.com.corbis.researchbar"
+APP_GROUP_ID="${APP_TEAM_ID}.${RESEARCHBAR_APP_GROUP_SUFFIX}"
 if [[ "$BUNDLE_ID" == *".debug"* ]]; then
-  APP_GROUP_ID="${APP_TEAM_ID}.com.corbis.researchbar.debug"
+  APP_GROUP_ID="${APP_TEAM_ID}.${RESEARCHBAR_DEBUG_APP_GROUP_SUFFIX}"
 fi
 ENTITLEMENTS_DIR="$ROOT/.build/entitlements"
 APP_ENTITLEMENTS="${ENTITLEMENTS_DIR}/ResearchBar.entitlements"
@@ -208,6 +242,36 @@ mkdir -p "$ENTITLEMENTS_DIR"
 if [[ "$ALLOW_LLDB" == "1" && "$LOWER_CONF" != "debug" ]]; then
   echo "ERROR: CODEXBAR_ALLOW_LLDB requires debug configuration" >&2
   exit 1
+fi
+# iCloud sync (CloudKit) requires restricted entitlements authorized by an embedded
+# Developer ID provisioning profile. Only identity-signed release builds of the primary
+# bundle ID carry them; adhoc/debug builds run with sync unavailable.
+PROVISIONING_PROFILE_SOURCE="$ROOT/Scripts/profiles/CodexBar-DeveloperID.provisionprofile"
+EMBED_PROVISIONING_PROFILE=0
+ICLOUD_ENTITLEMENT_KEYS=""
+if [[ "$SIGNING_MODE" == "identity" && "$LOWER_CONF" == "release" && "$BUNDLE_ID" == "com.steipete.codexbar" ]]; then
+  if [[ ! -f "$PROVISIONING_PROFILE_SOURCE" ]]; then
+    echo "ERROR: Missing $PROVISIONING_PROFILE_SOURCE (required for iCloud entitlements in release builds)" >&2
+    exit 1
+  fi
+  EMBED_PROVISIONING_PROFILE=1
+  ICLOUD_ENTITLEMENT_KEYS=$(cat <<ICLOUD
+    <key>com.apple.application-identifier</key>
+    <string>${APP_TEAM_ID}.${BUNDLE_ID}</string>
+    <key>com.apple.developer.team-identifier</key>
+    <string>${APP_TEAM_ID}</string>
+    <key>com.apple.developer.icloud-services</key>
+    <array>
+        <string>CloudKit</string>
+    </array>
+    <key>com.apple.developer.icloud-container-identifiers</key>
+    <array>
+        <string>iCloud.${BUNDLE_ID}</string>
+    </array>
+    <key>com.apple.developer.icloud-container-environment</key>
+    <string>Production</string>
+ICLOUD
+)
 fi
 cat > "$APP_ENTITLEMENTS" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -218,6 +282,7 @@ cat > "$APP_ENTITLEMENTS" <<PLIST
     <array>
         <string>${APP_GROUP_ID}</string>
     </array>
+${ICLOUD_ENTITLEMENT_KEYS}
     $(if [[ "$ALLOW_LLDB" == "1" ]]; then echo "    <key>com.apple.security.get-task-allow</key><true/>"; fi)
 </dict>
 </plist>
@@ -244,10 +309,10 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key><string>ResearchBar</string>
-    <key>CFBundleDisplayName</key><string>ResearchBar</string>
+    <key>CFBundleName</key><string>${RESEARCHBAR_PRODUCT_NAME}</string>
+    <key>CFBundleDisplayName</key><string>${RESEARCHBAR_PRODUCT_NAME}</string>
     <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
-    <key>CFBundleExecutable</key><string>ResearchBar</string>
+    <key>CFBundleExecutable</key><string>${RESEARCHBAR_APP_EXECUTABLE}</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${MARKETING_VERSION}</string>
     <key>CFBundleVersion</key><string>${BUILD_NUMBER}</string>
@@ -260,7 +325,20 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>SUEnableAutomaticChecks</key><${AUTO_CHECKS}/>
     <key>CodexBuildTimestamp</key><string>${BUILD_TIMESTAMP}</string>
     <key>CodexGitCommit</key><string>${GIT_COMMIT}</string>
-    <key>ResearchBarTeamID</key><string>${APP_TEAM_ID}</string>
+    <key>${RESEARCHBAR_TEAM_ID_INFO_KEY}</key><string>${APP_TEAM_ID}</string>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>${RESEARCHBAR_MENU_LAYOUT_UTI}</string>
+            <key>UTTypeDescription</key><string>${RESEARCHBAR_MENU_LAYOUT_UTI_DESCRIPTION}</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict/>
+        </dict>
+    </array>
 </dict>
 </plist>
 PLIST
@@ -322,15 +400,31 @@ install_binary() {
   verify_binary_arches "$dest" "${ARCH_LIST[@]}"
 }
 
+strip_release_binary() {
+  local binary="$1"
+  if [[ "$LOWER_CONF" != "release" ]]; then
+    return 0
+  fi
+  if [[ ! -f "$binary" ]]; then
+    return 0
+  fi
+  xcrun strip -x "$binary"
+}
+
 ensure_widget_extension_project() {
   local spec="$ROOT/WidgetExtension/project.yml"
   local project_dir="$ROOT/WidgetExtension/CodexBarWidgetExtension.xcodeproj"
-  if command -v xcodegen >/dev/null 2>&1; then
-    xcodegen generate --spec "$spec" --project "$ROOT/WidgetExtension" --quiet
-  elif [[ ! -f "$project_dir/project.pbxproj" ]]; then
+  if [[ -f "$project_dir/project.pbxproj" ]]; then
+    return
+  fi
+  if ! command -v xcodegen >/dev/null 2>&1; then
     echo "ERROR: Missing ${project_dir}; install xcodegen or restore the generated project." >&2
     exit 1
   fi
+
+  # The tracked project is authoritative. Regenerating it during packaging records the checkout
+  # directory's spelling in a package file reference and leaves release worktrees dirty.
+  xcodegen generate --spec "$spec" --project "$ROOT/WidgetExtension" --quiet
 }
 
 build_widget_extension() {
@@ -424,7 +518,15 @@ install_binary "CodexBar" "$APP/Contents/MacOS/ResearchBar"
 install_binary "CodexBarCLI" "$APP/Contents/Helpers/ResearchBarCLI"
 # Watchdog helper: ensures `claude` probes die when ResearchBar crashes/gets killed.
 install_binary "CodexBarClaudeWatchdog" "$APP/Contents/Helpers/ResearchBarClaudeWatchdog"
+strip_release_binary "$APP/Contents/MacOS/ResearchBar"
+# Ship the internal CodexBarCLI target under the ResearchBarCLI name for collision-free symlinking.
+install_binary "CodexBarCLI" "$APP/Contents/Helpers/ResearchBarCLI"
+strip_release_binary "$APP/Contents/Helpers/ResearchBarCLI"
+# Watchdog helper: ensures `claude` probes die when ResearchBar crashes/gets killed.
+install_binary "CodexBarClaudeWatchdog" "$APP/Contents/Helpers/ResearchBarClaudeWatchdog"
+strip_release_binary "$APP/Contents/Helpers/ResearchBarClaudeWatchdog"
 install_widget_extension
+strip_release_binary "$APP/Contents/PlugIns/ResearchBarWidget.appex/Contents/MacOS/ResearchBarWidget"
 
 swiftpm_bin_path "${ARCH_LIST[0]}" PREFERRED_BUILD_DIR
 
@@ -433,7 +535,7 @@ SPARKLE_SOURCE=$(codexbar_require_product_directory "$PREFERRED_BUILD_DIR" Spark
 cp -R "$SPARKLE_SOURCE" "$APP/Contents/Frameworks/"
 chmod -R a+rX "$APP/Contents/Frameworks/Sparkle.framework"
 install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/ResearchBar"
-# Re-sign Sparkle and all nested components with Developer ID + timestamp
+# Re-sign Sparkle and all nested components with the selected package identity.
 SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 if [[ "$SIGNING_MODE" == "adhoc" ]]; then
   CODESIGN_ID="-"
@@ -507,6 +609,12 @@ if [[ -d "${APP}/Contents/PlugIns/ResearchBarWidget.appex" ]]; then
     "$APP/Contents/PlugIns/ResearchBarWidget.appex"
 fi
 
+# Embed the Developer ID provisioning profile (authorizes the iCloud entitlements;
+# Gatekeeper re-validates it at every launch, so it must be sealed into the signature).
+if [[ "$EMBED_PROVISIONING_PROFILE" == "1" ]]; then
+  cp "$PROVISIONING_PROFILE_SOURCE" "$APP/Contents/embedded.provisionprofile"
+fi
+
 # Finally sign the app bundle itself
 codesign "${CODESIGN_ARGS[@]}" \
   --entitlements "$APP_ENTITLEMENTS" \
@@ -515,4 +623,5 @@ codesign "${CODESIGN_ARGS[@]}" \
 rm -rf "$APP_FINAL"
 mv "$APP" "$APP_FINAL"
 APP="$APP_FINAL"
+verify_packaged_app_integrity "$APP"
 echo "Created $APP"

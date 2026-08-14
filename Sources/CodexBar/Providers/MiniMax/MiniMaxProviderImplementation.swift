@@ -87,9 +87,7 @@ struct MiniMaxProviderImplementation: ProviderImplementation {
                 isVisible: { authMode().allowsCookies },
                 onChange: nil,
                 trailingText: {
-                    guard let entry = CookieHeaderCache.loadForDisplay(provider: .minimax) else { return nil }
-                    let when = entry.storedAt.relativeDescription()
-                    return "Cached: \(entry.sourceLabel) • \(when)"
+                    ProviderCookieSourceUI.cachedTrailingText(provider: .minimax)
                 }),
             ProviderSettingsPickerDescriptor(
                 id: "minimax-region",
@@ -113,7 +111,7 @@ struct MiniMaxProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "minimax-api-token",
                 title: "API token",
-                subtitle: "Stored in ~/.config/researchbar/config.json. Paste your MiniMax API key.",
+                subtitle: "Stored in ~/.codexbar/config.json. Paste your MiniMax API key.",
                 kind: .secure,
                 placeholder: "Paste API token…",
                 binding: context.stringBinding(\.minimaxAPIToken),

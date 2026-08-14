@@ -4,7 +4,7 @@ import Testing
 
 struct ResearchPulseRedactorTests {
     @Test
-    func cleanFixturesHaveNoViolations() throws {
+    func `clean fixtures have no violations`() throws {
         for name in ResearchBarFixtures.allPulseNames where name != "pulse-leak-like" {
             let pulse = try ResearchBarFixtures.pulse(name)
             #expect(ResearchPulseRedactor.scan(pulse).isEmpty, "decoded fixture \(name) should be clean")
@@ -15,14 +15,14 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func allowsDeclaredAcademicProfileSourceLabelsInRawPayload() throws {
+    func `allows declared academic profile source labels in raw payload`() throws {
         let data = try ResearchBarFixtures.data("pulse-academic-profile-v1")
 
         #expect(ResearchPulseRedactor.scanRawJSON(data).isEmpty)
     }
 
     @Test
-    func rejectsPrivateEmailInsideAcademicProfile() throws {
+    func `rejects private email inside academic profile`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])
@@ -38,7 +38,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func rejectsPrivateOnlyFieldsAndCredentialsInsideAcademicProfile() throws {
+    func `rejects private only fields and credentials inside academic profile`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])
@@ -54,7 +54,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func rejectsSemanticPrivateKeyVariantsInsideAcademicProfile() throws {
+    func `rejects semantic private key variants inside academic profile`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])
@@ -72,7 +72,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func rejectsMissingOrNonStringAcademicIdentityVisibility() throws {
+    func `rejects missing or non string academic identity visibility`() throws {
         for visibility: Any? in [nil, 1] {
             let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
             var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
@@ -89,7 +89,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func typedAcademicProfileScanProtectsCachedPayloads() throws {
+    func `typed academic profile scan protects cached payloads`() throws {
         let base = try ResearchBarFixtures.data("pulse-academic-profile-v1")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
         var profile = try #require(object["academicProfile"] as? [String: Any])
@@ -103,7 +103,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func leakLikeFixtureIsRejected() throws {
+    func `leak like fixture is rejected`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-leak-like")
         #expect(!ResearchPulseRedactor.isClean(pulse))
 
@@ -119,7 +119,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func detectsInternalAuthorIDInTokensAndEmbedded() {
+    func `detects internal author ID in tokens and embedded`() {
         #expect(ResearchPulseRedactor.containsInternalAuthorID("Dr. Sam Rivera A5012345678"))
         #expect(ResearchPulseRedactor.containsInternalAuthorID("A123"))
         #expect(ResearchPulseRedactor.containsInternalAuthorID("https://openalex.org/A5012345678"))
@@ -132,7 +132,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func detectsSensitiveCredential() {
+    func `detects sensitive credential`() {
         #expect(ResearchPulseRedactor.containsSensitiveCredential("corbis_mcp_abc123def456"))
         #expect(ResearchPulseRedactor.containsSensitiveCredential("Authorization: Bearer abc.def"))
         #expect(ResearchPulseRedactor.containsSensitiveCredential("CORBIS_MCP_UPPER"))
@@ -141,7 +141,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func scanFlagsCredentialLeakInRenderedField() throws {
+    func `scan flags credential leak in rendered field`() throws {
         // A clean pulse stays clean; a token smuggled into a rendered (typed) field trips the
         // scan so the pulse never renders. The raw-JSON catch-all deliberately does not flag
         // credentials (a tool-error message is sanitized instead), so this guarantee lives on
@@ -158,7 +158,7 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
-    func detectsBackendSourceNames() {
+    func `detects backend source names`() {
         #expect(ResearchPulseRedactor.backendSourceNames(in: "https://openalex.org/A5").contains("openalex"))
         #expect(ResearchPulseRedactor.backendSourceNames(in: "Resolved via Semantic Scholar")
             .contains("semantic scholar"))

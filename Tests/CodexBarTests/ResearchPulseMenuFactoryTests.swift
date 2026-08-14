@@ -7,7 +7,7 @@ struct ResearchPulseMenuFactoryTests {
     // MARK: Every state has coverage and is non-empty
 
     @Test
-    func everyStateProducesNonEmptyShapedSections() throws {
+    func `every state produces non empty shaped sections`() throws {
         for (state, input) in try Self.inputsByState() {
             let model = ResearchPulseMenuModel.make(from: input)
             #expect(model.state == state, "expected \(state) for crafted input, got \(model.state)")
@@ -20,7 +20,7 @@ struct ResearchPulseMenuFactoryTests {
     // MARK: Trend gating
 
     @Test
-    func notTrackedAndTrackingOmitTrendAndDeltaEntries() throws {
+    func `not tracked and tracking omit trend and delta entries`() throws {
         for name in ["pulse-linked-not-tracked", "pulse-linked-tracking"] {
             let sections = try ResearchPulseMenuFactory.makeSections(
                 from: .loaded(pulse: ResearchBarFixtures.pulse(name), fromStaleCache: false))
@@ -30,7 +30,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func trackedRendersTrend() throws {
+    func `tracked renders trend`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-linked-tracked"), fromStaleCache: false))
         #expect(Self.hasTrend(sections))
@@ -38,7 +38,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func trackedBeforeFiftyTwoWeekComparatorOmitsOnlyFiftyTwoWeekRow() throws {
+    func `tracked before fifty two week comparator omits only fifty two week row`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(
                 pulse: ResearchBarFixtures.pulse("pulse-tracked-no-52w-comparator"),
@@ -53,7 +53,7 @@ struct ResearchPulseMenuFactoryTests {
     // MARK: Industry profile shows no zeroed widgets
 
     @Test
-    func industryProfileShowsNoZeroedCitationWidgets() throws {
+    func `industry profile shows no zeroed citation widgets`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-industry-profile"), fromStaleCache: false))
         let titles = Self.allTitles(sections)
@@ -63,7 +63,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func dualContractRowsReachRenderableMenuTitles() throws {
+    func `dual contract rows reach renderable menu titles`() throws {
         let limited = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-contract-limited"), fromStaleCache: false))
         let limitedTitles = Self.allTitles(limited)
@@ -90,21 +90,21 @@ struct ResearchPulseMenuFactoryTests {
     // MARK: Action gating
 
     @Test
-    func creditLimitedHasNoRefreshAction() throws {
+    func `credit limited has no refresh action`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-credit-limited")))
         #expect(!Self.actions(sections).contains(.refresh))
     }
 
     @Test
-    func unlinkedShowsIdentityConfirmationAction() throws {
+    func `unlinked shows identity confirmation action`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-unlinked"), fromStaleCache: false))
         #expect(Self.actions(sections).contains(.reviewIdentity))
     }
 
     @Test
-    func lowConfidenceShowsReviewActionAndNotice() throws {
+    func `low confidence shows review action and notice`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-low-confidence"), fromStaleCache: false))
         #expect(Self.actions(sections).contains(.reviewIdentity))
@@ -112,7 +112,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func staleCacheShowsRefreshAndNotice() throws {
+    func `stale cache shows refresh and notice`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-linked-tracked"), fromStaleCache: true))
         #expect(Self.actions(sections).contains(.refresh))
@@ -120,7 +120,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func profileLinkActionsUseSuppliedURLsOnly() throws {
+    func `profile link actions use supplied UR ls only`() throws {
         let pulse = try ResearchBarFixtures.pulse("pulse-linked-tracked")
         let sections = ResearchPulseMenuFactory.makeSections(from: .loaded(pulse: pulse, fromStaleCache: false))
         let linkURLs: [URL] = Self.actions(sections).compactMap { action in
@@ -136,7 +136,7 @@ struct ResearchPulseMenuFactoryTests {
     // MARK: No-leak guarantees
 
     @Test
-    func leakLikeInputCollapsesToSafeErrorWithNoLeak() throws {
+    func `leak like input collapses to safe error with no leak`() throws {
         let input: ResearchPulseMenuInput = try .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-leak-like"),
             fromStaleCache: false)
@@ -149,7 +149,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func noStateLeaksBackendNamesOrInternalIDsIntoTitles() throws {
+    func `no state leaks backend names or internal identifiers into titles`() throws {
         for name in ResearchBarFixtures.allPulseNames {
             let pulse = try ResearchBarFixtures.pulse(name)
             let sections = ResearchPulseMenuFactory.makeSections(from: .loaded(pulse: pulse, fromStaleCache: false))
@@ -165,7 +165,7 @@ struct ResearchPulseMenuFactoryTests {
     // MARK: Host-menu injection (merged status menu already provides app-level Quit)
 
     @Test
-    func hostMenuSectionsDropQuitToAvoidDuplicateInMergedMenu() throws {
+    func `host menu sections drop quit to avoid duplicate in merged menu`() throws {
         for (state, input) in try Self.inputsByState() {
             let sections = ResearchPulseMenuFactory.makeHostMenuSections(from: input)
             #expect(
@@ -176,7 +176,7 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
-    func hostMenuSectionsPreserveNonQuitActions() {
+    func `host menu sections preserve non quit actions`() {
         // .notConnected exposes [.connect, .openSettings, .quit]; the host variant keeps the
         // research-specific actions and only drops the duplicate Quit.
         let sections = ResearchPulseMenuFactory.makeHostMenuSections(from: .notConnected)

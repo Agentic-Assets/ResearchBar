@@ -41,7 +41,7 @@ struct CorbisMCPClientTests {
     // MARK: - Request shape
 
     @Test
-    func requestEncodesToolsCallWithEmptyArguments() async throws {
+    func `request encodes tools call with empty arguments`() async throws {
         let box = RequestBox()
         let client = Self.client(capturing: { box.set($0) }, respond: { request in
             let envelope = try Self.successEnvelope(structuredFixture: "pulse-linked-tracked")
@@ -68,7 +68,7 @@ struct CorbisMCPClientTests {
     // MARK: - Success
 
     @Test
-    func successReturnsDecodedPulse() async throws {
+    func `success returns decoded pulse`() async throws {
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredFixture: "pulse-linked-tracked")
             return (envelope, Self.http(200, url: request.url))
@@ -82,7 +82,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func futureMalformedFieldsRemainClientCompatible() async throws {
+    func `future malformed fields remain client compatible`() async throws {
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredFixture: "pulse-contract-malformed-new-fields")
             return (envelope, Self.http(200, url: request.url))
@@ -96,7 +96,7 @@ struct CorbisMCPClientTests {
     // MARK: - HTTP status mapping
 
     @Test
-    func unauthorizedMapsToInvalidCredential() async throws {
+    func `unauthorized maps to invalid credential`() async throws {
         let client = Self.client { request in
             (Data("{}".utf8), Self.http(401, url: request.url))
         }
@@ -106,7 +106,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func tooManyRequestsMapsToRateLimited() async throws {
+    func `too many requests maps to rate limited`() async throws {
         let client = Self.client { request in
             (Data("{}".utf8), Self.http(429, url: request.url))
         }
@@ -116,7 +116,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func paymentRequiredMapsToCreditLimited() async throws {
+    func `payment required maps to credit limited`() async throws {
         let client = Self.client { request in
             (Data("{}".utf8), Self.http(402, url: request.url))
         }
@@ -126,7 +126,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func serverErrorMapsToServer() async throws {
+    func `server error maps to server`() async throws {
         let client = Self.client { request in
             (Data("{}".utf8), Self.http(500, url: request.url))
         }
@@ -136,7 +136,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func badRequestMapsToMalformedResponse() async throws {
+    func `bad request maps to malformed response`() async throws {
         let client = Self.client { request in
             (Data("{}".utf8), Self.http(400, url: request.url))
         }
@@ -148,7 +148,7 @@ struct CorbisMCPClientTests {
     // MARK: - JSON-RPC error mapping
 
     @Test
-    func insufficientCreditsErrorMapsToCreditLimited() async throws {
+    func `insufficient credits error maps to credit limited`() async throws {
         let client = Self.client { request in
             let envelope = """
             {"jsonrpc":"2.0","id":"1","error":{"code":-32603,\
@@ -163,7 +163,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func authJSONRPCErrorMapsToInvalidCredential() async throws {
+    func `auth JSONRPC error maps to invalid credential`() async throws {
         let client = Self.client { request in
             let envelope = """
             {"jsonrpc":"2.0","id":"1","error":{"code":-32001,"message":"Authentication required"}}
@@ -178,7 +178,7 @@ struct CorbisMCPClientTests {
     // MARK: - Tool-level error
 
     @Test
-    func toolLevelStatusErrorMapsToToolError() async throws {
+    func `tool level status error maps to tool error`() async throws {
         let client = Self.client { request in
             let envelope = """
             {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\
@@ -204,7 +204,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func toolLevelStatusErrorSanitizesTokenLikeMessages() async throws {
+    func `tool level status error sanitizes token like messages`() async throws {
         let client = Self.client { request in
             let envelope = """
             {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\
@@ -231,7 +231,7 @@ struct CorbisMCPClientTests {
     // MARK: - Redaction
 
     @Test
-    func leakLikeStructuredContentThrowsRedactionFailedAndNeverReturnsPulse() async throws {
+    func `leak like structured content throws redaction failed and never returns pulse`() async throws {
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredFixture: "pulse-leak-like")
             return (envelope, Self.http(200, url: request.url))
@@ -243,7 +243,7 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func thrownErrorsNeverLeakTokenOrBackendNamesOrAuthorID() async throws {
+    func `thrown errors never leak token or backend names or author ID`() async throws {
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredFixture: "pulse-leak-like")
             return (envelope, Self.http(200, url: request.url))

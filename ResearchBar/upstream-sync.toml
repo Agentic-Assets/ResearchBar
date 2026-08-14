@@ -1,0 +1,18 @@
+# The last CodexBar commit incorporated into ResearchBar. `sync_codexbar.sh` treats a
+# non-ancestor value as a force-push or history-rewrite gate that requires human review.
+[upstream]
+remote = "upstream"
+url = "https://github.com/steipete/CodexBar.git"
+branch = "main"
+last_merged_sha = "4cdb349cbc57780e524d3e874ef582078b9bf7c2"
+
+# These paths are product-owned. They can be preserved deliberately, but a collision still
+# requires a semantic review rather than a blanket ours/theirs resolution.
+[ownership]
+paths = [
+  "ResearchBar/**",
+  "Sources/CodexBar/ResearchBar/**",
+  "Sources/CodexBarCore/ResearchBar/**",
+  "Tests/CodexBarTests/ResearchBar/**",
+  "ResearchBar/branding/**",
+]

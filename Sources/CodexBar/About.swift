@@ -25,7 +25,7 @@ func showAbout() {
     let credits = NSMutableAttributedString(string: "Peter Steinberger, MIT License\n")
     credits.append(makeLink("GitHub", urlString: "https://github.com/Agentic-Assets/ResearchBar"))
     credits.append(separator)
-    credits.append(makeLink("Website", urlString: "https://codexbar.app"))
+    credits.append(makeLink("Website", urlString: "https://codex.bar"))
     credits.append(separator)
     credits.append(makeLink("Twitter", urlString: "https://twitter.com/steipete"))
     credits.append(separator)

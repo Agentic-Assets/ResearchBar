@@ -6,7 +6,7 @@ struct CorbisSettingsViewStateTests {
     // MARK: Token validation
 
     @Test
-    func validTokenRequiresCorbisPrefixAndBody() {
+    func `valid token requires corbis prefix and body`() {
         #expect(CorbisSettingsViewState.isValidToken("corbis_mcp_abcdef123456"))
         #expect(!CorbisSettingsViewState.isValidToken("corbis_mcp_"))
         #expect(!CorbisSettingsViewState.isValidToken("sk-live-abcdef"))
@@ -15,7 +15,7 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func tokenFieldValidityTrimsWhitespace() {
+    func `token field validity trims whitespace`() {
         let state = CorbisSettingsViewState(connectionState: .notConnected, tokenField: "  corbis_mcp_xyz789  ")
         #expect(state.isTokenFieldValid)
     }
@@ -23,7 +23,7 @@ struct CorbisSettingsViewStateTests {
     // MARK: Intents per connection state
 
     @Test
-    func notConnectedOffersConnectAndClearCacheOnly() {
+    func `not connected offers connect and clear cache only`() {
         let state = CorbisSettingsViewState(connectionState: .notConnected)
         #expect(state.availableIntents == [.connect, .clearCache])
         #expect(!state.availableIntents.contains(.unlink))
@@ -31,7 +31,7 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func connectedOffersReconnectUnlinkAndClearCache() {
+    func `connected offers reconnect unlink and clear cache`() {
         let identity = CorbisAccountIdentity.make(accountID: "acct-1", token: "corbis_mcp_secret")
         let state = CorbisSettingsViewState(connectionState: .connected(identity))
         #expect(state.availableIntents.contains(.reconnect))
@@ -41,7 +41,7 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func invalidOffersReconnectUnlinkAndClearCache() {
+    func `invalid offers reconnect unlink and clear cache`() {
         let state = CorbisSettingsViewState(connectionState: .invalid)
         #expect(state.availableIntents.contains(.reconnect))
         #expect(state.availableIntents.contains(.unlink))
@@ -49,7 +49,7 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func clearCacheIsAlwaysAvailable() {
+    func `clear cache is always available`() {
         let identity = CorbisAccountIdentity.make(accountID: nil, token: "corbis_mcp_secret")
         let states: [CorbisConnectionState] = [.notConnected, .connecting, .connected(identity), .invalid]
         for connection in states {
@@ -61,7 +61,7 @@ struct CorbisSettingsViewStateTests {
     // MARK: Redacted summary
 
     @Test
-    func summaryShowsDisplayEmailNeverTheToken() {
+    func `summary shows display email never the token`() {
         let secretToken = "corbis_mcp_supersecrettoken"
         let identity = CorbisAccountIdentity.make(accountID: "acct-42", token: secretToken)
         let state = CorbisSettingsViewState(
@@ -73,7 +73,7 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func summaryDoesNotExposeAccountIDWhenNoEmail() {
+    func `summary does not expose account ID when no email`() {
         let identity = CorbisAccountIdentity.make(accountID: "acct-42", token: "corbis_mcp_secret")
         let state = CorbisSettingsViewState(connectionState: .connected(identity))
         #expect(state.accountSummary == "Connected to Corbis")
@@ -82,7 +82,7 @@ struct CorbisSettingsViewStateTests {
     }
 
     @Test
-    func summaryNeverEchoesTokenForAnyState() {
+    func `summary never echoes token for any state`() {
         let secretToken = "corbis_mcp_tokendonotleak"
         let identity = CorbisAccountIdentity.make(accountID: "acct-7", token: secretToken)
         let states: [CorbisConnectionState] = [.notConnected, .connecting, .connected(identity), .invalid]

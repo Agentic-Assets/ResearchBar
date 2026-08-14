@@ -2,13 +2,34 @@ import AppKit
 import CodexBarCore
 import SwiftUI
 
+extension StatusItemController {
+    var selectedMenuProvider: ProviderInstanceID? {
+        get { self.settings.selectedMenuProvider }
+        set { self.settings.selectedMenuProvider = newValue }
+    }
+
+    var fallbackProvider: UsageProvider? {
+        // Intentionally uses availability-filtered list: fallback activates when no provider
+        // can actually work, ensuring at least a codex icon is always visible.
+        self.store.enabledProviders().isEmpty ? .codex : nil
+    }
+}
+
 extension ProviderSwitcherSelection {
     var provider: UsageProvider? {
         switch self {
         case .overview, .researchBar:
             nil
-        case let .provider(provider):
-            provider
+        case let .provider(instanceID):
+            instanceID.firstPartyProvider
+        }
+    }
+
+    var instanceID: ProviderInstanceID? {
+        switch self {
+        case .overview, .researchBar:
+            nil
+        case let .provider(instanceID): instanceID
         }
     }
 
@@ -19,6 +40,8 @@ extension ProviderSwitcherSelection {
 }
 
 struct OverviewMenuCardRowView: View {
+    static let showsSectionDividers = false
+
     let model: UsageMenuCardView.Model
     let storageText: String?
     let width: CGFloat
@@ -28,14 +51,15 @@ struct OverviewMenuCardRowView: View {
         VStack(alignment: .leading, spacing: 0) {
             UsageMenuCardHeaderSectionView(
                 model: self.model,
-                showDivider: self.hasUsageBlock,
+                showDivider: Self.showsSectionDividers && self.hasUsageBlock,
                 width: self.width)
             if self.hasUsageBlock {
                 UsageMenuCardUsageSectionView(
                     model: self.model,
                     showBottomDivider: false,
                     bottomPadding: 6,
-                    width: self.width)
+                    width: self.width,
+                    showsSectionDividers: Self.showsSectionDividers)
             }
             if let storageText {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -98,7 +122,9 @@ struct TokenAccountMenuDisplay: Equatable {
                 id: account.id,
                 label: account.label,
                 externalIdentifier: account.externalIdentifier,
-                organizationID: account.organizationID)
+                usageScope: account.usageScope,
+                organizationID: account.organizationID,
+                workspaceID: account.workspaceID)
         }
     }
 
@@ -116,7 +142,9 @@ struct TokenAccountMenuDisplay: Equatable {
         let id: UUID
         let label: String
         let externalIdentifier: String?
+        let usageScope: String?
         let organizationID: String?
+        let workspaceID: String?
     }
 
     private struct SnapshotIdentity: Equatable {

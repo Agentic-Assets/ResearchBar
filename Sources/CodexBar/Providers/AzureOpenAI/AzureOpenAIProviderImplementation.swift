@@ -20,12 +20,12 @@ struct AzureOpenAIProviderImplementation: ProviderImplementation {
     func isAvailable(context: ProviderAvailabilityContext) -> Bool {
         let environment = context.environment
         let hasEnvironmentConfig = AzureOpenAISettingsReader.apiKey(environment: environment) != nil &&
-            AzureOpenAISettingsReader.endpoint(environment: environment) != nil &&
+            AzureOpenAISettingsReader.rawEndpoint(environment: environment) != nil &&
             AzureOpenAISettingsReader.deploymentName(environment: environment) != nil
         if hasEnvironmentConfig { return true }
 
         return !context.settings.azureOpenAIAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            AzureOpenAISettingsReader.endpointURL(from: context.settings.azureOpenAIEndpoint) != nil &&
+            !context.settings.azureOpenAIEndpoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !context.settings.azureOpenAIDeploymentName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
@@ -35,7 +35,7 @@ struct AzureOpenAIProviderImplementation: ProviderImplementation {
             ProviderSettingsFieldDescriptor(
                 id: "azure-openai-api-key",
                 title: "API key",
-                subtitle: "Stored in ~/.config/researchbar/config.json. AZURE_OPENAI_API_KEY is also supported.",
+                subtitle: "Stored in ~/.codexbar/config.json. AZURE_OPENAI_API_KEY is also supported.",
                 kind: .secure,
                 placeholder: "Azure OpenAI key",
                 binding: context.stringBinding(\.azureOpenAIAPIKey),

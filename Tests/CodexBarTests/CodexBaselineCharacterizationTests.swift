@@ -93,6 +93,10 @@ struct CodexBaselineCharacterizationTests {
               else
                 response='{"id":2,"result":{"rateLimits":{"credits":'
                 response="${response}"'{"hasCredits":true,"unlimited":false,"balance":"7"},'
+                if [ "${CODEXBAR_STUB_MONTHLY_LIMIT:-}" = "1" ]; then
+                  response="${response}"'"individualLimit":{"limit":100000,"used":7761,'
+                  response="${response}"'"remainingPercent":92.239,"resetsAt":1782864000},'
+                fi
                 response="${response}"'"primary":{"usedPercent":12,"windowDurationMins":300,"resetsAt":1766948068},'
                 response="${response}"'"secondary":{"usedPercent":43,"windowDurationMins":10080,'
                 response="${response}"'"resetsAt":1767407914}}}}'
@@ -143,9 +147,9 @@ struct CodexBaselineCharacterizationTests {
     }
 
     @Test
-    func `CLI auto pipeline order is web then OAuth then CLI`() async {
+    func `CLI auto pipeline order is OAuth then CLI without web`() async {
         let strategyIDs = await self.strategyIDs(runtime: .cli, sourceMode: .auto)
-        #expect(strategyIDs == ["codex.web.dashboard", "codex.oauth", "codex.cli"])
+        #expect(strategyIDs == ["codex.oauth", "codex.cli"])
     }
 
     @Test
@@ -285,6 +289,7 @@ struct CodexBaselineCharacterizationTests {
             #expect(result.sourceLabel == "codex-cli")
             #expect(result.usage.primary == nil)
             #expect(result.usage.secondary == nil)
+            #expect(result.usage.accountEmail(for: .codex) == "stub@example.com")
             #expect(result.credits?.remaining == 7)
         case let .failure(error):
             Issue.record("Unexpected failure: \(error)")
@@ -292,7 +297,34 @@ struct CodexBaselineCharacterizationTests {
     }
 
     @Test
-    func `CLI auto records unavailable web and OAuth before successful CLI`() async throws {
+    func `Codex CLI strategy maps monthly credit limit`() async {
+        let stubCLI = self.makeStubCodexCLI()
+
+        let outcome = await self.fetchOutcome(
+            runtime: .app,
+            sourceMode: .cli,
+            env: [
+                "CODEX_CLI_PATH": stubCLI.executable,
+                "CODEXBAR_STUB_MONTHLY_LIMIT": "1",
+            ],
+            includeCredits: true,
+            codexArguments: stubCLI.arguments)
+
+        switch outcome.result {
+        case let .success(result):
+            let limit = try? #require(result.credits?.codexCreditLimit)
+            #expect(limit?.limit == 100_000)
+            #expect(limit?.used == 7761)
+            #expect(limit?.remaining == 92239)
+            #expect(limit?.remainingPercent == 92.239)
+            #expect(limit?.resetsAt == Date(timeIntervalSince1970: 1_782_864_000))
+        case let .failure(error):
+            Issue.record("Unexpected failure: \(error)")
+        }
+    }
+
+    @Test
+    func `CLI auto records unavailable OAuth before successful CLI`() async throws {
         let stubCLI = self.makeStubCodexCLI()
         let codexHome = try self.makeEmptyCodexHome()
         defer { try? FileManager.default.removeItem(at: codexHome) }
@@ -313,8 +345,8 @@ struct CodexBaselineCharacterizationTests {
             settings: settings,
             codexArguments: stubCLI.arguments)
 
-        #expect(outcome.attempts.map(\.strategyID) == ["codex.web.dashboard", "codex.oauth", "codex.cli"])
-        #expect(outcome.attempts.map(\.wasAvailable) == [false, false, true])
+        #expect(outcome.attempts.map(\.strategyID) == ["codex.oauth", "codex.cli"])
+        #expect(outcome.attempts.map(\.wasAvailable) == [false, true])
 
         switch outcome.result {
         case let .success(result):
@@ -345,8 +377,8 @@ struct CodexBaselineCharacterizationTests {
             ],
             settings: settings)
 
-        #expect(outcome.attempts.map(\.strategyID) == ["codex.web.dashboard", "codex.oauth"])
-        #expect(outcome.attempts.map(\.wasAvailable) == [false, true])
+        #expect(outcome.attempts.map(\.strategyID) == ["codex.oauth"])
+        #expect(outcome.attempts.map(\.wasAvailable) == [true])
 
         switch outcome.result {
         case .success:

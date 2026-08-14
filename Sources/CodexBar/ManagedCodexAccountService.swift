@@ -86,7 +86,7 @@ struct ManagedCodexHomeFactory: ManagedCodexHomeProducing {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.homeDirectoryForCurrentUser
         return base
-            .appendingPathComponent(AppIdentity.applicationSupportDirectoryName, isDirectory: true)
+            .appendingPathComponent("CodexBar", isDirectory: true)
             .appendingPathComponent("managed-codex-homes", isDirectory: true)
     }
 }

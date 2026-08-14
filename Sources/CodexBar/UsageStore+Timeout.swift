@@ -1,9 +1,8 @@
-import CodexBarCore
 import Foundation
 
 extension UsageStore {
     private nonisolated static let probeTimeoutQueue = DispatchQueue(
-        label: "\(AppIdentity.logSubsystemBase).probe-timeouts",
+        label: "com.steipete.codexbar.probe-timeouts",
         qos: .userInitiated)
 
     private final class ProbeTimeoutRace: @unchecked Sendable {
