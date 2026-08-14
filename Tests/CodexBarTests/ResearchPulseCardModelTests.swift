@@ -88,7 +88,7 @@ struct ResearchPulseCardModelTests {
     func `cached pulse with private account evidence in plan fails closed`() throws {
         let base = try ResearchBarFixtures.data("pulse-contract-limited")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
-        object["plan"] = "Academic acct-48291"
+        object["plan"] = "Academic account #42"
         let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
 
         let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))

@@ -159,7 +159,7 @@ public enum ResearchPulseRedactor {
         }
 
         let accountMarker =
-            #"\b(?:account|acct|user)(?:[\s_-]*(?:id|identifier|uuid))?\s*[:=#]\s*[a-z0-9][a-z0-9._:-]{2,}\b"#
+            #"\b(?:account|acct|user)(?:[\s_-]*(?:id|identifier|uuid))?\s*[:=#]\s*[a-z0-9][a-z0-9._:-]*\b"#
         let prefixedIdentifier = #"\b(?:acct|account|user)_[a-z0-9][a-z0-9_-]{4,}\b"#
         let delimitedIdentifier =
             #"\b(?:acct|account|user)(?:[\s_-]+(?:id|identifier|uuid))?"#

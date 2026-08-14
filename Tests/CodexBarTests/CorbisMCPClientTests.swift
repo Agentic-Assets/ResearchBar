@@ -248,18 +248,25 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func `live decoded pulse rejects short delimited account identifier in plan`() async throws {
+    func `live decoded pulse rejects short marker account identifier without echoing plan`() async throws {
         let base = try ResearchBarFixtures.data("pulse-contract-limited")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
-        object["plan"] = "Academic acct-12"
+        let unsafePlan = "Academic acct=12"
+        object["plan"] = unsafePlan
         let structuredData = try JSONSerialization.data(withJSONObject: object)
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredData: structuredData)
             return (envelope, Self.http(200, url: request.url))
         }
 
-        await #expect(throws: CorbisMCPError.redactionFailed) {
+        do {
             _ = try await client.fetchResearchPulse(token: Self.token)
+            Issue.record("expected a redaction failure")
+        } catch let error as CorbisMCPError {
+            #expect(error == .redactionFailed)
+            #expect(!String(describing: error).contains(unsafePlan))
+        } catch {
+            Issue.record("unexpected error: \(String(describing: error))")
         }
     }
 

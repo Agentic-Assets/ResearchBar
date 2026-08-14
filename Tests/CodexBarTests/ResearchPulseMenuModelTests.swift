@@ -212,6 +212,20 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
+    func `credit limited retained pulse is cached context without a current balance`() throws {
+        let model = try ResearchPulseMenuModel
+            .make(from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-contract-limited")))
+
+        #expect(model.state == .creditLimited)
+        #expect(model.renderedStrings.contains("Cached"))
+        #expect(model.renderedStrings.contains("Plan"))
+        #expect(model.renderedStrings.contains("academic"))
+        #expect(model.renderedStrings.contains("Corbis credits are used up"))
+        #expect(!model.renderedStrings.contains("Credits"))
+        #expect(!model.renderedStrings.contains("12.5"))
+    }
+
+    @Test
     func `credit and works rows use dual contract without fabricating values`() throws {
         let limited = try ResearchPulseMenuModel.make(from: .loaded(
             pulse: ResearchBarFixtures.pulse("pulse-contract-limited"),

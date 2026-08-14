@@ -192,7 +192,13 @@ extension ResearchPulseMenuModel {
             return ResearchPulseMenuModel(state: .creditLimited, sections: sections)
         }
 
-        var sections = Self.contentSections(for: pulse, state: .creditLimited)
+        var sections = [ResearchMenuSection(title: nil, rows: [
+            ResearchMenuRow(
+                label: "Cached",
+                value: "updated \(Self.shortTime(pulse.fetchedAt))",
+                kind: .notice),
+        ])]
+        sections.append(contentsOf: Self.contentSections(for: pulse, state: .creditLimited))
         sections.append(ResearchMenuSection(title: nil, rows: [
             ResearchMenuRow(label: "Corbis credits are used up", kind: .notice),
         ]))
@@ -252,7 +258,9 @@ extension ResearchPulseMenuModel {
     }
 
     private static func contentSections(for pulse: ResearchPulse, state: State) -> [ResearchMenuSection] {
-        var sections: [ResearchMenuSection] = [Self.identitySection(for: pulse)]
+        var sections: [ResearchMenuSection] = [Self.identitySection(
+            for: pulse,
+            showsCreditBalance: state != .creditLimited)]
 
         if let academicProfile = pulse.academicProfile, academicProfile.isSupported {
             sections.append(contentsOf: Self.academicProfileSections(for: academicProfile))
@@ -286,7 +294,10 @@ extension ResearchPulseMenuModel {
         return sections
     }
 
-    private static func identitySection(for pulse: ResearchPulse) -> ResearchMenuSection {
+    private static func identitySection(
+        for pulse: ResearchPulse,
+        showsCreditBalance: Bool) -> ResearchMenuSection
+    {
         var rows: [ResearchMenuRow] = []
         if let name = pulse.displayName {
             rows.append(ResearchMenuRow(label: name, kind: .header))
@@ -307,7 +318,7 @@ extension ResearchPulseMenuModel {
             rows.append(ResearchMenuRow(label: "ORCID", value: orcid, kind: .info))
         }
         rows.append(ResearchMenuRow(label: "Plan", value: pulse.plan, kind: .info))
-        if let balance = pulse.resolvedCreditBalance {
+        if showsCreditBalance, let balance = pulse.resolvedCreditBalance {
             rows.append(ResearchMenuRow(label: "Credits", value: Self.creditsLabel(balance), kind: .info))
         }
         return ResearchMenuSection(title: "Account", rows: rows)
