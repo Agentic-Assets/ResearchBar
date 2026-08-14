@@ -47,13 +47,13 @@ struct ProviderDetailSectionsContent: View {
                 .lineLimit(1)
             }
             if let chart = section.chart {
-                ProviderDetailChartContent(chart: chart, color: self.chartColor)
+                MenuCardChartContent(chart: chart, color: self.chartColor)
             }
         }
     }
 }
 
-private struct ProviderDetailChartContent: View {
+struct MenuCardChartContent: View {
     let chart: ProviderDetailSection.Chart
     let color: Color
     @Environment(\.menuItemHighlighted) private var isHighlighted
@@ -88,6 +88,7 @@ private struct ProviderDetailChartContent: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel(self.accessibilityLabel)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var bars: some View {
