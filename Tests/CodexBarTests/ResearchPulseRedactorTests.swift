@@ -142,6 +142,11 @@ struct ResearchPulseRedactorTests {
 
     @Test
     func `typed plan scan rejects private identity evidence without freezing plan names`() throws {
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic user-id-48291"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic acct-48291"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic account_id_48291"))
+        #expect(!ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic Research Plan"))
+
         let base = try ResearchBarFixtures.data("pulse-contract-limited")
 
         for unsafePlan in [

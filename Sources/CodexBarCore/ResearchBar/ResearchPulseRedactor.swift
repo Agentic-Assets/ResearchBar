@@ -161,8 +161,10 @@ public enum ResearchPulseRedactor {
         let accountMarker =
             #"\b(?:account|acct|user)(?:[\s_-]*(?:id|identifier|uuid))?\s*[:=#]\s*[a-z0-9][a-z0-9._:-]{2,}\b"#
         let prefixedIdentifier = #"\b(?:acct|account|user)_[a-z0-9][a-z0-9_-]{4,}\b"#
+        let delimitedIdentifier =
+            #"\b(?:acct|account|user)(?:[\s_-]+(?:id|identifier|uuid))?[\s_-]+(?=[a-z0-9._:-]*\d)[a-z0-9][a-z0-9._:-]{2,}\b"#
         let uuid = #"\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b"#
-        return [accountMarker, prefixedIdentifier, uuid].contains { pattern in
+        return [accountMarker, prefixedIdentifier, delimitedIdentifier, uuid].contains { pattern in
             string.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
         }
     }

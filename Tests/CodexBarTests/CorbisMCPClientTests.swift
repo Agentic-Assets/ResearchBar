@@ -248,10 +248,10 @@ struct CorbisMCPClientTests {
     }
 
     @Test
-    func `live decoded pulse rejects private email in plan`() async throws {
+    func `live decoded pulse rejects delimited account identifier in plan`() async throws {
         let base = try ResearchBarFixtures.data("pulse-contract-limited")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
-        object["plan"] = "Academic researcher@example.edu"
+        object["plan"] = "Academic user-id-48291"
         let structuredData = try JSONSerialization.data(withJSONObject: object)
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredData: structuredData)
