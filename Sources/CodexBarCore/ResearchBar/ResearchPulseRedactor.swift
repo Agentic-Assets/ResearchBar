@@ -52,7 +52,7 @@ public enum ResearchPulseRedactor {
     public static func scan(_ pulse: ResearchPulse) -> [Violation] {
         var violations: [Violation] = []
 
-        func check(_ value: String?, field: String) {
+        func check(_ value: String?, field: String, rejectsPrivateIdentityEvidence: Bool = false) {
             guard let value, !value.isEmpty else { return }
             if self.containsInternalAuthorID(value) {
                 violations.append(Violation(field: field, kind: .internalAuthorID))
@@ -63,6 +63,9 @@ public enum ResearchPulseRedactor {
             if self.containsSensitiveCredential(value) {
                 violations.append(Violation(field: field, kind: .sensitiveCredential))
             }
+            if rejectsPrivateIdentityEvidence, self.containsPrivateIdentityEvidence(value) {
+                violations.append(Violation(field: field, kind: .privateIdentityEvidence))
+            }
         }
 
         check(pulse.displayName, field: "displayName")
@@ -70,7 +73,7 @@ public enum ResearchPulseRedactor {
         check(pulse.role, field: "role")
         check(pulse.sector, field: "sector")
         check(pulse.companyName, field: "companyName")
-        check(pulse.plan, field: "plan")
+        check(pulse.plan, field: "plan", rejectsPrivateIdentityEvidence: true)
         check(pulse.orcid, field: "orcid")
         check(pulse.googleScholarId, field: "googleScholarId")
         check(pulse.googleScholarUrl?.absoluteString, field: "googleScholarUrl")
@@ -145,6 +148,23 @@ public enum ResearchPulseRedactor {
         return string.range(
             of: localPart + "@" + domainPart,
             options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    /// Plan labels are intentionally open-ended, but they must remain descriptive entitlement
+    /// names rather than an alternate carrier for private account identity. Reject semantic
+    /// account markers and opaque UUIDs without freezing future valid Corbis plan names.
+    public static func containsPrivateIdentityEvidence(_ string: String) -> Bool {
+        if self.containsEmailAddress(string) {
+            return true
+        }
+
+        let accountMarker =
+            #"\b(?:account|acct|user)(?:[\s_-]*(?:id|identifier|uuid))?\s*[:=#]\s*[a-z0-9][a-z0-9._:-]{2,}\b"#
+        let prefixedIdentifier = #"\b(?:acct|account|user)_[a-z0-9][a-z0-9_-]{4,}\b"#
+        let uuid = #"\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b"#
+        return [accountMarker, prefixedIdentifier, uuid].contains { pattern in
+            string.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+        }
     }
 
     // MARK: Private

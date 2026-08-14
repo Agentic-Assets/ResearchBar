@@ -71,6 +71,35 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
+    func `stale industry profile keeps professional presentation and cached credit provenance`() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-industry-profile")
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+
+        #expect(model.state == .staleCache)
+        #expect(model.title == pulse.displayName)
+        #expect(model.subtitle == "VP of Research · Meridian Capital Partners")
+        #expect(model.credit?.summary == "49 credits remaining")
+        #expect(model.freshness?.hasPrefix("Cached · ") == true)
+        #expect(model.freshness?.hasPrefix("Updated ") == false)
+        #expect(model.metrics.isEmpty)
+    }
+
+    @Test
+    func `cached pulse with private account evidence in plan fails closed`() throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["plan"] = "Academic account_id=acct_example_48291"
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+
+        #expect(model.state == .safeError)
+        #expect(model.plan == nil)
+        #expect(model.credit == nil)
+        #expect(model.title == "Pulse unavailable right now")
+    }
+
+    @Test
     func `card omits a whitespace only plan`() throws {
         let base = try ResearchBarFixtures.data("pulse-contract-limited")
         var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])

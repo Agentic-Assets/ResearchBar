@@ -15,7 +15,7 @@ struct ResearchBarMenuContent: View {
     @Environment(\.menuItemHighlighted) private var isHighlighted
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 5) {
             self.header
 
             if let credit = self.model.credit {
@@ -28,7 +28,7 @@ struct ResearchBarMenuContent: View {
             }
 
             if let trend = self.model.trend {
-                self.trend(trend)
+                ResearchBarCitationTrendContent(trend: trend)
             }
 
             if let dataQuality = self.model.dataQuality {
@@ -45,7 +45,7 @@ struct ResearchBarMenuContent: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
         .frame(width: self.width, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Corbis research pulse")
@@ -141,30 +141,6 @@ struct ResearchBarMenuContent: View {
         }
     }
 
-    private func trend(_ trend: ResearchPulseCardModel.Trend) -> some View {
-        let presentation = Self.citationTrendPresentation(for: trend)
-
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 7) {
-                Image(systemName: trend.sparkline == nil ? "clock" : "chart.line.uptrend.xyaxis")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tint)
-                    .accessibilityHidden(true)
-                Text(trend.summary)
-                    .font(.subheadline)
-                    .lineLimit(1)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(presentation.summaryAccessibilityLabel)
-
-            if let chart = presentation.chart {
-                MenuCardChartContent(chart: chart, color: .accentColor)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-        .accessibilityElement(children: .contain)
-    }
-
     private func dataQuality(_ quality: ResearchPulseCardModel.DataQuality) -> some View {
         HStack(spacing: 7) {
             Image(systemName: quality.needsAttention ? "exclamationmark.circle" : "checkmark.circle")
@@ -197,9 +173,9 @@ struct ResearchBarMenuContent: View {
 
     private var actionGrid: some View {
         LazyVGrid(
-            columns: [GridItem(.flexible(minimum: 128), spacing: 6), GridItem(.flexible(minimum: 128), spacing: 6)],
+            columns: [GridItem(.flexible(minimum: 128), spacing: 4), GridItem(.flexible(minimum: 128), spacing: 4)],
             alignment: .leading,
-            spacing: 6)
+            spacing: 4)
         {
             ForEach(self.model.actions) { action in
                 Button {
@@ -210,7 +186,7 @@ struct ResearchBarMenuContent: View {
                         .truncationMode(.tail)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.mini)
                 .accessibilityLabel(self.actionLabel(action))
                 .accessibilityHint(self.actionHint(action))
             }
@@ -309,5 +285,64 @@ struct ResearchBarMenuContent: View {
         CitationTrendPresentation(
             summaryAccessibilityLabel: "Citation trend: \(trend.summary)",
             chart: self.citationChart(for: trend))
+    }
+}
+
+@MainActor
+struct ResearchBarCitationTrendContent: View {
+    struct Composition: Equatable {
+        enum AccessibilityStructure: Equatable {
+            case separateSummaryAndChart
+        }
+
+        let accessibilityStructure: AccessibilityStructure
+        let chartMaximumWidth: CGFloat
+        let chartHeight: CGFloat
+
+        var accessibilityChildBehavior: AccessibilityChildBehavior {
+            switch self.accessibilityStructure {
+            case .separateSummaryAndChart: .contain
+            }
+        }
+
+        func chart(_ content: some View) -> some View {
+            content.frame(maxWidth: self.chartMaximumWidth, alignment: .leading)
+        }
+
+        func container(_ content: some View) -> some View {
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: self.accessibilityChildBehavior)
+        }
+    }
+
+    static let composition = Composition(
+        accessibilityStructure: .separateSummaryAndChart,
+        chartMaximumWidth: .infinity,
+        chartHeight: 44)
+
+    let trend: ResearchPulseCardModel.Trend
+
+    var body: some View {
+        let presentation = ResearchBarMenuContent.citationTrendPresentation(for: self.trend)
+
+        Self.composition.container(VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 7) {
+                Image(systemName: self.trend.sparkline == nil ? "clock" : "chart.line.uptrend.xyaxis")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+                Text(self.trend.summary)
+                    .font(.subheadline)
+                    .lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(presentation.summaryAccessibilityLabel)
+
+            if let chart = presentation.chart {
+                Self.composition.chart(
+                    MenuCardChartContent(chart: chart, color: .accentColor, height: Self.composition.chartHeight))
+            }
+        })
     }
 }

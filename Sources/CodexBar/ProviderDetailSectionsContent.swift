@@ -56,7 +56,14 @@ struct ProviderDetailSectionsContent: View {
 struct MenuCardChartContent: View {
     let chart: ProviderDetailSection.Chart
     let color: Color
+    let height: CGFloat
     @Environment(\.menuItemHighlighted) private var isHighlighted
+
+    init(chart: ProviderDetailSection.Chart, color: Color, height: CGFloat = 58) {
+        self.chart = chart
+        self.color = color
+        self.height = height
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -84,7 +91,7 @@ struct MenuCardChartContent: View {
                     self.line
                 }
             }
-            .frame(height: 58)
+            .frame(height: self.height)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(Self.accessibilityLabel(for: self.chart))
         }

@@ -19,6 +19,11 @@ struct CorbisMCPClientTests {
     /// Wrap a structured-content fixture (raw JSON bytes) in a success JSON-RPC envelope.
     private static func successEnvelope(structuredFixture name: String) throws -> Data {
         let fixture = try ResearchBarFixtures.data(name)
+        return try self.successEnvelope(structuredData: fixture)
+    }
+
+    private static func successEnvelope(structuredData: Data) throws -> Data {
+        let fixture = structuredData
         let structured = try #require(String(bytes: fixture, encoding: .utf8))
         let envelope = """
         {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\(structured),\
@@ -234,6 +239,22 @@ struct CorbisMCPClientTests {
     func `leak like structured content throws redaction failed and never returns pulse`() async throws {
         let client = Self.client { request in
             let envelope = try Self.successEnvelope(structuredFixture: "pulse-leak-like")
+            return (envelope, Self.http(200, url: request.url))
+        }
+
+        await #expect(throws: CorbisMCPError.redactionFailed) {
+            _ = try await client.fetchResearchPulse(token: Self.token)
+        }
+    }
+
+    @Test
+    func `live decoded pulse rejects private email in plan`() async throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["plan"] = "Academic researcher@example.edu"
+        let structuredData = try JSONSerialization.data(withJSONObject: object)
+        let client = Self.client { request in
+            let envelope = try Self.successEnvelope(structuredData: structuredData)
             return (envelope, Self.http(200, url: request.url))
         }
 

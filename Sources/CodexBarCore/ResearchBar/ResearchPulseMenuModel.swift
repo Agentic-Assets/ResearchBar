@@ -227,8 +227,8 @@ extension ResearchPulseMenuModel {
 
     private static func contentState(for pulse: ResearchPulse, fromStaleCache: Bool) -> State {
         if pulse.profileStatus == .unlinked { return .identityUnlinked }
-        if pulse.profileStatus == .industryProfile { return .industryProfile }
         if fromStaleCache { return .staleCache }
+        if pulse.profileStatus == .industryProfile { return .industryProfile }
         if pulse.showsLowConfidenceNotice { return .loadedLowConfidence }
         switch pulse.citationHistoryStatus {
         case .tracked: return .loadedTracked

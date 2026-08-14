@@ -185,10 +185,10 @@ extension CodexBarCLI {
 
     static func serveHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar serve [--host <host>] [--port <port>] [--refresh-interval <seconds>]
+          researchbar serve [--host <host>] [--port <port>] [--refresh-interval <seconds>]
                          [--request-timeout <seconds>]
                          [--dashboard-token <token>] [--allow-plain-http]
                          [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>]
@@ -218,10 +218,10 @@ extension CodexBarCLI {
           GET /dashboard/v1/snapshot
 
         Examples:
-          codexbar serve
-          codexbar serve --port 8080 --refresh-interval 60 --request-timeout 30
-          CODEXBAR_DASHBOARD_TOKEN=YOUR_TOKEN codexbar serve
-          CODEXBAR_DASHBOARD_TOKEN=... codexbar serve --host 0.0.0.0 --allow-plain-http
+          researchbar serve
+          researchbar serve --port 8080 --refresh-interval 60 --request-timeout 30
+          CODEXBAR_DASHBOARD_TOKEN=YOUR_TOKEN researchbar serve
+          CODEXBAR_DASHBOARD_TOKEN=... researchbar serve --host 0.0.0.0 --allow-plain-http
           curl http://127.0.0.1:8080/usage?provider=all
           curl -H "Authorization: Bearer $CODEXBAR_DASHBOARD_TOKEN" \\
             http://127.0.0.1:8080/dashboard/v1/snapshot
@@ -278,10 +278,10 @@ extension CodexBarCLI {
 
     static func cacheHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar cache clear <--cookies|--cost|--all>
+          researchbar cache clear <--cookies|--cost|--all>
                               [--provider <name>]
                               [--format text|json]
                               [--json]
@@ -296,11 +296,11 @@ extension CodexBarCLI {
           Optionally specify --provider with --cookies to clear cookies for a single provider only.
 
         Examples:
-          codexbar cache clear --cookies
-          codexbar cache clear --cookies --provider claude
-          codexbar cache clear --cost
-          codexbar cache clear --all
-          codexbar cache clear --all --format json --pretty
+          researchbar cache clear --cookies
+          researchbar cache clear --cookies --provider claude
+          researchbar cache clear --cost
+          researchbar cache clear --all
+          researchbar cache clear --all --format json --pretty
         """
     }
 
