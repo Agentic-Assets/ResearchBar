@@ -15,8 +15,12 @@ struct ResearchBarMenuContent: View {
     @Environment(\.menuItemHighlighted) private var isHighlighted
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             self.header
+
+            if let credit = self.model.credit {
+                self.credits(credit)
+            }
 
             if !self.model.metrics.isEmpty {
                 Divider()
@@ -55,34 +59,60 @@ struct ResearchBarMenuContent: View {
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(self.model.title)
-                        .font(.headline.weight(.semibold))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .layoutPriority(1)
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(self.model.title)
+                            .font(.headline.weight(.semibold))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .layoutPriority(1)
+
+                        if let subtitle = self.model.subtitle {
+                            Text(subtitle)
+                                .font(.subheadline)
+                                .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                    }
 
                     Spacer(minLength: 4)
 
-                    if let freshness = self.model.freshness {
-                        Text(freshness)
-                            .font(.caption)
-                            .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                    }
-                }
+                    VStack(alignment: .trailing, spacing: 3) {
+                        if let plan = self.model.plan {
+                            Text(plan)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .accessibilityLabel("Research plan: \(plan)")
+                        }
 
-                if let subtitle = self.model.subtitle {
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
+                        if let freshness = self.model.freshness {
+                            Text(freshness)
+                                .font(.caption)
+                                .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                    }
                 }
             }
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private func credits(_ credit: ResearchPulseCardModel.Credit) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Credits")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+            Text(credit.summary)
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Credits: \(credit.summary)")
     }
 
     private var metrics: some View {
@@ -112,21 +142,20 @@ struct ResearchBarMenuContent: View {
     }
 
     private func trend(_ trend: ResearchPulseCardModel.Trend) -> some View {
-        HStack(spacing: 7) {
-            Image(systemName: trend.sparkline == nil ? "clock" : "chart.line.uptrend.xyaxis")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.tint)
-                .accessibilityHidden(true)
-            Text(trend.summary)
-                .font(.subheadline)
-                .lineLimit(1)
-            if let sparkline = trend.sparkline {
-                Spacer(minLength: 4)
-                Text(Self.sparkline(for: sparkline))
-                    .font(.caption.monospaced())
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 7) {
+                Image(systemName: trend.sparkline == nil ? "clock" : "chart.line.uptrend.xyaxis")
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.tint)
-                    .lineLimit(1)
                     .accessibilityHidden(true)
+                Text(trend.summary)
+                    .font(.subheadline)
+                    .lineLimit(1)
+            }
+
+            if let chart = Self.citationChart(for: trend) {
+                MenuCardChartContent(chart: chart, color: .accentColor)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .accessibilityElement(children: .combine)
@@ -245,16 +274,20 @@ struct ResearchBarMenuContent: View {
         }
     }
 
-    private static func sparkline(for values: [Int]) -> String {
-        guard let minimum = values.min(), let maximum = values.max() else { return "" }
-        let glyphs = Array("▁▂▃▄▅▆▇█")
-        guard maximum > minimum else {
-            return String(repeating: glyphs[glyphs.count / 2], count: values.count)
+    static func citationChart(for trend: ResearchPulseCardModel.Trend) -> ProviderDetailSection.Chart? {
+        guard let sparkline = trend.sparkline,
+              !sparkline.isEmpty,
+              sparkline.allSatisfy({ $0 >= 0 })
+        else {
+            return nil
         }
-        let lastIndex = glyphs.count - 1
-        return String(values.map { value in
-            let ratio = Double(value - minimum) / Double(maximum - minimum)
-            return glyphs[Int((ratio * Double(lastIndex)).rounded())]
-        })
+
+        guard let points = try? sparkline.enumerated().map({ index, value in
+            try ProviderDetailSection.Chart.Point(label: "Week \(index + 1)", value: Double(value))
+        }) else {
+            return nil
+        }
+
+        return try? ProviderDetailSection.Chart(kind: .line, title: nil, unit: "citations", points: points)
     }
 }
