@@ -39,7 +39,43 @@ struct ResearchBarMenuCardLayoutTests {
             pulse: ResearchBarFixtures.pulse("pulse-linked-tracking"),
             fromStaleCache: false))
 
-        #expect(try ResearchBarMenuContent.citationChart(for: #require(tracked.trend))?.kind == .line)
+        let trend = try #require(tracked.trend)
+        let chart = try #require(ResearchBarMenuContent.citationChart(for: trend))
+        #expect(chart.kind == .line)
+        #expect(chart.unit == "citations")
+        #expect(chart.points.map(\.label) == chart.points.indices.map { "Week \($0 + 1)" })
         #expect(try ResearchBarMenuContent.citationChart(for: #require(tracking.trend)) == nil)
+    }
+
+    @Test
+    func `citation chart rejects malformed and text only histories`() {
+        let empty = ResearchPulseCardModel.Trend(summary: "Citation history is accruing", sparkline: [])
+        let negative = ResearchPulseCardModel.Trend(summary: "Citation history is invalid", sparkline: [1, -1, 2])
+        let noHistory = ResearchPulseCardModel.Trend(summary: "Citation tracking starts soon")
+
+        #expect(ResearchBarMenuContent.citationChart(for: empty) == nil)
+        #expect(ResearchBarMenuContent.citationChart(for: negative) == nil)
+        #expect(ResearchBarMenuContent.citationChart(for: noHistory) == nil)
+    }
+
+    @Test
+    func `tracked chart card stays within the offered shared width`() throws {
+        let width = StatusItemController.menuCardBaseWidth
+        let model = try ResearchPulseCardModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-linked-tracked"),
+            fromStaleCache: false))
+        let actions = ResearchBarMenuActions(
+            refresh: {},
+            openCorbisSettings: {},
+            openSettings: {},
+            clearCache: {})
+
+        let size = NSHostingController(rootView: ResearchBarMenuContent(
+            model: model,
+            actions: actions,
+            width: width))
+            .sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude))
+
+        #expect(abs(size.width - width) <= 0.5)
     }
 }
