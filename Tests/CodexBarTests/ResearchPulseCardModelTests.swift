@@ -27,7 +27,7 @@ struct ResearchPulseCardModelTests {
         let visibleText = [model.title, model.subtitle, model.freshness, model.notice]
             .compactMap(\.self)
             + model.metrics.flatMap { [$0.label, $0.value, $0.detail].compactMap(\.self) }
-            + [model.dataQuality?.summary, model.trend?.summary].compactMap(\.self)
+            + [model.dataQuality?.summary, model.trend?.summary, model.plan, model.credit?.summary].compactMap(\.self)
         for value in visibleText {
             #expect(ResearchPulseRedactor.backendSourceNames(in: value).isEmpty)
             #expect(!ResearchPulseRedactor.containsInternalAuthorID(value))
@@ -50,7 +50,50 @@ struct ResearchPulseCardModelTests {
 
         #expect(model.state == .creditLimited)
         #expect(model.notice == "Corbis credits are used up")
+        #expect(model.credit?.summary == "0 credits remaining")
         #expect(!model.actions.contains(.menuAction(.refresh)))
+    }
+
+    @Test
+    func `card projects plan and finite credits without a quota`() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-contract-limited")
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
+
+        #expect(model.plan == pulse.plan)
+        #expect(model.credit?.summary == "12.5 credits remaining")
+    }
+
+    @Test
+    func `card projects unlimited and omits unavailable credits`() throws {
+        let unlimitedPulse = try ResearchBarFixtures.pulse("pulse-contract-unlimited")
+        let unavailablePulse = try ResearchBarFixtures.pulse("pulse-contract-no-balances")
+        let unlimited = ResearchPulseCardModel.make(from: .loaded(
+            pulse: unlimitedPulse,
+            fromStaleCache: false))
+        let unavailable = ResearchPulseCardModel.make(from: .loaded(
+            pulse: unavailablePulse,
+            fromStaleCache: false))
+
+        #expect(unlimited.credit?.summary == "Unlimited credits")
+        #expect(unavailable.credit == nil)
+    }
+
+    @Test
+    func `card uses valid legacy credit fallback and omits negative credits`() throws {
+        let malformedPulse = try ResearchBarFixtures.pulse("pulse-contract-malformed-new-fields")
+        let malformed = ResearchPulseCardModel.make(from: .loaded(
+            pulse: malformedPulse,
+            fromStaleCache: false))
+        #expect(malformed.credit?.summary == "9.25 credits remaining")
+
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["creditBalance"] = NSNull()
+        object["creditsRemaining"] = -1
+        let negative = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: negative, fromStaleCache: false))
+
+        #expect(model.credit == nil)
     }
 
     @Test

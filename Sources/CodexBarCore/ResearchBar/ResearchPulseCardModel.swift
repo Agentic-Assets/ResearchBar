@@ -30,6 +30,14 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
         }
     }
 
+    public struct Credit: Equatable, Sendable {
+        public let summary: String
+
+        public init(summary: String) {
+            self.summary = summary
+        }
+    }
+
     public struct DataQuality: Equatable, Sendable {
         public let summary: String
         public let needsAttention: Bool
@@ -71,6 +79,8 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
     public let state: ResearchPulseMenuModel.State
     public let title: String
     public let subtitle: String?
+    public let plan: String?
+    public let credit: Credit?
     public let freshness: String?
     public let metrics: [Metric]
     public let dataQuality: DataQuality?
@@ -82,6 +92,8 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
         state: ResearchPulseMenuModel.State,
         title: String,
         subtitle: String?,
+        plan: String?,
+        credit: Credit?,
         freshness: String?,
         metrics: [Metric],
         dataQuality: DataQuality?,
@@ -92,6 +104,8 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
         self.state = state
         self.title = title
         self.subtitle = subtitle
+        self.plan = plan
+        self.credit = credit
         self.freshness = freshness
         self.metrics = metrics
         self.dataQuality = dataQuality
@@ -108,6 +122,7 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
         }
 
         let identity = Self.identity(for: pulse)
+        let plan = pulse.plan.trimmingCharacters(in: .whitespacesAndNewlines)
         let freshness = Self.freshness(for: pulse, state: menuModel.state)
         let academicProfile = pulse.academicProfile?.isSupported == true ? pulse.academicProfile : nil
         // A present-but-unsupported profile is deliberately not a legacy profile. Rendering the
@@ -128,6 +143,8 @@ public struct ResearchPulseCardModel: Equatable, Sendable {
             state: menuModel.state,
             title: pulse.displayName ?? "Research pulse",
             subtitle: identity,
+            plan: plan.isEmpty ? nil : plan,
+            credit: Self.credit(for: pulse),
             freshness: freshness,
             metrics: metrics,
             dataQuality: dataQuality,
@@ -190,6 +207,8 @@ extension ResearchPulseCardModel {
             state: state,
             title: content.title,
             subtitle: content.subtitle,
+            plan: nil,
+            credit: nil,
             freshness: nil,
             metrics: [],
             dataQuality: nil,
@@ -208,6 +227,16 @@ extension ResearchPulseCardModel {
             .filter { !$0.isEmpty }
             .prefix(2)
         return summary.isEmpty ? nil : summary.joined(separator: " · ")
+    }
+
+    fileprivate static func credit(for pulse: ResearchPulse) -> Credit? {
+        guard let balance = pulse.resolvedCreditBalance else { return nil }
+        return switch balance {
+        case let .limited(remaining):
+            Credit(summary: "\(self.number(remaining)) credits remaining")
+        case .unlimited:
+            Credit(summary: "Unlimited credits")
+        }
     }
 
     fileprivate static func freshness(for pulse: ResearchPulse, state: ResearchPulseMenuModel.State) -> String? {
