@@ -1,8 +1,9 @@
 ---
 title: ResearchBar client integration guide (Track B coding agent)
 doc_type: guide
-status: live
-as_of: 2026-06-27
+status: maintained-reference
+as_of: 2026-08-14
+backend_reference: agentic-assets-app origin/main c7c87a1527bbc45cc1c201d27fb39f24f99f4075
 owner: docs-maintainer
 related:
   - docs/researchbar-evaluation/README.md
@@ -16,25 +17,34 @@ related:
 
 # ResearchBar client integration guide
 
-> **Audience:** the coding agent (and humans) working in the **`Agentic-Assets/ResearchBar`** repo (the native macOS client, "Track B"). This is the single onboarding document for building ResearchBar against the live Corbis MCP backend. Everything here is verified against `agentic-assets-app` source at the `file:line` anchors shown; when this guide and memory disagree, the code wins, and you should re-verify against the cited file.
+> **Audience:** coding agents and humans working in **`Agentic-Assets/ResearchBar`** (the native macOS client,
+> "Track B"). This maintained reference was refreshed against sibling repository `agentic-assets-app` at
+> `origin/main` commit `c7c87a1527bbc45cc1c201d27fb39f24f99f4075`. It is not a guarantee that every historical
+> observation or line anchor remains current. Re-verify transport, auth, schema, billing, and tool-access facts against
+> the current backend revision before changing the client.
 
-This repo-local guide is the ResearchBar client copy of the Corbis backend contract. The backend contract is authored in `agentic-assets-app/docs/researchbar-evaluation/`, and this copy should be refreshed from backend source when the MCP contract changes. Treat the cited backend code as the source of truth for the wire contract.
+This repo-local guide is a maintained ResearchBar reference for the Corbis backend contract, not a symlink or the backend source of truth. Refresh it from current backend source when the MCP contract changes. Treat the cited backend code as the authority for wire facts, and treat historical inventory, rate, credit, and smoke-test observations here as evidence rather than operational values.
 
 ---
 
 ## 0. The 60-second mental model
 
-- **Two repos, one contract.** Corbis (`agentic-assets-app`, this repo) is a Next.js app that exposes a **Model Context Protocol (MCP)** backend over HTTP. ResearchBar is a separate native macOS menu-bar app that is an **MCP client**. ResearchBar never touches the Corbis database, never calls OpenAlex/Semantic Scholar/SSRN directly, and never holds Corbis secrets. It speaks JSON-RPC to one HTTP endpoint with a bearer token.
+- **Two repos, one contract.** Corbis (`agentic-assets-app`, a sibling repository) is a Next.js app that exposes a
+  **Model Context Protocol (MCP)** backend over HTTP. ResearchBar is a separate native macOS menu-bar app that is an
+  **MCP client**. ResearchBar never touches the Corbis database, never calls OpenAlex/Semantic Scholar/SSRN directly,
+  and never holds Corbis server secrets. It speaks JSON-RPC to one HTTP endpoint with a bearer token.
 - **v0 is one tool.** The entire v0 product is rendering **`get_research_pulse`** (a per-user research snapshot) in a menu. A second read-only tool, **`get_data_freshness`**, tells you how current Corbis's data is. Both are free-tier reachable.
-- **The backend is built and live-smoked.** As of 2026-06-26, `get_research_pulse` and `get_data_freshness` are registered, return schema-valid + leak-clean payloads over real HTTP, and the route contract suite passes. See `_recon/2026-06-26-live-smoke.md`.
-- **ResearchBar is still a CodexBar shell in code.** The repo today is a quota-monitor menu-bar app (`UsageSnapshot` / provider-quota types). ResearchBar v0 means adding a research-domain layer (a `ResearchPulse` model, an MCP client, a credential store, a cache, a menu renderer), not bending the existing quota types into citations (`09-deep-dive-review-and-next-actions.md:27-30`).
-- **Build fixtures-first.** Write the model, fixtures, client, cache, and renderer against local JSON fixtures. Switch to live calls only after a captured clean payload exists (it now does).
+- **Live evidence is historical.** The June 2026 smoke is useful provenance, not permission for an unattended call. Verify the current contract and tools only with explicit authorization and a safe test account.
+- **ResearchBar has a parallel research layer.** `ResearchPulse`, the MCP client, credential/cache seams, card model, and menu renderer coexist with inherited CodexBar usage types. Do not force citations into `UsageSnapshot` semantics.
+- **Build fixtures-first.** Fixture/model/cache/menu tests are the normal verification path. Live calls are opt-in only.
 
 ---
 
 ## 1. Quickstart: first live call in 3 steps
 
-### Step 1: get a personal MCP token (a human does this once)
+### Step 1: get a personal MCP token (explicitly authorized human workflow)
+
+> Do not run the live examples below during ordinary development, tests, or automated documentation checks. They require explicit owner authorization, a non-production test account, and a token supplied through a secure store.
 
 A Corbis user creates a personal MCP API key in the web app:
 
@@ -56,7 +66,7 @@ curl -s -X POST "$BASE/api/mcp/universal" \
   | jq '.result.tools[].name' | rg get_research_pulse
 ```
 
-An authenticated token sees the full tool set; an anonymous or invalid token sees only tier1 tools. As of 2026-06-27 local source, this is 42 authenticated tools and 32 tier1 tools, but clients should trust `tools/list` because the registry can change. Both `get_research_pulse` and `get_data_freshness` must be present.
+An authenticated token may see a broader tool set than an anonymous or invalid token. Inventory and tiers change, so clients must inspect `tools/list` rather than rely on a frozen count. Verify that the needed tools are present for the authenticated principal.
 
 ### Step 3: call the pulse and prove it is leak-clean
 
@@ -67,8 +77,8 @@ curl -s -X POST "$BASE/api/mcp/universal" \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_research_pulse","arguments":{}}}' \
   | tee /tmp/research-pulse.json
 
-# Internal IDs and private identity fields MUST return nothing before rendering.
-# Public source names may appear only inside academicProfile provenance.
+# Parse the declared academicProfile provenance separately. Reject credentials,
+# internal IDs, private identity evidence, and backend plumbing before rendering.
 rg -i 'sourceId|authorId|openalexId|privateEmail|credential|apiKey' /tmp/research-pulse.json
 ```
 
@@ -80,8 +90,13 @@ rg -i 'sourceId|authorId|openalexId|privateEmail|credential|apiKey' /tmp/researc
 
 ### Endpoint
 
-- **`POST /api/mcp/universal`** is the one endpoint ResearchBar needs. The same route also serves `GET` (discovery / SSE) and `DELETE` (SSE session cleanup) (`app/api/mcp/universal/route.ts`). An SSE pair exists (`/api/mcp/sse` + `/api/mcp/message`) but is only enabled when the server has Redis; a native client should just POST JSON-RPC and ignore SSE.
-- Server identity: `"Corbis MCP Server" v2.0.0`. It negotiates MCP protocol versions `2024-11-05`, `2025-03-26`, `2025-06-18` (default `2024-11-05`).
+- **`POST /api/mcp/universal` is the only transport ResearchBar's native client uses.** Send JSON-RPC over POST and do
+  not open or manage an SSE session. At the pinned backend revision, a `GET` SSE listen attempt (`Accept:
+  text/event-stream`) and `DELETE` session teardown on `/api/mcp/universal` both return `405 Method Not Allowed`.
+  General GET discovery/info responses and the separate `/api/mcp/sse` + `/api/mcp/message` transport are backend
+  surfaces, not part of ResearchBar's native-client contract (`app/api/mcp/universal/transport.ts`).
+- Server identity: `"Corbis MCP Server" v2.0.0`. The pinned route negotiates only MCP protocol versions
+  `2024-11-05` and `2025-06-18`, defaulting to `2024-11-05` when the requested version is unsupported.
 
 ### Request envelope
 
@@ -138,10 +153,12 @@ A successful `tools/call` returns **both** of these (`lib/mcp/result-format.ts:5
 | `429` | Rate limit (**200 requests/hour per authenticated principal**, `lib/mcp/auth.ts`). Carries `Retry-After` + `X-RateLimit-*`. Back off and surface a calm "try again later," never a tight retry loop. |
 | `500` | Unhandled server error. |
 
-### Auth header + query fallback
+### Auth header; no production query-token fallback
 
-- Primary: `Authorization: Bearer <corbis_mcp_…>` (`lib/mcp/auth.ts:443-444`).
-- Fallbacks exist as query params (`?apikey=` preferred, then `?token=`), but the server sets `Referrer-Policy: no-referrer` to limit leakage. **Prefer the header.** A native app can always set headers, so ResearchBar should use the header exclusively and never put the token in a URL it might log.
+- Use `Authorization: Bearer <corbis_mcp_…>` (`lib/mcp/auth.ts`).
+- Production rejects credentials supplied as `?apikey=` or `?token=`. Those query parameters are accepted only by
+  non-production backend environments for local connector recipes. ResearchBar must use the bearer header exclusively
+  in every environment and must never put a token in a URL, log, or diagnostic.
 
 ---
 
@@ -317,7 +334,7 @@ ResearchBar can drive the full identity handshake over MCP (both tools are `read
 
 - **Flat cost: 0.5 credits per `tools/call`** (`MCP_CREDIT_COST`, `lib/mcp/tool-credits.ts:16`). `tools/list` is free.
 - The route **reserves before executing and refunds on tool failure** (`app/api/mcp/universal/route.ts`, reserve `:1422`, refund `:1487`). A failed tool call does not cost the user; a successful one does. Cached results still reserve but skip re-execution.
-- **Free-allowance math (planning, not a hard fact):** code fallbacks suggest a free user has on the order of 50 lifetime/period credits, i.e. roughly 100 aggregate calls at 0.5 each. These are DB-driven defaults that can change; **do not freeze any credit number, price, or allowance into ResearchBar.** Prefer `creditBalance`, use `creditsRemaining` only as a legacy fallback, and do not compute entitlements client-side.
+- **Credit presentation:** credit/allowance policy is server-owned and changeable. Prefer a structured remaining finite balance or unlimited state, use `creditsRemaining` only as a legacy fallback, and never calculate calls, allowance, quota, reset, rate, or usage history client-side.
 - **Design for frugal calls.** Refresh on menu-open when the cache is stale, plus an explicit manual refresh. **Do not background-poll.** A 30-second poller would burn a free user's allowance in under an hour.
 - If you see a diagnostics panel claiming "1 credit per call," that is a stale display value; the authoritative cost is **0.5** (`lib/mcp/tool-credits.ts:16`).
 
@@ -331,7 +348,7 @@ These are non-negotiable. The backend redacts by construction and a test enforce
 
 1. **Never surface or log the internal author id pattern `/^A\d+$/`** (e.g. `A5012345678`) in any field, URL, label, or log line.
 2. **Never surface or log private plumbing**: low-level keys such as `sourceId`, `authorId`, or `openalexId`; credentials; private identity evidence; or internal-only backend labels. Public source provenance is valid inside `academicProfile`, but the default product UI remains provider-neutral. Links may only be ORCID, DOI, a Corbis paper page, Google Scholar, or a vetted personal/work site.
-3. **Ship a client-side redaction assertion** (`ResearchBarRedaction.swift`): a leak-like fixture must **fail tests**; in release, a payload that trips the assertion shows a safe error instead of rendering.
+3. **Ship a client-side redaction assertion** (`Sources/CodexBarCore/ResearchBar/ResearchPulseRedactor.swift`): a leak-like fixture must **fail tests**; in release, a payload that trips the assertion shows a safe error instead of rendering. Plan/account strings are untrusted and private identity evidence must fail closed without echoing the source value.
 4. **Never render a fake sparkline or a zero trend** (see §4).
 5. **v0 calls only the aggregates** (`get_research_pulse`, `get_data_freshness`) and the two identity tools. Do **not** orchestrate low-level paper/citation MCP tools from ResearchBar yet; broader low-level redaction is a tracked Corbis follow-up (see `TODO.md` A4b and the evaluation `CLAUDE.md` gotchas), and those tools still surface corpus identifiers their own contracts require.
 
@@ -429,8 +446,16 @@ From `06-risks-and-open-questions.md` and `founder-decisions.md` (founder calls,
 
 ## 14. Source of truth (re-verify before trusting memory)
 
+- **Pinned reference for this refresh:** sibling `agentic-assets-app` `origin/main`
+  `c7c87a1527bbc45cc1c201d27fb39f24f99f4075`. Before implementation work, fetch that repository, record the new
+  exact revision, compare the files below, and update this guide's `as_of` and `backend_reference` when facts change.
+- **Do not treat line numbers as durable identifiers.** Locate the named symbol in the pinned/current file. Do not
+  infer protocol versions, query authentication, SSE behavior, rates, tool inventory, or response fields from this
+  guide when the backend source differs.
 - **Wire schemas:** `lib/mcp/tools/output-schemas.ts` (`GetResearchPulseOutput` `:441-479`, `GetDataFreshnessOutput` `:487-501`).
-- **Transport + billing route:** `app/api/mcp/universal/route.ts`. **Result shaping:** `lib/mcp/result-format.ts`. **Cost:** `lib/mcp/tool-credits.ts:16`.
+- **Transport + billing route:** `app/api/mcp/universal/route.ts` re-exports the handlers in
+  `app/api/mcp/universal/transport.ts`. **Result shaping:** `lib/mcp/result-format.ts`. **Cost:**
+  `lib/mcp/tool-credits.ts`.
 - **Auth + scopes:** `lib/mcp/auth.ts` (`authenticateMCPRequest` `:326`, `DEFAULT_MCP_SCOPES` `:64`). **Key minting:** `app/actions/mcp-api-keys.ts`. **Scope/tier per tool:** `lib/ai/capabilities/index.ts:626,638,648,659`.
 - **Identity tools:** `lib/ai/tools/find-academic-identity.ts`, `lib/ai/tools/confirm-academic-identity.ts`, candidate token `lib/research-profile/author-candidate-service.ts`.
 - **Pulse assembly:** `lib/research-profile/research-pulse.ts`.

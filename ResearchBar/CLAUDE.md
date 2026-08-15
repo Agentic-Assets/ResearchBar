@@ -2,7 +2,7 @@
 
 ## Most Critical Rule
 
-**Docs describe the product; Swift lives in `Sources/CodexBar`.** Intelligence and aggregates belong in `agentic-assets-app`. This tree is spec and planning only. Builders start at [`BUILD.md`](BUILD.md), not the concept report.
+**Docs describe the product; current Swift behavior lives in `Sources/CodexBar*`.** Intelligence and aggregates belong in `agentic-assets-app`. This folder contains product context, maintained contract guidance, and dated planning evidence; it does not own implementation facts. Builders start with the current source and [`BUILD.md`](BUILD.md), not the concept report.
 
 **Fork strategy:** Reuse CodexBar aggressively. Keep inherited AI provider
 usage code during Track B for upstream sync and implementation patterns, but
@@ -12,7 +12,7 @@ demote provider usage if it competes with the pulse menu.
 ## Naming Patterns
 
 - Top-level entry: `researchbar-in-60-seconds.md`, `BUILD.md`, `OPEN-ISSUES.md`
-- Subfolders: `build/` (facts), `concept/` (why), `research/` (provenance)
+- Subfolders: `build/` (dated implementation plans), `concept/` (why), `research/` (provenance)
 - Legacy path `corbis-integration-plan/`: redirect to `build/`
 - Native client build guides: `build/06` through `build/10`
 
@@ -26,21 +26,20 @@ demote provider usage if it competes with the pulse menu.
 
 ## Integration Points
 
-- **Client wire contract (authoritative): [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).** This is a symlink into the Corbis repo's verified guide (`../../agentic-assets-app/docs/researchbar-evaluation/RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`). It is the single source of truth for the MCP transport/auth/billing contract, the live `get_research_pulse` and `get_data_freshness` schemas, the identity handshake, and the client redaction rules. When `build/` and this guide disagree on a wire fact, the guide wins (it is verified against Corbis code at `file:line`). The symlink resolves only when both repos are cloned as siblings under `agentic-assets/`.
+- **Client wire-contract reference: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).** It is a maintained repository copy, not a symlink. For transport/auth/billing or schema changes, re-verify the cited Corbis source in `agentic-assets-app` before editing client code; the backend source wins over this snapshot and all dated plans.
 - Repo root: [`../AGENTS.md`](../AGENTS.md) (Swift app, scripts, tests)
 - Corbis sibling: [`../../agentic-assets-app/docs/researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/)
-- Authority: product is `concept/`; implementation facts are `build/` plus Corbis `01` through `08`; native client slices are `build/06` through `10`; blockers are `OPEN-ISSUES.md`
+- Authority: current ResearchBar source owns client behavior; current Corbis source owns wire behavior; the maintained wire-contract reference records the integration boundary; `build/`, `concept/`, and `research/` are dated context; blockers are `OPEN-ISSUES.md`.
 
 ## Gotchas
 
 - **No code in this folder**; grep for `lib/mcp/` here finds nothing (citations target Corbis repo).
-- Status (2026-06-27): Corbis Phase 0 + Phase 1 (`get_research_pulse`, `get_data_freshness`, citation-trend snapshots) are implemented and the live MCP smoke passes over real HTTP, so the client panel is **unblocked**. Evidence and the wire contract are in [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) and Corbis `_recon/2026-06-26-live-smoke.md`.
-- Build fixtures first regardless: `build/06` is the fixture path; live mode (`build/08`) is now allowed because the Phase 0 smoke passed, but keep the fixture suite as the test backbone.
+- The Corbis menu/card, cache, credential, and client seams are implemented in the current source. Fixture-backed tests remain the default verification path; live MCP verification is opt-in, requires explicit authorization, and must use a safe test account.
 - Update `OPEN-ISSUES.md` when closing founder or engineering decisions.
 - Keep cross-repo links pointed at sibling `../../agentic-assets-app` from this folder and `../../../agentic-assets-app` from subfolders.
 
 ## References
 
-- **Client wire contract: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md)** (symlink to the verified Corbis guide).
+- **Client wire-contract reference: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md)** (maintained local copy; backend source is authoritative).
 - Map: [`README.md`](README.md)
 - Submodules: [`build/CLAUDE.md`](build/CLAUDE.md), [`concept/CLAUDE.md`](concept/CLAUDE.md), [`research/CLAUDE.md`](research/CLAUDE.md)

@@ -14,7 +14,7 @@ final class CLIEntryTests: XCTestCase {
     func test_rootHelpAdvertisesDashboardSnapshotCommand() {
         let help = CodexBarCLI.rootHelp(version: "0.0.0")
 
-        XCTAssertTrue(help.contains("codexbar dashboard [--pretty] [--timeout <seconds>]"))
+        XCTAssertTrue(help.contains("researchbar dashboard [--pretty] [--timeout <seconds>]"))
     }
 
     func test_dashboardCommandIsRegisteredAndParsesOptions() throws {

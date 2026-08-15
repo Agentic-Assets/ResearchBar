@@ -1,5 +1,7 @@
 # 05. Risks and open questions
 
+> **Historical risk register (2026-06).** Check [`../OPEN-ISSUES.md`](../OPEN-ISSUES.md) and current source for live status. Do not turn historical credit/allowance assumptions into client behavior.
+
 The client-relevant risks and the decisions that gate the funnel. This adapts the Corbis-side risk register ([`../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md`](../../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) and [`07-adversarial-review-verdict.md`](../../../agentic-assets-app/docs/researchbar-evaluation/07-adversarial-review-verdict.md)). See also [`../OPEN-ISSUES.md`](../OPEN-ISSUES.md). All `path:line` references point into the Corbis repo.
 
 ## Risks that touch the client

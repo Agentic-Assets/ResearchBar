@@ -105,9 +105,12 @@ struct ResearchBarTabSwitcherTests {
         var corbisRefreshes = 0
         controller._test_manualRefreshOperation = { providerRefreshes += 1 }
         controller._test_researchPulseManualRefreshOperation = { corbisRefreshes += 1 }
+        controller.beginMenuTrackingSession(for: menu)
+        defer { controller.endMenuTrackingSession(for: menu) }
         #expect(try menu.performKeyEquivalent(with: Self.commandKeyEvent("r", keyCode: 15)))
-        for _ in 0..<10 where corbisRefreshes == 0 {
+        for _ in 0..<100 where corbisRefreshes == 0 {
             await Task.yield()
+            try? await Task.sleep(for: .milliseconds(5))
         }
         #expect(corbisRefreshes == 1)
         #expect(providerRefreshes == 0)

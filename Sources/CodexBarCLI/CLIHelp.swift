@@ -59,10 +59,10 @@ extension CodexBarCLI {
 
     static func usageHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar usage [--format text|json]
+          researchbar usage [--format text|json]
                        [--json]
                        [--json-only]
                        [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>] [-v|--verbose]
@@ -81,7 +81,7 @@ extension CodexBarCLI {
             Auto falls back to Claude CLI only when cookies are missing.
           - Kilo: app.kilo.ai API.
             Auto falls back to Kilo CLI when API credentials are missing or unauthorized.
-          Token accounts are loaded from the resolved CodexBar config file.
+          Token accounts are loaded from the resolved ResearchBar config file.
           Use --account or --account-index to select a specific token account.
           Use --all-accounts to fetch every token account, or every visible Codex account for Codex.
           Account selection requires a single provider.
@@ -95,13 +95,13 @@ extension CodexBarCLI {
           --json-output   Emit machine-readable logs (JSONL) to stderr
 
         Examples:
-          codexbar usage
-          codexbar usage --provider claude
-          codexbar usage --provider gemini
-          codexbar usage --format json --provider all --pretty
-          codexbar usage --provider all --json
-          codexbar usage --status
-          codexbar usage --provider codex --source web --format json --pretty
+          researchbar usage
+          researchbar usage --provider claude
+          researchbar usage --provider gemini
+          researchbar usage --format json --provider all --pretty
+          researchbar usage --provider all --json
+          researchbar usage --status
+          researchbar usage --provider codex --source web --format json --pretty
         """
     }
 
@@ -185,10 +185,10 @@ extension CodexBarCLI {
 
     static func serveHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar serve [--host <host>] [--port <port>] [--refresh-interval <seconds>]
+          researchbar serve [--host <host>] [--port <port>] [--refresh-interval <seconds>]
                          [--request-timeout <seconds>]
                          [--dashboard-token <token>] [--allow-plain-http]
                          [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>]
@@ -218,10 +218,10 @@ extension CodexBarCLI {
           GET /dashboard/v1/snapshot
 
         Examples:
-          codexbar serve
-          codexbar serve --port 8080 --refresh-interval 60 --request-timeout 30
-          CODEXBAR_DASHBOARD_TOKEN=YOUR_TOKEN codexbar serve
-          CODEXBAR_DASHBOARD_TOKEN=... codexbar serve --host 0.0.0.0 --allow-plain-http
+          researchbar serve
+          researchbar serve --port 8080 --refresh-interval 60 --request-timeout 30
+          CODEXBAR_DASHBOARD_TOKEN=YOUR_TOKEN researchbar serve
+          CODEXBAR_DASHBOARD_TOKEN=... researchbar serve --host 0.0.0.0 --allow-plain-http
           curl http://127.0.0.1:8080/usage?provider=all
           curl -H "Authorization: Bearer $CODEXBAR_DASHBOARD_TOKEN" \\
             http://127.0.0.1:8080/dashboard/v1/snapshot
@@ -278,10 +278,10 @@ extension CodexBarCLI {
 
     static func cacheHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar cache clear <--cookies|--cost|--all>
+          researchbar cache clear <--cookies|--cost|--all>
                               [--provider <name>]
                               [--format text|json]
                               [--json]
@@ -296,11 +296,11 @@ extension CodexBarCLI {
           Optionally specify --provider with --cookies to clear cookies for a single provider only.
 
         Examples:
-          codexbar cache clear --cookies
-          codexbar cache clear --cookies --provider claude
-          codexbar cache clear --cost
-          codexbar cache clear --all
-          codexbar cache clear --all --format json --pretty
+          researchbar cache clear --cookies
+          researchbar cache clear --cookies --provider claude
+          researchbar cache clear --cost
+          researchbar cache clear --all
+          researchbar cache clear --all --format json --pretty
         """
     }
 
@@ -342,10 +342,10 @@ extension CodexBarCLI {
 
     static func diagnoseHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar diagnose --provider <name|all> --format json
+          researchbar diagnose --provider <name|all> --format json
                            [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>]
                            [-v|--verbose]
                            [--redact] [--output <path>]
@@ -357,10 +357,10 @@ extension CodexBarCLI {
           account IDs, org IDs, raw responses, and billing-history records.
 
         Examples:
-          codexbar diagnose --provider minimax --format json --redact --output diagnostic.json
-          codexbar diagnose --provider minimax --format json --pretty
-          codexbar diagnose --provider claude --format json --pretty
-          codexbar diagnose --provider all --format json
+          researchbar diagnose --provider minimax --format json --redact --output diagnostic.json
+          researchbar diagnose --provider minimax --format json --pretty
+          researchbar diagnose --provider claude --format json --pretty
+          researchbar diagnose --provider all --format json
         """
     }
 
@@ -429,10 +429,10 @@ extension CodexBarCLI {
 
     static func rootHelp(version: String) -> String {
         """
-        CodexBar \(version)
+        \(AppIdentity.displayName) \(version)
 
         Usage:
-          codexbar [--format text|json]
+          researchbar [--format text|json]
                   [--json]
                   [--json-only]
                   [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>] [-v|--verbose]
@@ -440,39 +440,39 @@ extension CodexBarCLI {
                   [--account <label>] [--account-index <index>] [--all-accounts]
                   [--no-credits] [--no-color] [--pretty] [--status] [--source <auto|web|cli|oauth|api>]
                   [--web-timeout <seconds>] [--web-debug-dump-html] [--antigravity-plan-debug] [--augment-debug]
-          codexbar cards [--provider \(ProviderHelp.list)] [--brief] [--no-color] [--status]
-          codexbar cost [--format text|json]
+          researchbar cards [--provider \(ProviderHelp.list)] [--brief] [--no-color] [--status]
+          researchbar cost [--format text|json]
                        [--json]
                        [--json-only]
                        [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>] [-v|--verbose]
                        [--provider \(ProviderHelp.list)] [--no-color] [--pretty] [--refresh]
                        [--provider-native-only]
                        [--days <days>] [--group-by project]
-          codexbar sessions [--json|--json-v2] [--pretty]
-          codexbar sessions focus <id>
-          codexbar dashboard [--pretty] [--timeout <seconds>]
-          codexbar serve [--host <host>] [--port <port>] [--refresh-interval <seconds>]
+          researchbar sessions [--json|--json-v2] [--pretty]
+          researchbar sessions focus <id>
+          researchbar dashboard [--pretty] [--timeout <seconds>]
+          researchbar serve [--host <host>] [--port <port>] [--refresh-interval <seconds>]
                        [--request-timeout <seconds>]
                        [--dashboard-token <token>] [--allow-plain-http]
                        [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>] [-v|--verbose]
-          codexbar config <validate|dump|providers> [--format text|json]
+          researchbar config <validate|dump|providers> [--format text|json]
                                         [--json]
                                         [--json-only]
                                         [--json-output] [--log-level <trace|verbose|debug|info|warning|error|critical>]
                                         [-v|--verbose]
                                         [--pretty]
-          codexbar config enable --provider <name>
-          codexbar config disable --provider <name>
-          codexbar config set-api-key --provider <name> (--api-key <key>|--stdin)
-          codexbar config set-api-key --provider zai --stdin --usage-scope team
+          researchbar config enable --provider <name>
+          researchbar config disable --provider <name>
+          researchbar config set-api-key --provider <name> (--api-key <key>|--stdin)
+          researchbar config set-api-key --provider zai --stdin --usage-scope team
                                    --organization-id <org> --workspace-id <project>
-          codexbar hooks <list|enable|disable> [--format text|json] [--pretty]
-          codexbar hooks test <event> --provider <name>
-          codexbar plugins <list|fetch <id>> [--json] [--pretty]
-          codexbar cache clear <--cookies|--cost|--all> [--provider <name>]
-          codexbar cookie refresh <--provider <name>|--all> [--allow-keychain-prompt]
-          codexbar diagnose --provider <name|all> --format json [--redact] [--output <path>] [--pretty]
-          codexbar guard --provider <name> [--min-remaining <percent>] [--window session|weekly] [--json]
+          researchbar hooks <list|enable|disable> [--format text|json] [--pretty]
+          researchbar hooks test <event> --provider <name>
+          researchbar plugins <list|fetch <id>> [--json] [--pretty]
+          researchbar cache clear <--cookies|--cost|--all> [--provider <name>]
+          researchbar cookie refresh <--provider <name>|--all> [--allow-keychain-prompt]
+          researchbar diagnose --provider <name|all> --format json [--redact] [--output <path>] [--pretty]
+          researchbar guard --provider <name> [--min-remaining <percent>] [--window session|weekly] [--json]
 
         Global flags:
           -h, --help      Show help
@@ -483,27 +483,27 @@ extension CodexBarCLI {
           --json-output   Emit machine-readable logs (JSONL) to stderr
 
         Examples:
-          codexbar
-          codexbar --format json --provider all --pretty
-          codexbar --provider all --json
-          codexbar --provider gemini
-          codexbar cards --provider all --status
-          codexbar cards --brief
-          codexbar cost --provider claude --format json --pretty
-          codexbar sessions --json
-          codexbar dashboard --pretty
-          codexbar serve --port 8080
-          codexbar config validate --format json --pretty
-          codexbar config enable --provider grok
-          codexbar config set-api-key --provider elevenlabs --stdin
-          codexbar hooks test quota_reached --provider codex
-          codexbar plugins list
-          codexbar cache clear --cookies
-          codexbar cookie refresh --provider opencodego --allow-keychain-prompt
-          codexbar diagnose --provider minimax --format json --redact --output diagnostic.json
-          codexbar diagnose --provider minimax --format json --pretty
-          codexbar diagnose --provider all --format json
-          codexbar guard --provider claude --min-remaining 20
+          researchbar
+          researchbar --format json --provider all --pretty
+          researchbar --provider all --json
+          researchbar --provider gemini
+          researchbar cards --provider all --status
+          researchbar cards --brief
+          researchbar cost --provider claude --format json --pretty
+          researchbar sessions --json
+          researchbar dashboard --pretty
+          researchbar serve --port 8080
+          researchbar config validate --format json --pretty
+          researchbar config enable --provider grok
+          researchbar config set-api-key --provider elevenlabs --stdin
+          researchbar hooks test quota_reached --provider codex
+          researchbar plugins list
+          researchbar cache clear --cookies
+          researchbar cookie refresh --provider opencodego --allow-keychain-prompt
+          researchbar diagnose --provider minimax --format json --redact --output diagnostic.json
+          researchbar diagnose --provider minimax --format json --pretty
+          researchbar diagnose --provider all --format json
+          researchbar guard --provider claude --min-remaining 20
         """
     }
 }

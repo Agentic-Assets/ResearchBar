@@ -97,6 +97,19 @@ struct ResearchPulseMenuFactoryTests {
     }
 
     @Test
+    func `credit limited fallback labels retained context cached and omits prior balance`() throws {
+        let sections = try ResearchPulseMenuFactory.makeSections(
+            from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-contract-limited")))
+        let titles = Self.allTitles(sections)
+
+        #expect(titles.contains { $0.hasPrefix("Cached:") })
+        #expect(titles.contains("Plan: academic"))
+        #expect(titles.contains("Corbis credits are used up"))
+        #expect(!titles.contains { $0.hasPrefix("Credits:") })
+        #expect(!titles.contains { $0.contains("12.5") })
+    }
+
+    @Test
     func `unlinked shows identity confirmation action`() throws {
         let sections = try ResearchPulseMenuFactory.makeSections(
             from: .loaded(pulse: ResearchBarFixtures.pulse("pulse-unlinked"), fromStaleCache: false))

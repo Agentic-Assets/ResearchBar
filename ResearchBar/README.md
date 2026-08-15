@@ -12,7 +12,7 @@ main product.
 
 **Building?** Start at [`BUILD.md`](BUILD.md).
 
-**Writing the MCP client?** The wire contract is [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) (a symlink into the verified Corbis guide): transport, auth, billing, live `get_research_pulse` / `get_data_freshness` schemas, identity handshake, and redaction rules.
+**Writing the MCP client?** Start with [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md), a maintained local reference for transport, auth, billing, pulse/freshness schemas, identity handshake, and redaction. Re-verify wire changes against current Corbis source before implementation.
 
 **Tracking blockers?** See [`OPEN-ISSUES.md`](OPEN-ISSUES.md).
 
@@ -23,7 +23,7 @@ main product.
 | Folder / file | Purpose | Who reads it |
 |---|---|---|
 | [`researchbar-in-60-seconds.md`](researchbar-in-60-seconds.md) | Elevator pitch | Everyone |
-| [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) | **Authoritative MCP wire contract** (symlink to the verified Corbis guide): transport, auth, billing, live schemas, identity handshake, redaction, Phase 0B checklist | Client engineers |
+| [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) | Maintained local MCP wire-contract reference: transport, auth, billing, schemas, identity handshake, redaction | Client engineers |
 | [`BUILD.md`](BUILD.md) | Builder entry point and read order | Engineers |
 | [`RESEARCHBAR-BUILD-REVIEW-2026-06-18.md`](RESEARCHBAR-BUILD-REVIEW-2026-06-18.md) | Deep build review and concrete Track B file plan | Engineers |
 | [`OPEN-ISSUES.md`](OPEN-ISSUES.md) | Open decisions, blockers, closed checklist items | Founders + builders |
@@ -51,7 +51,7 @@ Full Corbis Track A evaluation (inventory, gap analysis, design review, implemen
 | [`09-deep-dive-review-and-next-actions.md`](../../agentic-assets-app/docs/researchbar-evaluation/09-deep-dive-review-and-next-actions.md) | Cross-repo deep review and sequence |
 | [`_recon/`](../../agentic-assets-app/docs/researchbar-evaluation/_recon/) | Raw agent evidence (audit trail) |
 
-**Relationship:** [`build/`](build/) is the ResearchBar-facing slice of that evaluation plus client guidance. For backend implementation, Corbis `01`–`08` wins on depth; for macOS client work, `build/00`–`02` wins on framing. Where they disagree on facts, both were grounded against code on 2026-06-17 and should agree.
+**Relationship:** [`build/`](build/) preserves the ResearchBar-facing implementation history. For backend work, current Corbis source and its evaluation docs win; for macOS client work, current ResearchBar source wins. Re-verify a contract fact whenever the backend changes rather than relying on a June 2026 snapshot.
 
 ## Track B native client guides
 
@@ -79,4 +79,4 @@ small, reviewable slices:
 
 ## Status
 
-Track B client implementation is underway in this repo. The ResearchBar pulse model, Corbis credential/cache seams, live MCP client, settings tab, and status-menu section are implemented behind safe test seams. Corbis Phase 0 payload/redaction live smoke has passed; the remaining live gate is observing the 0.5-credit billing delta with a finite-credit token. The user-facing macOS app identity is now `ResearchBar` with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.
+The ResearchBar pulse model, Corbis credential/cache seams, MCP client, settings tab, and status-menu/card are implemented behind safe test seams. The current dashboard adds source-aware research metrics, safe plan/remaining-credit presentation, and a full-width citation chart only for validated history. Production/live-account verification remains opt-in; a server-owned entitlement/usage contract is still required before the client can show allowance, reset, rate, or usage-history figures. The user-facing macOS app identity is `ResearchBar` with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.

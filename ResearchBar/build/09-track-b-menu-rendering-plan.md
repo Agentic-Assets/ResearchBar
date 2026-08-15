@@ -1,5 +1,7 @@
 # 09. Track B menu rendering plan
 
+> **Historical implementation plan (2026-06).** The menu/card is implemented. Current source and the dashboard design spec govern rendering: a credit-limited cached state marks cached provenance and never presents a retained positive balance, while citation charts render only validated history at full card width.
+
 This guide turns the fixture-tested ResearchBar domain states into a native
 menu surface. It keeps the first panel small: one account, one identity, one
 pulse, and clear actions.
@@ -47,7 +49,7 @@ keeping research semantics out of quota-monitor types such as `UsageSnapshot`.
 | Linked, tracked | Show 7d and 52w deltas plus sparkline only when all trend fields are non-null. |
 | Low confidence | Show values plus a concise confidence notice and review action. |
 | Stale cache | Label cached values with fetched time and show refresh. |
-| Credit limited | Show credits and upgrade or open Corbis action. No automatic refresh. |
+| Credit limited | Show a safe limited-credit state and Corbis action. Do not display a cached positive balance as current or infer an upgrade, allowance, or reset. No automatic refresh. |
 | Safe error | Show a short error and actions. Do not show raw payload. |
 
 ## Row guidance

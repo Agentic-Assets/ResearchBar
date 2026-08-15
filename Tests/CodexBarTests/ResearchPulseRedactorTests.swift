@@ -141,6 +141,41 @@ struct ResearchPulseRedactorTests {
     }
 
     @Test
+    func `typed plan scan rejects private identity evidence without freezing plan names`() throws {
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic user-id-48291"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic acct-48291"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic account_id_48291"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic acct-12"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic user-id-7"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic account id 42"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic acct=12"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic user id:7"))
+        #expect(ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic account #42"))
+        #expect(!ResearchPulseRedactor.containsPrivateIdentityEvidence("Academic Research Plan"))
+
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+
+        for unsafePlan in [
+            "Academic researcher@example.edu",
+            "Research account_id=acct_example_48291",
+            "Research access 123e4567-e89b-12d3-a456-426614174000",
+        ] {
+            var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+            object["plan"] = unsafePlan
+            let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+            #expect(ResearchPulseRedactor.scan(pulse).contains {
+                $0.field == "plan" && $0.kind == .privateIdentityEvidence
+            })
+        }
+
+        var futureObject = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        futureObject["plan"] = "future-research-collaborator"
+        let futurePulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: futureObject))
+        #expect(ResearchPulseRedactor.scan(futurePulse).isEmpty)
+    }
+
+    @Test
     func `scan flags credential leak in rendered field`() throws {
         // A clean pulse stays clean; a token smuggled into a rendered (typed) field trips the
         // scan so the pulse never renders. The raw-JSON catch-all deliberately does not flag

@@ -21,8 +21,8 @@ read_when:
 - If no snapshot is available, widgets fall back to preview/empty data.
 
 ## Extension
-- `Sources/ResearchBarWidget` contains timeline + views.
-- `WidgetExtension/ResearchBarWidgetExtension.xcodeproj` builds those sources as the packaged macOS WidgetKit app extension.
+- `Sources/CodexBarWidget` contains timeline + views; inherited SwiftPM target paths intentionally retain the CodexBar name.
+- `WidgetExtension/CodexBarWidgetExtension.xcodeproj` builds those sources as the packaged macOS WidgetKit app extension.
 - Keep data shape in sync with `WidgetSnapshot` in the main app.
 
 ## Widget types
@@ -49,7 +49,7 @@ registration, signing, or daemon caching (not SwiftUI code).
 ```
 APP="/Applications/ResearchBar.app"
 WAPPEX="$APP/Contents/PlugIns/ResearchBarWidget.appex"
-WIDGET_ID="com.steipete.researchbar.widget" # debug builds use com.steipete.researchbar.debug.widget
+WIDGET_ID="com.corbis.researchbar.widget"
 
 ls -la "$WAPPEX" "$WAPPEX/Contents" "$WAPPEX/Contents/MacOS"
 ```
@@ -94,7 +94,7 @@ log stream --style compact --predicate '(process == "pkd" OR process == "chronod
 ```
 
 ### 6) Packaging sanity checks
-- Widget bundle id should be `com.steipete.researchbar.widget` for release and `com.steipete.researchbar.debug.widget` for debug.
+- Widget bundle id is derived by packaging from the app bundle id: `com.corbis.researchbar.widget` for the configured ResearchBar identity. Verify the packaged extension's Info.plist rather than assuming a debug variant.
 - `NSExtensionPointIdentifier` must be `com.apple.widgetkit-extension`.
 - Bundle folder name should match: `ResearchBarWidget.appex`.
 

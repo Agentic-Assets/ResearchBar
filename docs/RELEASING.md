@@ -21,13 +21,15 @@ SwiftPM-only; package/sign/notarize manually (no Xcode project). Sparkle feed is
 - Sparkle key probe runs up front; appcast entry + signature verified automatically after generation.
 - Release notes are extracted directly from the current changelog section and passed to the GitHub release (no manual notes flag needed).
 - Sparkle appcast notes are generated as HTML from the same changelog section and embedded into the appcast entry.
-- Requires tools/env on PATH: `swiftformat`, `swiftlint`, `swift`, `sign_update`, `generate_keys`, `generate_appcast`, `gh`, `python3`, `zip`, `curl`, plus `APP_STORE_CONNECT_*`. `SPARKLE_PRIVATE_KEY_FILE` is only needed when overriding the default Keychain Sparkle key.
+- Requires tools/env on PATH: `swiftformat`, `swiftlint`, `swift`, `sign_update`, `generate_keys`, `generate_appcast`, `gh`, `python3`, `zip`, `curl`, plus `APP_STORE_CONNECT_*`. Sparkle private-key resolution is `SPARKLE_PRIVATE_KEY_FILE`, then `.mac-release.env` `MAC_RELEASE_SIGNING_KEY_FILE`, then the release helper's Keychain fallback.
 
 ## Prereqs
 - Xcode 26+ installed at `/Applications/Xcode.app` (for ictool/iconutil and SDKs).
 - Developer ID Application cert installed and selected through `MAC_RELEASE_CODESIGN_IDENTITY` or `APP_IDENTITY`.
 - ASC API creds in env: `APP_STORE_CONNECT_API_KEY_P8`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`.
-- Sparkle keys: public key expectation is in `.mac-release.env`. ResearchBar currently disables automatic Sparkle checks until its feed URL is approved.
+- Sparkle keys: public key expectation is in `.mac-release.env`. Current packaging writes an empty `SUFeedURL` and
+  `SUEnableAutomaticChecks=false`; updates remain disabled until the feed URL is approved and verified. Resolve the
+  private signing key using the precedence documented above.
 - Ensure shell has release env vars loaded (usually `source ~/.profile`) before running `Scripts/release.sh`.
 - Shared release helper: `Scripts/mac-release` resolves `MAC_RELEASE_TOOL`, sibling `../agent-scripts`, or `~/Projects/agent-scripts`.
 
@@ -52,13 +54,13 @@ What it does:
 Gotchas fixed:
 - Sparkle needs signing for framework, Autoupdate, Updater, XPCs (Downloader/Installer) or notarization fails.
 - Use `--timestamp --options runtime`, signing each nested component individually rather than a single `--deep` sign, to avoid invalid signature errors.
-- Avoid `unzip` because it can add AppleDouble `._*` files that break the sealed signature and trigger “app is damaged”. Use Finder or `ditto -x -k ResearchBar-<ver>.zip /Applications`. If Gatekeeper complains, delete the app bundle, re-extract with `ditto`, then `spctl -a -t exec` to verify.
+- Avoid `unzip` because it can add AppleDouble `._*` files that break the sealed signature and trigger “app is damaged”. Use Finder or `ditto -x -k ResearchBar-macos-universal-<version>.zip /Applications`. If Gatekeeper complains, delete the app bundle, re-extract with `ditto`, then `spctl -a -t exec` to verify.
 - Manual sanity check before uploading: `find ResearchBar.app -name '._*'` should return nothing; then `spctl --assess --type execute --verbose ResearchBar.app` and `codesign --verify --deep --strict --verbose ResearchBar.app` should both pass on the packaged bundle.
 
 ## Appcast (Sparkle)
 After notarization, or let `Scripts/release.sh` do this:
 ```
-./Scripts/make_appcast.sh ResearchBar-macos-universal-0.1.0.zip \
+./Scripts/make_appcast.sh ResearchBar-macos-universal-<version>.zip \
   <approved ResearchBar appcast URL>
 ```
 Generates HTML release notes from `CHANGELOG.md` (via `Scripts/changelog-to-html.sh`) and embeds them into the appcast entry.
@@ -81,7 +83,9 @@ The internal SwiftPM CLI product may remain `CodexBarCLI`, but packaged builds s
 - [ ] `swiftformat`, `swiftlint`, `make test` (zero warnings/errors)
 - [ ] `./Scripts/build_icon.sh` if icon changed
 - [ ] `./Scripts/sign-and-notarize.sh`
-- [ ] Generate Sparkle appcast via `Scripts/release.sh` or `Scripts/make_appcast.sh`; use `SPARKLE_PRIVATE_KEY_FILE` only if overriding Keychain signing.
+- [ ] After a ResearchBar feed is approved, generate the Sparkle appcast via `Scripts/release.sh` or
+  `Scripts/make_appcast.sh`; private-key precedence is `SPARKLE_PRIVATE_KEY_FILE`, `MAC_RELEASE_SIGNING_KEY_FILE`, then
+  Keychain fallback.
   - Upload the dSYM archive alongside the app zip on the GitHub release; the release script now automates this and will fail if it’s missing.
   - After publishing the release and the Release CLI workflow finishes, run `Scripts/check-release-assets.sh <tag>` to confirm the app zip, dSYM zip, CLI tarballs, and CLI checksums are present on GitHub.
   - Generate the appcast + HTML release notes: `./Scripts/make_appcast.sh ResearchBar-macos-universal-<ver>.zip <approved ResearchBar appcast URL>`
@@ -107,7 +111,10 @@ The internal SwiftPM CLI product may remain `CodexBarCLI`, but packaged builds s
 
 ## Troubleshooting
 - **White plate icon**: regenerate icns via `build_icon.sh` (ictool) to ensure transparent padding.
-- **Notarization invalid**: verify deep+timestamp signing, especially Sparkle’s Autoupdate/Updater and XPCs; rerun package + sign-and-notarize.
-- **App won’t launch**: ensure Sparkle.framework is embedded under `Contents/Frameworks` and rpath added; codesign deep.
+- **Notarization invalid**: verify that every nested Sparkle component, helper, widget, and the app itself was signed
+  individually with timestamp + hardened runtime; rerun package + sign-and-notarize. `codesign --deep` is a verification
+  convenience in some checks, not the release signing workflow.
+- **App won’t launch**: ensure Sparkle.framework is embedded under `Contents/Frameworks`, the rpath is present, and all
+  nested components pass signature verification; rerun the individual-component signing workflow if they do not.
 - **App “damaged” dialog after unzip**: re-extract with `ditto -x -k`, removing any `._*` files, then re-verify with `spctl`.
 - **Update download fails (404)**: ensure the release asset referenced in appcast exists and is published in the corresponding GitHub release; verify with `curl -I <enclosure-url>`.

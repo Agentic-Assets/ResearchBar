@@ -219,13 +219,13 @@ struct LocalizationLanguageCatalogTests {
             "ru": [
                 "language_russian": "Русский",
                 "tab_general": "Общие",
-                "quit_app": "Выйти из CodexBar",
+                "quit_app": "Выйти из ResearchBar",
                 "usage_percent_suffix_left": "осталось",
             ],
             "gl": [
                 "language_galician": "Galego",
                 "tab_general": "Xeral",
-                "quit_app": "Saír de CodexBar",
+                "quit_app": "Saír de ResearchBar",
                 "terminal_app_title": "Terminal predeterminado",
                 "terminal_app_subtitle": "Terminal usado pola acción Abrir terminal",
             ],

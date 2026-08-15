@@ -1,5 +1,7 @@
 # 00. What this means for ResearchBar
 
+> **Historical planning record (2026-06).** Do not execute future-tense tasks or reuse frozen credit/tool facts below as current guidance. Current client behavior lives in `Sources/CodexBar*`; current wire facts live in Corbis source; current presentation/privacy constraints are in [`../../docs/superpowers/specs/2026-08-14-corbis-dashboard-design.md`](../../docs/superpowers/specs/2026-08-14-corbis-dashboard-design.md).
+
 The client-first read. All `path:line` references point into the sibling Corbis repo `agentic-assets-app`, per the README convention.
 
 ## The one gate

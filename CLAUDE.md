@@ -1,2 +1,2 @@
-## Agent instructions: `AGENTS.md` is the canonical repo rules file; edit it for all changes, not this bridge file.
+# AGENTS.md is the canonical context file. Only add context there.
 @AGENTS.md

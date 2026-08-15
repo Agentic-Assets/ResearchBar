@@ -15,7 +15,8 @@ endpoints.
 
 ## Data sources
 
-1. **Optional API key** supplied via `DEEPSEEK_API_KEY` / `DEEPSEEK_KEY`, or selected from DeepSeek token accounts in `~/.config/researchbar/config.json`.
+1. **Optional API key** supplied via `DEEPSEEK_API_KEY` / `DEEPSEEK_KEY`, or selected from DeepSeek token accounts in
+   the resolved ResearchBar config file. See `docs/configuration.md` for config-path precedence.
 2. **API-key balance endpoint**
    - `GET https://api.deepseek.com/user/balance`
    - Request headers: `Authorization: Bearer <api key>`, `Accept: application/json`
@@ -78,9 +79,8 @@ DeepSeek Platform in Chrome. Authentication failures returned as top-level or ne
 
 ## Key files
 
-- `Sources/ResearchBarCore/Providers/DeepSeek/DeepSeekProviderDescriptor.swift` (descriptor + fetch strategy)
-- `Sources/ResearchBarCore/Providers/DeepSeek/DeepSeekUsageFetcher.swift` (HTTP client + JSON parser)
-- `Sources/ResearchBarCore/Providers/DeepSeek/DeepSeekPlatformTokenImporter.swift` (Chrome Platform session import)
-- `Sources/ResearchBarCore/Providers/DeepSeek/DeepSeekSettingsReader.swift` (env var resolution)
-- `Sources/ResearchBar/Providers/DeepSeek/DeepSeekProviderImplementation.swift` (provider activation and token-account visibility)
-- `Sources/ResearchBarCore/TokenAccountSupportCatalog+Data.swift` (DeepSeek token-account injection)
+- `Sources/CodexBarCore/Providers/DeepSeek/DeepSeekProviderDescriptor.swift` (descriptor, fetch strategy, and token-account support)
+- `Sources/CodexBarCore/Providers/DeepSeek/DeepSeekUsageFetcher.swift` (HTTP client + JSON parser)
+- `Sources/CodexBarCore/Providers/DeepSeek/DeepSeekPlatformTokenImporter.swift` (Chrome Platform session import)
+- `Sources/CodexBarCore/Providers/DeepSeek/DeepSeekSettingsReader.swift` (env var resolution)
+- `Sources/CodexBar/Providers/DeepSeek/DeepSeekProviderImplementation.swift` (provider activation and token-account visibility)

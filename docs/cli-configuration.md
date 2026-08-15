@@ -9,8 +9,9 @@ read_when:
 # CLI configuration
 
 `researchbar config` edits the same resolved config file used by the app's Settings → Providers pane.
-New installs use `~/.config/researchbar/config.json`; absolute `XDG_CONFIG_HOME` paths and `CODEXBAR_CONFIG` are
-supported, and existing `~/.config/researchbar/config.json` installs keep using the legacy file when no XDG config exists.
+Resolution order is `RESEARCHBAR_CONFIG`, the explicit compatibility override `CODEXBAR_CONFIG`, an absolute
+`$XDG_CONFIG_HOME/researchbar/config.json`, then `~/.config/researchbar/config.json`. Relative `XDG_CONFIG_HOME`
+values are ignored, and ResearchBar does not discover or migrate a legacy on-disk CodexBar config automatically.
 The CLI writes the file with `0600` permissions.
 
 ## Providers
@@ -88,12 +89,13 @@ in the ResearchBar config file.
 For tests, demos, and CI, point ResearchBar at a temporary config file:
 
 ```bash
-export CODEXBAR_CONFIG=/tmp/researchbar-config.json
+export RESEARCHBAR_CONFIG=/tmp/researchbar-config.json
 researchbar config enable --provider grok
 researchbar config providers --json --pretty
 ```
 
-The override applies to both reads and writes for the current process environment.
+The override applies to both reads and writes for the current process environment. `CODEXBAR_CONFIG` remains an
+explicit compatibility alias when `RESEARCHBAR_CONFIG` is unset.
 
 ## Cost history window
 

@@ -23,7 +23,8 @@ third-party Kimi relays.
 
 ## Data sources
 
-1. **API key** stored in `~/.config/researchbar/config.json` or supplied via `MOONSHOT_API_KEY` / `MOONSHOT_KEY`.
+1. **API key** stored in the resolved ResearchBar config file or supplied via `MOONSHOT_API_KEY` / `MOONSHOT_KEY`.
+   See `docs/configuration.md` for config-path precedence.
    ResearchBar binds saved keys to the selected regional host. Switching regions does not send the saved key to
    the other host; switch back or replace it with a key issued for the newly selected region.
 2. **Region**
@@ -44,8 +45,8 @@ third-party Kimi relays.
 
 ## Key files
 
-- `Sources/ResearchBarCore/Providers/Moonshot/MoonshotProviderDescriptor.swift` (descriptor + fetch strategy)
-- `Sources/ResearchBarCore/Providers/Moonshot/MoonshotUsageFetcher.swift` (HTTP client + JSON parser)
-- `Sources/ResearchBarCore/Providers/Moonshot/MoonshotSettingsReader.swift` (env var resolution)
-- `Sources/ResearchBar/Providers/Moonshot/MoonshotProviderImplementation.swift` (settings field + activation logic)
-- `Sources/ResearchBar/Providers/Moonshot/MoonshotSettingsStore.swift` (SettingsStore extension)
+- `Sources/CodexBarCore/Providers/Moonshot/MoonshotProviderDescriptor.swift` (descriptor + fetch strategy)
+- `Sources/CodexBarCore/Providers/Moonshot/MoonshotUsageFetcher.swift` (HTTP client + JSON parser)
+- `Sources/CodexBarCore/Providers/Moonshot/MoonshotSettingsReader.swift` (env var resolution)
+- `Sources/CodexBar/Providers/Moonshot/MoonshotProviderImplementation.swift` (settings field + activation logic)
+- `Sources/CodexBar/Providers/Moonshot/MoonshotSettingsStore.swift` (SettingsStore extension)

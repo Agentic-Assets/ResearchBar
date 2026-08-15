@@ -1,5 +1,7 @@
 # 10. Track B distribution plan
 
+> **Historical distribution plan (2026-06).** Use root packaging/release scripts and [`../../docs/RELEASING.md`](../../docs/RELEASING.md) for current release mechanics. This plan does not authorize a release, signing change, or distribution-channel decision.
+
 This guide covers the parts that should wait until the pulse slice works:
 product naming, bundle identifiers, Sparkle, notarization, Homebrew, release
 validation, and macOS Tahoe checks.

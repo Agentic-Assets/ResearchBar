@@ -69,7 +69,7 @@ struct StatusItemIconObservationSignatureTests {
     }
 
     @Test
-    func `custom menu bar layout preserves accessibility without a hover tooltip`() throws {
+    func `custom menu bar layout preserves accessibility with the ResearchBar hover label`() throws {
         let (_, _, controller) = self.makeController(
             suiteName: "StatusItemIconObservationSignatureTests-custom-layout-tooltip",
             menuBarLayout: MenuBarLayout(lines: [[.icon, .providerName]]))
@@ -77,7 +77,7 @@ struct StatusItemIconObservationSignatureTests {
 
         let button = try #require(controller.statusItem.button)
         #expect(button.accessibilityTitle()?.isEmpty == false)
-        #expect(button.toolTip == nil)
+        #expect(button.toolTip == "ResearchBar")
     }
 
     @Test

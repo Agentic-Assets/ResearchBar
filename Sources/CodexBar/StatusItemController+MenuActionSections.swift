@@ -92,8 +92,15 @@ extension StatusItemController {
         captureMenu: NSMenu?)
     {
         let localizedTitle = L(title)
-        _ = width
-        _ = captureMenu
+        if action == .refresh {
+            let item = self.makePersistentRefreshItem(
+                title: localizedTitle,
+                menu: captureMenu ?? menu,
+                width: width)
+            menu.addItem(item)
+            self.persistentRefreshItems.add(item)
+            return
+        }
         menu.addItem(self.makeActionableMenuItem(title: localizedTitle, action: action))
     }
 

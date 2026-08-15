@@ -19,6 +19,11 @@ struct CorbisMCPClientTests {
     /// Wrap a structured-content fixture (raw JSON bytes) in a success JSON-RPC envelope.
     private static func successEnvelope(structuredFixture name: String) throws -> Data {
         let fixture = try ResearchBarFixtures.data(name)
+        return try self.successEnvelope(structuredData: fixture)
+    }
+
+    private static func successEnvelope(structuredData: Data) throws -> Data {
+        let fixture = structuredData
         let structured = try #require(String(bytes: fixture, encoding: .utf8))
         let envelope = """
         {"jsonrpc":"2.0","id":"1","result":{"structuredContent":\(structured),\
@@ -239,6 +244,29 @@ struct CorbisMCPClientTests {
 
         await #expect(throws: CorbisMCPError.redactionFailed) {
             _ = try await client.fetchResearchPulse(token: Self.token)
+        }
+    }
+
+    @Test
+    func `live decoded pulse rejects short marker account identifier without echoing plan`() async throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        let unsafePlan = "Academic acct=12"
+        object["plan"] = unsafePlan
+        let structuredData = try JSONSerialization.data(withJSONObject: object)
+        let client = Self.client { request in
+            let envelope = try Self.successEnvelope(structuredData: structuredData)
+            return (envelope, Self.http(200, url: request.url))
+        }
+
+        do {
+            _ = try await client.fetchResearchPulse(token: Self.token)
+            Issue.record("expected a redaction failure")
+        } catch let error as CorbisMCPError {
+            #expect(error == .redactionFailed)
+            #expect(!String(describing: error).contains(unsafePlan))
+        } catch {
+            Issue.record("unexpected error: \(String(describing: error))")
         }
     }
 

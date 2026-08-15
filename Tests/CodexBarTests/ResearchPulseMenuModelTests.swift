@@ -188,11 +188,41 @@ struct ResearchPulseMenuModelTests {
     }
 
     @Test
+    func `stale industry profile keeps cached provenance and professional content`() throws {
+        let model = try ResearchPulseMenuModel.make(from: .loaded(
+            pulse: ResearchBarFixtures.pulse("pulse-industry-profile"),
+            fromStaleCache: true))
+
+        #expect(model.state == .staleCache)
+        #expect(model.actions.contains(.refresh))
+        #expect(model.hasNotice)
+        #expect(model.renderedStrings.contains("Cached"))
+        #expect(model.renderedStrings.contains("Credits"))
+        #expect(model.renderedStrings.contains("49"))
+        #expect(model.renderedStrings.contains("Metrics not tracked"))
+        #expect(model.renderedStrings.contains { $0.localizedCaseInsensitiveContains("Meridian") })
+    }
+
+    @Test
     func `credit limited has no automatic refresh action`() throws {
         let model = try ResearchPulseMenuModel
             .make(from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-credit-limited")))
         #expect(model.state == .creditLimited)
         #expect(!model.actions.contains(.refresh))
+    }
+
+    @Test
+    func `credit limited retained pulse is cached context without a current balance`() throws {
+        let model = try ResearchPulseMenuModel
+            .make(from: .creditLimited(pulse: ResearchBarFixtures.pulse("pulse-contract-limited")))
+
+        #expect(model.state == .creditLimited)
+        #expect(model.renderedStrings.contains("Cached"))
+        #expect(model.renderedStrings.contains("Plan"))
+        #expect(model.renderedStrings.contains("academic"))
+        #expect(model.renderedStrings.contains("Corbis credits are used up"))
+        #expect(!model.renderedStrings.contains("Credits"))
+        #expect(!model.renderedStrings.contains("12.5"))
     }
 
     @Test

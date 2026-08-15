@@ -1,12 +1,18 @@
 # Open issues and decisions
 
-Last updated: 2026-07-13. Living tracker for ResearchBar. Corbis evidence-backed closures live in [`../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md`](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md).
+Last updated: 2026-08-14. Living tracker for ResearchBar. Corbis evidence-backed closures live in [`../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md`](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md).
 
 **Build entry:** [`BUILD.md`](BUILD.md). **Wire contract:** [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md). **Client plan:** [`build/`](build/). **Deep client review:** [`RESEARCHBAR-BUILD-REVIEW-2026-06-18.md`](RESEARCHBAR-BUILD-REVIEW-2026-06-18.md). **Corbis plan:** [`../../agentic-assets-app/docs/researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/).
 
 ---
 
-## Critical path (blocks a working menu panel)
+## Current state and remaining backend dependency
+
+The ResearchBar pulse/card, credential/cache seams, MCP client, and source-aware dashboard are implemented and locally verified on `feat/corbis-dashboard`. The client displays only safe remaining finite/unlimited credit state and validated citation history; it does not fabricate allowance, reset, rate, quota, or usage history.
+
+The remaining capability gap is a server-owned, authenticated entitlement and usage-summary contract. It must distinguish ordinary credits from future ResearchBar attribution and expose a denominator, reset, or history only when authoritative. The prepared Corbis Linear issue must be created after an authorized operator restores Linear access.
+
+## Historical backend gate (resolved for client implementation)
 
 **PARTIALLY RESOLVED 2026-06-27.** Corbis **Phase 0** payload and redaction behavior (and Phase 1 trend snapshots + `get_data_freshness`) is shipped and the live MCP smoke passes over real HTTP, so Track B can build the real pulse panel. Billing-delta proof is still open: the 0.5-credit charge must be observed with a finite-credit free-tier token before the live gate is fully closed. Evidence: Corbis `_recon/2026-06-26-live-smoke.md`; contract: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
 
@@ -26,7 +32,7 @@ Last updated: 2026-07-13. Living tracker for ResearchBar. Corbis evidence-backed
 
 | Risk | Mitigation | Doc |
 |---|---|---|
-| Passive polling burns 50 lifetime credits (~100 calls at 0.5/call) | Poll on menu-open or slow cadence; respect `staleAfter`/`etag`; show `creditsRemaining` | [`build/00`](build/00-what-this-means-for-researchbar.md) |
+| Passive polling can consume server-owned credits | Use menu-open/manual refresh plus `staleAfter`/`etag`; render only the returned remaining balance or unlimited state | [`build/00`](build/00-what-this-means-for-researchbar.md) |
 | Null trends rendered as fake zeros | Gate UI on `citationHistoryStatus`; never draw empty sparkline as "0" | [`build/02`](build/02-mcp-contract-get-research-pulse.md) |
 | Internal id / backend name leak | Corbis 0.B + client defensive redact + debug assertion | [`build/01`](build/01-corbis-vs-researchbar-boundary.md) |
 | GRDB cache cross-account contamination | Key cache by Corbis account id | [`build/00`](build/00-what-this-means-for-researchbar.md) |
@@ -41,7 +47,7 @@ Last updated: 2026-07-13. Living tracker for ResearchBar. Corbis evidence-backed
 
 | Decision | Why open | Pointer |
 |---|---|---|
-| ResearchBar-specific free allowance (>50 lifetime credits) | No install-attribution column; global raise affects all web users | Corbis [`06` §C](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) |
+| ResearchBar-specific allowance or entitlement | Requires authenticated server-owned attribution and entitlement semantics; the client must not infer it | Corbis [`06` §C](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) |
 | Polling cadence + whether Corbis subsidizes pulse server-side | Product/margin; drives activation churn | [`concept/funnel-economics.md`](concept/funnel-economics.md) |
 | `trackedPaperCount` definition | Saved papers vs authored `works_count` | Corbis [`06` §B](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) |
 | Citation reconciliation rule | Only matters when multiple sources contribute | Corbis [`06` §B](../../agentic-assets-app/docs/researchbar-evaluation/06-risks-and-open-questions.md) |
@@ -57,7 +63,7 @@ Last updated: 2026-07-13. Living tracker for ResearchBar. Corbis evidence-backed
 
 ## Track B: client (slices 06-10 implemented 2026-06-27 on branch `feat/researchbar-track-b-client`)
 
-Implemented as a Core/app split: pure logic in `Sources/CodexBarCore/ResearchBar/`, SwiftUI/AppKit in `Sources/CodexBar/ResearchBar/`. Full `make test` and `make check` green; no new dependencies; no token/internal-id/backend-name ever surfaced. User-facing app identity is now ResearchBar with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.
+Implemented as a Core/app split: pure logic in `Sources/CodexBarCore/ResearchBar/`, SwiftUI/AppKit in `Sources/CodexBar/ResearchBar/`. Current dashboard verification is recorded in [`../docs/superpowers/specs/2026-08-14-corbis-dashboard-design.md`](../docs/superpowers/specs/2026-08-14-corbis-dashboard-design.md); dated fixture/test counts below are historical, not a live coverage inventory. User-facing app identity is ResearchBar with bundle id `com.corbis.researchbar`; inherited SwiftPM target/module paths remain `CodexBar*` for upstream-sync stability.
 
 | Item | Status |
 |---|---|

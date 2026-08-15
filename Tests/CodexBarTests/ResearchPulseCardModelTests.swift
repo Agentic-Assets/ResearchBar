@@ -27,7 +27,7 @@ struct ResearchPulseCardModelTests {
         let visibleText = [model.title, model.subtitle, model.freshness, model.notice]
             .compactMap(\.self)
             + model.metrics.flatMap { [$0.label, $0.value, $0.detail].compactMap(\.self) }
-            + [model.dataQuality?.summary, model.trend?.summary].compactMap(\.self)
+            + [model.dataQuality?.summary, model.trend?.summary, model.plan, model.credit?.summary].compactMap(\.self)
         for value in visibleText {
             #expect(ResearchPulseRedactor.backendSourceNames(in: value).isEmpty)
             #expect(!ResearchPulseRedactor.containsInternalAuthorID(value))
@@ -44,13 +44,104 @@ struct ResearchPulseCardModelTests {
     }
 
     @Test
-    func `credit limited card does not offer refresh`() throws {
-        let pulse = try ResearchBarFixtures.pulse("pulse-credit-limited")
+    func `credit limited card treats retained pulse as cached evidence`() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-contract-limited")
         let model = ResearchPulseCardModel.make(from: .creditLimited(pulse: pulse))
 
         #expect(model.state == .creditLimited)
         #expect(model.notice == "Corbis credits are used up")
+        #expect(model.credit == nil)
+        #expect(model.freshness?.hasPrefix("Cached · ") == true)
         #expect(!model.actions.contains(.menuAction(.refresh)))
+    }
+
+    @Test
+    func `card projects plan and finite credits without a quota`() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-contract-limited")
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
+
+        #expect(model.plan == pulse.plan)
+        #expect(model.credit?.summary == "12.5 credits remaining")
+        #expect(model.freshness?.hasPrefix("Updated ") == true)
+
+        let stale = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+        #expect(stale.state == .staleCache)
+        #expect(stale.credit?.summary == "12.5 credits remaining")
+        #expect(stale.freshness?.hasPrefix("Cached · ") == true)
+    }
+
+    @Test
+    func `stale industry profile keeps professional presentation and cached credit provenance`() throws {
+        let pulse = try ResearchBarFixtures.pulse("pulse-industry-profile")
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+
+        #expect(model.state == .staleCache)
+        #expect(model.title == pulse.displayName)
+        #expect(model.subtitle == "VP of Research · Meridian Capital Partners")
+        #expect(model.credit?.summary == "49 credits remaining")
+        #expect(model.freshness?.hasPrefix("Cached · ") == true)
+        #expect(model.freshness?.hasPrefix("Updated ") == false)
+        #expect(model.metrics.isEmpty)
+    }
+
+    @Test
+    func `cached pulse with private account evidence in plan fails closed`() throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["plan"] = "Academic account #42"
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: true))
+
+        #expect(model.state == .safeError)
+        #expect(model.plan == nil)
+        #expect(model.credit == nil)
+        #expect(model.title == "Pulse unavailable right now")
+    }
+
+    @Test
+    func `card omits a whitespace only plan`() throws {
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["plan"] = " \n\t "
+        let pulse = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: pulse, fromStaleCache: false))
+
+        #expect(model.plan == nil)
+    }
+
+    @Test
+    func `card projects unlimited and omits unavailable credits`() throws {
+        let unlimitedPulse = try ResearchBarFixtures.pulse("pulse-contract-unlimited")
+        let unavailablePulse = try ResearchBarFixtures.pulse("pulse-contract-no-balances")
+        let unlimited = ResearchPulseCardModel.make(from: .loaded(
+            pulse: unlimitedPulse,
+            fromStaleCache: false))
+        let unavailable = ResearchPulseCardModel.make(from: .loaded(
+            pulse: unavailablePulse,
+            fromStaleCache: false))
+
+        #expect(unlimited.credit?.summary == "Unlimited credits")
+        #expect(unavailable.credit == nil)
+    }
+
+    @Test
+    func `card uses valid legacy credit fallback and omits negative credits`() throws {
+        let malformedPulse = try ResearchBarFixtures.pulse("pulse-contract-malformed-new-fields")
+        let malformed = ResearchPulseCardModel.make(from: .loaded(
+            pulse: malformedPulse,
+            fromStaleCache: false))
+        #expect(malformed.credit?.summary == "9.25 credits remaining")
+
+        let base = try ResearchBarFixtures.data("pulse-contract-limited")
+        var object = try #require(try JSONSerialization.jsonObject(with: base) as? [String: Any])
+        object["creditBalance"] = NSNull()
+        object["creditsRemaining"] = -1
+        let negative = try ResearchPulse.decode(JSONSerialization.data(withJSONObject: object))
+        let model = ResearchPulseCardModel.make(from: .loaded(pulse: negative, fromStaleCache: false))
+
+        #expect(model.credit == nil)
     }
 
     @Test

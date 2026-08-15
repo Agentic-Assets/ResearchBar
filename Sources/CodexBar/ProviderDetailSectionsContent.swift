@@ -47,16 +47,23 @@ struct ProviderDetailSectionsContent: View {
                 .lineLimit(1)
             }
             if let chart = section.chart {
-                ProviderDetailChartContent(chart: chart, color: self.chartColor)
+                MenuCardChartContent(chart: chart, color: self.chartColor)
             }
         }
     }
 }
 
-private struct ProviderDetailChartContent: View {
+struct MenuCardChartContent: View {
     let chart: ProviderDetailSection.Chart
     let color: Color
+    let height: CGFloat
     @Environment(\.menuItemHighlighted) private var isHighlighted
+
+    init(chart: ProviderDetailSection.Chart, color: Color, height: CGFloat = 58) {
+        self.chart = chart
+        self.color = color
+        self.height = height
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -84,10 +91,11 @@ private struct ProviderDetailChartContent: View {
                     self.line
                 }
             }
-            .frame(height: 58)
+            .frame(height: self.height)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(self.accessibilityLabel)
+            .accessibilityLabel(Self.accessibilityLabel(for: self.chart))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var bars: some View {
@@ -145,10 +153,10 @@ private struct ProviderDetailChartContent: View {
         }
     }
 
-    private var accessibilityLabel: String {
-        let title = self.chart.title.map { "\($0): " } ?? ""
-        let unit = self.chart.unit.map { " \($0)" } ?? ""
-        let points = self.chart.points.map { "\($0.label) \($0.value)\(unit)" }.joined(separator: ", ")
+    static func accessibilityLabel(for chart: ProviderDetailSection.Chart) -> String {
+        let title = chart.title.map { "\($0): " } ?? ""
+        let unit = chart.unit.map { " \($0)" } ?? ""
+        let points = chart.points.map { "\($0.label) \($0.value)\(unit)" }.joined(separator: ", ")
         return title + points
     }
 

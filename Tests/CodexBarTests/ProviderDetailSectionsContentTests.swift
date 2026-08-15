@@ -27,6 +27,24 @@ struct ProviderDetailSectionsContentTests {
         #expect(size.height > 58)
     }
 
+    @Test
+    func `generic chart renderer fills the offered menu-card width`() throws {
+        let chart = try ProviderDetailSection.Chart(
+            kind: .line,
+            title: nil,
+            unit: "citations",
+            points: [
+                .init(label: "Week 1", value: 10),
+                .init(label: "Week 2", value: 12),
+            ])
+        let width: CGFloat = 282
+        let size = NSHostingController(rootView: MenuCardChartContent(chart: chart, color: .blue))
+            .sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude))
+
+        #expect(abs(size.width - width) <= 0.5)
+        #expect(size.height >= 58)
+    }
+
     private static func section(kind: ProviderDetailSection.Chart.Kind) throws -> ProviderDetailSection {
         try ProviderDetailSection(
             title: "Usage",

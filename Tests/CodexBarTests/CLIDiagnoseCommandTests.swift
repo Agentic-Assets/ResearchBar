@@ -8,6 +8,8 @@ struct CLIDiagnoseCommandTests {
     func `diagnose help describes generic JSON export`() {
         let help = CodexBarCLI.diagnoseHelp(version: "0.0.0")
 
+        #expect(help.hasPrefix("ResearchBar 0.0.0"))
+        #expect(!help.contains("codexbar"))
         #expect(help.contains("researchbar diagnose --provider <name|all> --format json"))
         #expect(help.contains("researchbar diagnose --provider all --format json"))
         #expect(help.contains("--redact"))

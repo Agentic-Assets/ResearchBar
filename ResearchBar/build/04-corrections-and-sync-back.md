@@ -1,5 +1,7 @@
 # 04. Corrections and sync-back (audit record)
 
+> **Historical correction log (2026-06).** Preserve these findings as provenance. Current client behavior and contract safety rules are documented by current source and the maintained wire-contract reference.
+
 Date: 2026-06-17 (audit). **Applied to `../concept/` on 2026-06-18** during folder reorganization. Living blockers: [`../OPEN-ISSUES.md`](../OPEN-ISSUES.md).
 
 The concept docs carried facts that the Corbis code contradicted as of 2026-06-17. This file records what was wrong and what was fixed. All `path:line` references in the "code says" column point into **`../../../agentic-assets-app`**.

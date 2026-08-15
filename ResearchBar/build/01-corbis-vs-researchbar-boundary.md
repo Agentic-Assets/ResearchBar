@@ -1,5 +1,7 @@
 # 01. Corbis vs ResearchBar boundary (corrected)
 
+> **Historical architecture audit (2026-06).** Its preimplementation gaps and future-tense phases are retained as evidence, not current instructions. Current client behavior lives in `Sources/CodexBar*`; current Corbis wire/identity behavior must be rechecked in backend source. Never surface private identity/backend plumbing; declared public academic provenance is a separate, source-aware field.
+
 The ownership split, reconciled against the Corbis code. The concept's split ([`../concept/identity-and-data-consolidation.md`](../concept/identity-and-data-consolidation.md), [`../concept/corbis-api-contracts.md`](../concept/corbis-api-contracts.md)) is largely correct and endorsed. This file corrects two things the concept got optimistic about and adds the client obligations that fall out of the corrected facts. All `path:line` references point into the sibling Corbis repo `agentic-assets-app`.
 
 ## Ownership table

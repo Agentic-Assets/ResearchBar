@@ -1,5 +1,10 @@
 # 10b. Track B distribution decisions (captured)
 
+> **Historical distribution snapshot (2026-06-27).** The `0.36.2` / build `89` values and completion/open labels below
+> record that audit and are not current release facts. For current implementation and release authority use
+> [`../BUILD.md`](../BUILD.md), [`../../docs/RELEASING.md`](../../docs/RELEASING.md), `.mac-release.env`,
+> `version.env`, and current packaging source. Re-check those files before any distribution decision or release.
+
 Companion to [`10-track-b-distribution-plan.md`](10-track-b-distribution-plan.md). The plan says *what to decide and when*; this file *captures the decisions and the concrete migration surface*. As of 2026-06-27, the user-facing macOS app identity is ResearchBar with bundle id `com.corbis.researchbar`. SwiftPM target/module names still carry inherited `CodexBar*` names for upstream-sync stability.
 
 Grounded in the live release config at the 2026-06-27 audit: `.mac-release.env`, `Scripts/package_app.sh`, `docs/RELEASING.md`, `version.env` (marketing `0.36.2`, build `89`).
