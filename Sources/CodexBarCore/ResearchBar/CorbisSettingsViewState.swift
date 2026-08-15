@@ -54,7 +54,7 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
             [.connect, .clearCache]
         case .connecting:
             [.clearCache]
-        case .connected, .invalid, .validationUnavailable, .storageUnavailable:
+        case .connected, .invalid, .validationUnavailable, .storageUnavailable, .storageUnavailableAfterValidation:
             [.reconnect, .unlink, .clearCache]
         }
     }
@@ -81,6 +81,8 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
             return "Connection could not be verified"
         case .storageUnavailable:
             return "Secure storage needs attention"
+        case .storageUnavailableAfterValidation:
+            return "Secure storage needs attention"
         }
     }
 
@@ -98,7 +100,9 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
         case .validationUnavailable:
             "Corbis could not be reached. Your token was not saved. Try again later."
         case .storageUnavailable:
-            "ResearchBar could not access secure storage. Your token was not sent."
+            "ResearchBar could not read secure storage. Reconnect with your token to replace this entry."
+        case .storageUnavailableAfterValidation:
+            "Your token was accepted but could not be saved to secure storage."
         }
     }
 }

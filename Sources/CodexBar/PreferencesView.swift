@@ -273,8 +273,8 @@ extension PreferencesView {
                     model.connectionState = .invalid
                 case .validationUnavailable:
                     model.connectionState = .validationUnavailable
-                case .storageUnavailable:
-                    model.connectionState = .storageUnavailable
+                case .storageUnavailableAfterValidation:
+                    model.connectionState = .storageUnavailableAfterValidation
                 }
             }
         }

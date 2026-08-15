@@ -8,7 +8,8 @@ public enum CorbisCredentialConnectionResult: Equatable, Sendable {
     case connected(CorbisCredential)
     case invalidCredential
     case validationUnavailable
-    case storageUnavailable
+    /// The protected server check accepted the candidate, but Keychain persistence failed.
+    case storageUnavailableAfterValidation
 }
 
 /// Validates a replacement credential before changing local state.
@@ -49,7 +50,7 @@ public struct CorbisCredentialConnector: Sendable {
         do {
             try await self.credentialStore.saveCredential(credential)
         } catch {
-            return .storageUnavailable
+            return .storageUnavailableAfterValidation
         }
         await self.cache.clearAll()
         return .connected(credential)

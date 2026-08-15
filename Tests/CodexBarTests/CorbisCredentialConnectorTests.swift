@@ -47,7 +47,7 @@ struct CorbisCredentialConnectorTests {
 
         let result = await connector.connect(token: Self.candidateToken)
 
-        #expect(result == .storageUnavailable)
+        #expect(result == .storageUnavailableAfterValidation)
         #expect(await cache.clearCount == 0)
     }
 

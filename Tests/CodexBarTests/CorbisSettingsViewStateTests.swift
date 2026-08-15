@@ -54,9 +54,17 @@ struct CorbisSettingsViewStateTests {
     func `storage failure is not presented as a rejected token`() {
         let state = CorbisSettingsViewState(connectionState: .storageUnavailable)
         #expect(state.accountSummary == "Secure storage needs attention")
-        #expect(state.diagnostic.contains("could not access secure storage"))
+        #expect(state.diagnostic.contains("could not read secure storage"))
         #expect(!state.diagnostic.localizedCaseInsensitiveContains("rejected"))
         #expect(state.availableIntents == [.reconnect, .unlink, .clearCache])
+    }
+
+    @Test
+    func `post validation storage failure does not claim token was unsent`() {
+        let state = CorbisSettingsViewState(connectionState: .storageUnavailableAfterValidation)
+        #expect(state.diagnostic.contains("accepted"))
+        #expect(state.diagnostic.contains("could not be saved"))
+        #expect(!state.diagnostic.localizedCaseInsensitiveContains("was not sent"))
     }
 
     @Test
