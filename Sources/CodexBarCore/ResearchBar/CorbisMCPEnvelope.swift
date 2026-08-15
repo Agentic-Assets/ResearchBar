@@ -109,8 +109,8 @@ public struct JSONRPCResponse<Success: Decodable>: Decodable {
 
 // MARK: - tools/list envelope
 
-/// Lightweight decode of a `tools/list` response. Only tool names are surfaced, for the
-/// sparse credential-validation probe.
+/// Lightweight decode of a `tools/list` response. Only tool names are surfaced for
+/// capability discovery; this endpoint is deliberately not used to validate credentials.
 struct CorbisToolsListResponse: Decodable {
     struct Result: Decodable {
         struct Tool: Decodable {
@@ -158,5 +158,27 @@ struct CorbisMCPRequestBody: Encodable {
 
     func encodedData() throws -> Data {
         try JSONEncoder().encode(self)
+    }
+}
+
+/// Encodes the protected, non-tool credential probe. The server authenticates
+/// `resources/read` before routing it, while credit reservations are limited to
+/// `tools/call`, so reconnect validation never consumes a research-pulse credit.
+struct CorbisMCPResourceReadRequestBody: Encodable {
+    struct Params: Encodable {
+        let uri: String
+    }
+
+    let jsonrpc: String
+    let id: String
+    let method: String
+    let params: Params
+
+    static func authenticationProbe(id: String) -> CorbisMCPResourceReadRequestBody {
+        CorbisMCPResourceReadRequestBody(
+            jsonrpc: "2.0",
+            id: id,
+            method: "resources/read",
+            params: Params(uri: "docs://auth"))
     }
 }

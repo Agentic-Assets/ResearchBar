@@ -16,8 +16,10 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
         case clearCache
     }
 
-    /// Required prefix for a pasted Corbis MCP token.
+    /// Primary prefix for a pasted Corbis MCP token.
     public static let tokenPrefix = "corbis_mcp_"
+    /// Legacy personal keys remain valid on the Corbis service during its compatibility window.
+    public static let legacyTokenPrefix = "orbis_mcp_"
 
     public let connectionState: CorbisConnectionState
     public let tokenField: String
@@ -31,15 +33,16 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
 
     // MARK: Token validation
 
-    /// True when the trimmed token field carries the `corbis_mcp_` prefix and a body.
+    /// True when the trimmed token field carries a supported prefix and a body.
     public var isTokenFieldValid: Bool {
         Self.isValidToken(self.tokenField)
     }
 
     public static func isValidToken(_ token: String) -> Bool {
         let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.hasPrefix(self.tokenPrefix) else { return false }
-        return trimmed.count > self.tokenPrefix.count
+        let prefixes = [self.tokenPrefix, self.legacyTokenPrefix]
+        guard let prefix = prefixes.first(where: { trimmed.hasPrefix($0) }) else { return false }
+        return trimmed.count > prefix.count
     }
 
     // MARK: Intents
@@ -51,7 +54,7 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
             [.connect, .clearCache]
         case .connecting:
             [.clearCache]
-        case .connected, .invalid:
+        case .connected, .invalid, .validationUnavailable, .storageUnavailable:
             [.reconnect, .unlink, .clearCache]
         }
     }
@@ -74,6 +77,28 @@ public struct CorbisSettingsViewState: Equatable, Sendable {
             return "Connected to Corbis"
         case .invalid:
             return "Connection needs attention"
+        case .validationUnavailable:
+            return "Connection could not be verified"
+        case .storageUnavailable:
+            return "Secure storage needs attention"
+        }
+    }
+
+    /// A safe, user-facing explanation that never includes a credential or server response.
+    public var diagnostic: String {
+        switch self.connectionState {
+        case .notConnected:
+            "Paste your Corbis MCP token to start tracking your research pulse."
+        case .connecting:
+            "Validating your connection…"
+        case .connected:
+            "Connection healthy. Pulse refreshes on menu open and manual refresh."
+        case .invalid:
+            "The token was not accepted. Your saved connection was not changed."
+        case .validationUnavailable:
+            "Corbis could not be reached. Your token was not saved. Try again later."
+        case .storageUnavailable:
+            "ResearchBar could not access secure storage. Your token was not sent."
         }
     }
 }

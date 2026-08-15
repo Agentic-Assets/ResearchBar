@@ -6,9 +6,11 @@ struct CorbisSettingsViewStateTests {
     // MARK: Token validation
 
     @Test
-    func `valid token requires corbis prefix and body`() {
+    func `valid token accepts supported prefixes and requires a body`() {
         #expect(CorbisSettingsViewState.isValidToken("corbis_mcp_abcdef123456"))
+        #expect(CorbisSettingsViewState.isValidToken("orbis_mcp_abcdef123456"))
         #expect(!CorbisSettingsViewState.isValidToken("corbis_mcp_"))
+        #expect(!CorbisSettingsViewState.isValidToken("orbis_mcp_"))
         #expect(!CorbisSettingsViewState.isValidToken("sk-live-abcdef"))
         #expect(!CorbisSettingsViewState.isValidToken(""))
         #expect(!CorbisSettingsViewState.isValidToken("   "))
@@ -46,6 +48,15 @@ struct CorbisSettingsViewStateTests {
         #expect(state.availableIntents.contains(.reconnect))
         #expect(state.availableIntents.contains(.unlink))
         #expect(state.availableIntents.contains(.clearCache))
+    }
+
+    @Test
+    func `storage failure is not presented as a rejected token`() {
+        let state = CorbisSettingsViewState(connectionState: .storageUnavailable)
+        #expect(state.accountSummary == "Secure storage needs attention")
+        #expect(state.diagnostic.contains("could not access secure storage"))
+        #expect(!state.diagnostic.localizedCaseInsensitiveContains("rejected"))
+        #expect(state.availableIntents == [.reconnect, .unlink, .clearCache])
     }
 
     @Test

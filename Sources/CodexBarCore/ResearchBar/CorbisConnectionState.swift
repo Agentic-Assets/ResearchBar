@@ -7,6 +7,10 @@ public enum CorbisConnectionState: Equatable, Sendable {
     case connecting
     case connected(CorbisAccountIdentity)
     case invalid
+    /// The candidate was not saved because Corbis could not be reached or its response was invalid.
+    case validationUnavailable
+    /// Secure local storage was unavailable; this is not evidence that a token was rejected.
+    case storageUnavailable
 
     /// Map the trivially-determined states onto a menu input. `connecting` and
     /// `connected` depend on a fetched pulse, so they return nil here and are resolved
@@ -17,6 +21,8 @@ public enum CorbisConnectionState: Equatable, Sendable {
             .notConnected
         case .invalid:
             .invalidCredential
+        case .validationUnavailable, .storageUnavailable:
+            .safeError
         case .connecting, .connected:
             nil
         }
