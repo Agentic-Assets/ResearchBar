@@ -236,7 +236,7 @@ scan fails, while provider/account configuration changes replace obsolete result
 
 Alibaba Coding Plan, Alibaba Token Plan, and Qwen Cloud all run on the Aliyun OneConsole
 backend. They selectively reuse plumbing under
-`Sources/ResearchBarCore/Providers/Shared/AliyunOneConsole/`:
+`Sources/CodexBarCore/Providers/Shared/AliyunOneConsole/`:
 
 - `AliyunOneConsoleCookieImporter` — browser cookie iteration, Chromium fallback, Keychain preflight.
   The Alibaba providers and Qwen Cloud supply their own cookie domains and authenticated-session predicate.

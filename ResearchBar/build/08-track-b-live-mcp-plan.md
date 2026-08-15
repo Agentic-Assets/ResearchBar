@@ -1,5 +1,7 @@
 # 08. Track B live MCP plan
 
+> **Historical implementation plan (2026-06).** The live MCP client seam is implemented, but live-account verification is opt-in only and requires explicit owner authorization plus a safe test account. Use fixtures and current source for ordinary development; do not rely on frozen tool/credit facts below.
+
 This guide wires the native client to Corbis after the backend contract exists.
 It covers JSON-RPC, request validation, error mapping, smoke tests, defensive
 redaction, and credit-safe refresh.
@@ -132,7 +134,7 @@ curl -s -X POST "$BASE/api/mcp/universal" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_research_pulse","arguments":{}}}' \
   | tee /tmp/research-pulse.json
 
-rg -i 'openalex|semantic scholar|ssrn|backend|sourceId|authorId|openalexId' /tmp/research-pulse.json
+rg -i 'sourceId|authorId|openalexId|privateEmail|credential|apiKey' /tmp/research-pulse.json
 ```
 
 The final `rg` must return no matches. This payload smoke does not prove the

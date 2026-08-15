@@ -1,5 +1,11 @@
 # Identity and data consolidation architecture
 
+> **Historical architecture record (June 2026).** This file preserves the target model and the gaps observed during
+> that audit. Statements below such as "unstarted," "today," "shipped MCP output still leaks," and phase assignments
+> are dated evidence, not current implementation status. For current client behavior use [`../BUILD.md`](../BUILD.md),
+> [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md), and current source/tests;
+> re-verify backend behavior in sibling `agentic-assets-app` source.
+
 > **Implementation facts:** [`../build/`](../build/) and Corbis [`researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/). ORCID-first confirm is **unstarted** (no `orcid` column). Never-surface requires a **backend redaction pass** (Phase 0.B), not something the thin client inherits today.
 
 This file is the source of truth for how ResearchBar handles researcher identity and how it consolidates citations, rankings, and profile data. It encodes the architectural decisions that supersede looser framing in the original concept report. Where this file and the report disagree on architecture, this file wins. Where this file disagrees with [`../build/`](../build/) on code-verified facts, the build docs win.

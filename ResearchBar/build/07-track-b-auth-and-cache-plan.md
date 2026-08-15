@@ -1,5 +1,7 @@
 # 07. Track B auth and cache plan
 
+> **Historical implementation plan (2026-06).** Current credential/cache code lives in `Sources/CodexBarCore/ResearchBar/`; this plan is retained for rationale. The current file/in-memory cache is account-scoped and GRDB remains deferred.
+
 This guide adds the local state ResearchBar needs before live MCP calls:
 Corbis credential storage, account identity, cache partitioning, freshness
 rules, and the GRDB decision point.
@@ -20,11 +22,11 @@ patterns. Do not add GRDB without explicit sign-off.
 
 | Path | Purpose |
 |---|---|
-| `Sources/CodexBar/ResearchBar/CorbisCredentialStore.swift` | Keychain-backed token storage plus protocol for tests. |
+| `Sources/CodexBarCore/ResearchBar/CorbisCredentialStore.swift` | Keychain-backed token storage plus protocol for tests. |
 | `Sources/CodexBarCore/ResearchBar/CorbisAccountIdentity.swift` | Stable account key fields used for cache partitioning. |
 | `Sources/CodexBarCore/ResearchBar/ResearchPulseCache.swift` | Cache protocol, cache key, freshness decision, invalidation. |
 | `Sources/CodexBarCore/ResearchBar/FileResearchPulseCache.swift` | Optional v0 file-backed cache if persistent cache is needed before GRDB. |
-| `Sources/CodexBar/ResearchBar/CorbisConnectionState.swift` | App-side connection state used by menu and settings. |
+| `Sources/CodexBarCore/ResearchBar/CorbisConnectionState.swift` | Core connection state used by menu and settings. |
 | `Tests/CodexBarTests/CorbisCredentialStoreTests.swift` | Protocol and no-UI query coverage. |
 | `Tests/CodexBarTests/ResearchPulseCacheTests.swift` | Account scoping, freshness, invalidation, and token-change behavior. |
 | `Tests/CodexBarTests/TestResearchBarStores.swift` | Test doubles for credential and cache stores. |

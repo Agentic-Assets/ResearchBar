@@ -1,6 +1,12 @@
 # Concept layer (product north star)
 
-**Status:** Concept exploration and high-level spec. **Not** the implementation source of truth for facts.
+> **Historical concept package (June 2026).** Preserve these documents for product rationale and decision provenance,
+> but do not use unqualified "today," "current," phase, tool-count, rate, or implementation-status statements as
+> present facts. Current client authority is [`../BUILD.md`](../BUILD.md), the maintained
+> [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md), and current source/tests.
+> Current backend authority is the sibling `agentic-assets-app` source.
+
+**Status:** Concept exploration and high-level spec. **Not** the implementation source of truth for current facts.
 
 For building, use [`../BUILD.md`](../BUILD.md) and [`../build/`](../build/). For Corbis backend depth, use [`../../../agentic-assets-app/docs/researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/).
 

@@ -12,11 +12,13 @@ ResearchBar reads a single JSON config file for CLI and app provider settings.
 API keys, manual cookie headers, source selection, ordering, and token accounts live here. Keychain is still used for runtime cookie caches, browser Safe Storage access, and provider OAuth/device-flow credentials where those flows require it.
 
 ## Location
-- `CODEXBAR_CONFIG=/path/to/config.json` when set.
+- `RESEARCHBAR_CONFIG=/path/to/config.json` when set.
+- `CODEXBAR_CONFIG=/path/to/config.json` as an explicit compatibility override when `RESEARCHBAR_CONFIG` is unset.
 - `$XDG_CONFIG_HOME/researchbar/config.json` when `XDG_CONFIG_HOME` is set to an absolute path. Relative values are
   ignored.
-- `~/.config/researchbar/config.json` by default for new installs.
-- `~/.config/researchbar/config.json` for existing legacy installs when no XDG config exists.
+- `~/.config/researchbar/config.json` by default.
+- ResearchBar does not discover or migrate a legacy on-disk CodexBar config automatically. Set `CODEXBAR_CONFIG`
+  explicitly when compatibility with a different file is required.
 - The directory is created if missing.
 - Permissions are set to `0600` whenever ResearchBar writes the file on macOS and Linux.
 
@@ -276,7 +278,14 @@ See the [generated provider ID list](provider-ids.md), sourced from `UsageProvid
 The order of `providers` controls display/order in the app and CLI. Reorder the array to change ordering.
 
 ## iCloud sync
-Opt-in (Settings → iCloud Sync, off by default; requires a signed release build and an iCloud account). When enabled, ResearchBar syncs across the user's Macs via CloudKit (private database, container `iCloud.com.steipete.researchbar`):
+**Unavailable in current ResearchBar packages.** The packaging conditional emits CloudKit entitlements only when the
+bundle identifier is the legacy `com.steipete.codexbar`; a ResearchBar package (`com.corbis.researchbar`) therefore
+omits the CloudKit service and container entitlements. Runtime source still references the inherited
+`iCloud.com.steipete.codexbar` container. Packaging does not currently derive or authorize a ResearchBar CloudKit
+container. The source identifier and entitlement/provisioning path must be reconciled and verified in a signed
+ResearchBar build before Cloud sync can be enabled.
+
+The bullets below describe the inherited intended sync model, not a currently available ResearchBar capability:
 
 - **Provider configuration** — portable fields of each provider entry (enabled intent, extras, region, workspace, quota-warning overrides, ordering-relevant metadata). Secrets (`apiKey`, `secretKey`, `cookieHeader`, `tokenAccounts`) sync only when "Include API keys, cookies, and tokens" is on, and travel exclusively in CloudKit `encryptedValues` (end-to-end encrypted; readable only on the user's devices).
 - **A curated preferences subset** — notification/threshold/display settings.

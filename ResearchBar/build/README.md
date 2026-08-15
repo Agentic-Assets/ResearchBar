@@ -2,6 +2,13 @@
 
 Date: 2026-06-17 (audit); folder renamed from `corbis-integration-plan/` to `build/` on 2026-06-18.
 
+> **Historical planning package.** This folder preserves the June 2026 implementation sequence and audit evidence; it
+> is not a current-state inventory. Tool counts, rates, phase labels, and statements such as "shipped," "unblocked," or
+> "today" below describe the dated snapshot unless a newer document explicitly revalidates them. For current
+> ResearchBar status use [`../BUILD.md`](../BUILD.md), the maintained
+> [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md), and current
+> `Sources/`, `Tests/`, and `Scripts/`. Re-verify Corbis facts in the sibling `agentic-assets-app` repository.
+
 Verified, code-grounded plan for the Corbis backend ResearchBar depends on, plus client-side guidance. Start at [`../BUILD.md`](../BUILD.md) or **`00-what-this-means-for-researchbar.md`**.
 
 The folder now has two layers:
@@ -73,6 +80,8 @@ builders can implement and review one slice at a time.
 | [`09-track-b-menu-rendering-plan.md`](09-track-b-menu-rendering-plan.md) | Rendering v0 menu states, settings, status icon labels, and descriptor tests. |
 | [`10-track-b-distribution-plan.md`](10-track-b-distribution-plan.md) | Planning naming, bundle ids, Sparkle, Homebrew, notarization, and Tahoe checks. |
 
-## Authority
+## Historical authority
 
-This folder wins over [`../concept/`](../concept/) on implementation facts. Corbis [`researchbar-evaluation/`](../../../agentic-assets-app/docs/researchbar-evaluation/) wins on backend implementation depth (file-level plans, Zod schemas, test lists). For the macOS client, `06` through `10` are the current Track B build guides.
+Within the June 2026 planning record, this folder supersedes [`../concept/`](../concept/) on implementation facts.
+Current ResearchBar source and [`../BUILD.md`](../BUILD.md) now supersede this package; current Corbis source supersedes
+the sibling `researchbar-evaluation/` planning record.

@@ -1,5 +1,7 @@
 # 03. Corbis Track A plan (the dependency you track)
 
+> **Historical backend plan (2026-06).** This file records original sequencing. Verify current backend status and contract facts in `agentic-assets-app` before acting; it does not authorize a live MCP call or client-side entitlement inference.
+
 This is the Corbis backend plan that unblocks ResearchBar, condensed so a client builder can track readiness. The full, file-level plan and the implementation-ready pulse spec live in the Corbis repo: [`../../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md`](../../../agentic-assets-app/docs/researchbar-evaluation/05-revised-implementation-plan.md) and [`08-get-research-pulse-v0-spec.md`](../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md). All `path:line` references point into the Corbis repo. The client is unblocked when Phase 0 passes its done-when gate.
 
 ## Phase 0: prove the contract (blocks the client)

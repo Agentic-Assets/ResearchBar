@@ -1,5 +1,7 @@
 # 06. Track B fixture pulse plan
 
+> **Historical implementation plan (2026-06).** The model, redaction, cache, client, and menu seams described here are implemented. Use current source and the dashboard design spec for behavior; keep this file as task rationale. Valid tracked charting requires a sane sparkline and 7-day evidence, while a 52-week comparator may still be absent.
+
 This guide starts the native ResearchBar client without waiting for live
 Corbis data. It builds the first useful slice from fixtures: decode the
 `get_research_pulse` contract, model every v0 state, and prove the menu model

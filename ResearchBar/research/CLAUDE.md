@@ -2,7 +2,7 @@
 
 ## Most Critical Rule
 
-**Read-only provenance.** This folder is not a build spec. Do not derive implementation facts, API contracts, or phase plans from here. Use [`../build/`](../build/) or `../../../agentic-assets-app/docs/researchbar-evaluation/`.
+**Read-only provenance.** This folder is not a build spec. Do not derive implementation facts, API contracts, current inventory, pricing, or phase plans from here. Use current ResearchBar source and current Corbis source; `build/` is dated planning rationale only.
 
 ## Naming Patterns
 
@@ -27,7 +27,7 @@
 
 ## Gotchas
 
-- Dossier Corbis sections may cite plugin docs; live `agentic-assets-app` inventory (30 tools, 0.5/call) wins.
+- Dossier Corbis sections may cite historical plugin docs; query/verify current backend inventory rather than using any frozen count or credit value here.
 - Reference files name backend sources the **product never exposes**; ORCID + Corbis branding only in UI.
 - `subagent-findings.md` is long; grep or use dossier unless auditing a specific lane.
 - *Do not add new build requirements here; append research notes or link out to `build/`.*

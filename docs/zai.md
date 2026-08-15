@@ -10,7 +10,7 @@ read_when:
 z.ai and China-mainland GLM Coding Plan are API-token based. No browser cookies.
 
 ## Token sources (fallback order)
-1. Config token (`~/.config/researchbar/config.json` or legacy `~/.config/researchbar/config.json` → `providers[].apiKey`).
+1. Config token (the resolved ResearchBar config file → `providers[].apiKey`).
 2. `Z_AI_API_KEY` for the explicitly selected region.
 3. China region only: `BIGMODEL_API_KEY`, `ZHIPU_API_KEY`, `ZHIPUAI_API_KEY`, or `GLM_API_KEY`.
 4. China region only, first readable one-line file:
@@ -21,9 +21,10 @@ z.ai and China-mainland GLM Coding Plan are API-token based. No browser cookies.
 BigModel aliases and relay files are never considered for the Global `api.z.ai` route.
 
 ### Config location
-- New installs: `~/.config/researchbar/config.json`
-- Legacy installs: `~/.config/researchbar/config.json`
-- Override for scripts/tests: `CODEXBAR_CONFIG=/path/to/config.json`
+- Default: `~/.config/researchbar/config.json`
+- Override for scripts/tests: `RESEARCHBAR_CONFIG=/path/to/config.json`
+- `CODEXBAR_CONFIG` remains an explicit compatibility override when `RESEARCHBAR_CONFIG` is unset. See
+  `docs/configuration.md` for the complete precedence; no legacy on-disk config is discovered or migrated automatically.
 
 ## Setup
 
@@ -148,6 +149,6 @@ Copy each value once, on one line. Multi-line or duplicated IDs can make the API
   - `usageDetails[]` per model (MCP usage list).
 
 ## Key files
-- `Sources/ResearchBarCore/Providers/Zai/ZaiUsageStats.swift`
-- `Sources/ResearchBarCore/Providers/Zai/ZaiSettingsReader.swift`
-- `Sources/ResearchBar/ZaiTokenStore.swift` (legacy migration helper)
+- `Sources/CodexBarCore/Providers/Zai/ZaiUsageStats.swift`
+- `Sources/CodexBarCore/Providers/Zai/ZaiSettingsReader.swift`
+- `Sources/CodexBar/ZaiTokenStore.swift` (legacy migration helper)

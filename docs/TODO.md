@@ -1,10 +1,10 @@
 ---
-summary: "Pending cleanup items for CodexBar (e.g., retire Claude Opus fallback)."
+summary: "Pointer to ResearchBar's current maintenance backlog."
 read_when:
   - Grooming backlog or planning maintenance
-  - Removing legacy Claude Opus handling
 ---
 
-## TODO
+# Maintenance backlog
 
-- December 2025: remove the Claude Opus fallback logic (Claude Code) once users have fully migrated; clean up any UI labels and parsers that reference Opus as a tertiary limit.
+No standing backlog is maintained in this file. Track current ResearchBar work in the Agentic Assets Linear workspace;
+use repository issues or pull requests for implementation and review proof.

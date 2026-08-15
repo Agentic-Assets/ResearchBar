@@ -2,11 +2,16 @@
 
 Date: 2026-06-18. This is the single entry point for implementing ResearchBar or tracking the Corbis dependency.
 
-> **Wire contract lives in [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md)** (symlink to the verified Corbis guide). Read it before writing the MCP client: it carries the exact transport/auth/billing contract, the live `get_research_pulse` / `get_data_freshness` schemas, the identity handshake, and the redaction rules. The `build/` guides below are the Swift-side build plan; the guide is the authority on the wire facts.
+> **Wire-contract reference:** [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md)
+> is a maintained local copy, not a symlink or backend authority. It was refreshed against sibling repository
+> `agentic-assets-app` `origin/main` commit `c7c87a1527bbc45cc1c201d27fb39f24f99f4075`. Before changing the MCP
+> client, re-verify the named backend symbols at current `origin/main`; update the guide's pinned revision when facts
+> differ. The `build/` guides preserve Swift-side implementation history and do not override current code or backend
+> contract.
 
 ## Verdict
 
-**BUILD WITH CHANGES.** Corbis APIs first, thin macOS client second. **Update 2026-06-27: Corbis Phase 0 payload/redaction smoke is shipped, the Track B client is fixture-tested and live-MCP-capable behind safe seams, and the app identity is now ResearchBar (`com.corbis.researchbar`).** The remaining live cutover risk is billing/credit policy validation, not basic client shape. See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for remaining founder/product items and [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md) for the contract.
+**Current client state (2026-08-14):** the thin macOS client, fixture-backed pulse model, account-scoped cache, MCP seam, settings, and ResearchBar card are implemented. Continue to use fixture-backed verification by default. Live MCP/account validation is opt-in and requires explicit authorization; the client must not invent entitlement, allowance, reset, rate, or usage history from a remaining credit balance. See [`OPEN-ISSUES.md`](OPEN-ISSUES.md) for deferred backend/product decisions and the wire-contract reference for integration boundaries.
 
 ## Fork strategy
 
@@ -25,7 +30,9 @@ product naming, and upstream sync strategy are proven.
 
 ### Track B: ResearchBar macOS client (this repo)
 
-0. **[`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md): the authoritative wire contract (transport, auth, billing, live schemas, identity handshake, redaction, Phase 0B checklist). Read first; it supersedes any wire fact in `build/` on conflict.**
+0. **[`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md): maintained local wire
+   reference (transport, auth, billing, schemas, identity handshake, redaction, Phase 0B checklist). Read it first, but
+   resolve conflicts in favor of current `agentic-assets-app` source.**
 1. [`build/00-what-this-means-for-researchbar.md`](build/00-what-this-means-for-researchbar.md): gate, client rules (polling, null trends, cache keyed by account, redaction).
 2. [`build/01-corbis-vs-researchbar-boundary.md`](build/01-corbis-vs-researchbar-boundary.md): ownership table and MUST/MUST NOT allowlist.
 3. [`build/02-mcp-contract-get-research-pulse.md`](build/02-mcp-contract-get-research-pulse.md): JSON contract, Swift Codable sketch, curl smoke tests.
@@ -57,13 +64,12 @@ Implement in [`../../agentic-assets-app`](../../agentic-assets-app). Full plan:
 
 ## Corrected facts (do not plan against stale numbers)
 
-Verified against Corbis code and the live MCP smoke (2026-06-26). Authoritative source: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).
+Historical snapshot verified against Corbis code and a live MCP smoke (2026-06-26). It is not an operational inventory or pricing source. Current backend source is authoritative; clients must inspect `tools/list` and consume only contract fields returned for the authenticated principal.
 
 | Topic | Value |
 |---|---|
-| MCP tools registered | **41** authed; anonymous/invalid token sees **31** tier1 (`tools/list`, 2026-06-26) |
-| Credit per `tools/call` | **0.5** (not 1; a diagnostics panel still displays `1`, which is stale) |
-| Free tier | **~50 credits** (~**100** aggregate calls). DB-driven default, not a frozen fact; prefer `creditBalance`. Current dual-emission keeps numeric `creditsRemaining` as a legacy mirror. |
+| MCP tools registered | Historical 2026-06-26 observation only; inspect authenticated `tools/list` at integration time. |
+| Credit / allowance | Server-owned and changeable. Render an authoritative remaining finite balance or unlimited state only; never calculate calls, allowance, reset, rate, or usage client-side. |
 | ORCID-first confirm | **Shipped** (migration `0162`; `confirm_academic_identity` accepts ORCID / Google Scholar / opaque candidate token) |
 | Premium MCP tools | enterprise-only in practice; `get_research_pulse` + `get_data_freshness` are both **tier1** (free-reachable) |
 | Rate limit enforced | **200/hour** only (`10 concurrent` is docs-only) |

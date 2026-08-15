@@ -12,33 +12,47 @@ A lightweight Commander-based CLI that mirrors the menu bar app’s provider fet
 Use it when you need usage numbers in scripts, CI, or dashboards without UI.
 
 ## Install
-- In the app: **Preferences → Advanced → Install CLI**. This symlinks `ResearchBarCLI` to `/usr/local/bin/researchbar` and `/opt/homebrew/bin/researchbar`.
-- From the repo, after installing `ResearchBar.app` in `/Applications`: `./bin/install-researchbar-cli.sh` (same symlink targets).
-- Manual: `ln -sf "/Applications/ResearchBar.app/Contents/Helpers/ResearchBarCLI" /usr/local/bin/researchbar`.
+
+The supported current path is to link the packaged `ResearchBarCLI` helper manually:
+
+```bash
+sudo ln -sf "/Applications/ResearchBar.app/Contents/Helpers/ResearchBarCLI" /usr/local/bin/researchbar
+```
+
+If `/opt/homebrew/bin` is the preferred writable command directory, use the same command with
+`/opt/homebrew/bin/researchbar`. From a repository checkout, `./bin/install-researchbar-cli.sh` performs these packaged
+helper links and requests administrator approval when needed.
+
+**Currently unavailable:** **Preferences → Advanced → Install CLI** still searches the bundle for the inherited
+`Contents/Helpers/CodexBarCLI` name and attempts `codexbar` links. Packaged ResearchBar emits
+`Contents/Helpers/ResearchBarCLI`, so the in-app installer cannot install the current helper. Use the manual or repository
+installer above until the runtime installer is reconciled; do not interpret its failure as a missing packaged CLI.
 
 ### Release tarball install (macOS/Linux)
-- Homebrew formula (Linux today): `brew install steipete/tap/researchbar`.
+- The standalone SwiftPM product retains its inherited CodexBar identity; it is separate from the packaged
+  ResearchBar helper described above.
 - Download release tarballs from GitHub Releases:
-  - macOS: `ResearchBarCLI-v<tag>-macos-arm64.tar.gz`, `ResearchBarCLI-v<tag>-macos-x86_64.tar.gz`
-  - Linux (glibc): `ResearchBarCLI-v<tag>-linux-aarch64.tar.gz`, `ResearchBarCLI-v<tag>-linux-x86_64.tar.gz`
-  - Linux (static musl): `ResearchBarCLI-v<tag>-linux-musl-aarch64.tar.gz`, `ResearchBarCLI-v<tag>-linux-musl-x86_64.tar.gz`
-- Extract and run `./researchbar` (symlink) or `./ResearchBarCLI`.
+  - macOS: `CodexBarCLI-v<tag>-macos-arm64.tar.gz`, `CodexBarCLI-v<tag>-macos-x86_64.tar.gz`
+  - Linux (glibc): `CodexBarCLI-v<tag>-linux-aarch64.tar.gz`, `CodexBarCLI-v<tag>-linux-x86_64.tar.gz`
+  - Linux (static musl): `CodexBarCLI-v<tag>-linux-musl-aarch64.tar.gz`, `CodexBarCLI-v<tag>-linux-musl-x86_64.tar.gz`
+- Extract and run `./codexbar` (symlink) or `./CodexBarCLI`.
 
 ```
-tar -xzf ResearchBarCLI-v0.17.0-macos-x86_64.tar.gz
-./researchbar --version
-./researchbar usage --format json --pretty
+tar -xzf CodexBarCLI-v<tag>-macos-x86_64.tar.gz
+./codexbar --version
+./codexbar usage --format json --pretty
 ```
 
 ## Build
 - `./Scripts/package_app.sh` (or `./Scripts/compile_and_run.sh`) bundles `ResearchBarCLI` into `ResearchBar.app/Contents/Helpers/ResearchBarCLI`.
-- Standalone: `swift build -c release --product ResearchBarCLI` (binary at `./.build/release/ResearchBarCLI`).
+- Standalone: `swift build -c release --product CodexBarCLI` (binary at `./.build/release/CodexBarCLI`).
 - Dependencies: Swift 6.2+, Commander package (`https://github.com/steipete/Commander`).
 
 ## Configuration
 ResearchBar reads the resolved config file for provider settings, secrets, and ordering. New installs use
-`~/.config/researchbar/config.json`; absolute `XDG_CONFIG_HOME` paths and `CODEXBAR_CONFIG` are supported, and existing
-`~/.config/researchbar/config.json` installs keep using the legacy file when no XDG config exists.
+`~/.config/researchbar/config.json`. Resolution order is `RESEARCHBAR_CONFIG`, the explicit compatibility override
+`CODEXBAR_CONFIG`, an absolute `$XDG_CONFIG_HOME/researchbar/config.json`, then that default path. Relative
+`XDG_CONFIG_HOME` values are ignored, and no legacy on-disk CodexBar config is discovered or migrated automatically.
 See `docs/configuration.md` for the schema.
 
 ## Command

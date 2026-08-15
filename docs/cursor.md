@@ -14,7 +14,7 @@ Cursor is primarily web-backed. Usage is fetched via browser cookies, with legac
 
 1) **Cached cookie header** (preferred)
    - Stored after successful browser import.
-   - Keychain cache: `com.steipete.researchbar.cache` (account `cookie.cursor`).
+   - Keychain cache: `com.corbis.researchbar.cache` (account `cookie.cursor`).
 
 2) **Browser cookie import**
    - Cookie order from provider metadata (default: Safari → Chrome → Firefox).
@@ -70,7 +70,8 @@ Manual option:
 ## Linux CLI
 - `researchbar usage --provider cursor` reads the signed-in Cursor app's access token from the Linux global state DB and reuses the same `cursor.com` usage endpoints as macOS.
 - Automatic browser cookie import and the external-browser Add/Switch flow are macOS app features.
-- Manual cookie headers from `~/.config/researchbar/config.json` (or legacy `~/.config/researchbar/config.json`) work on Linux.
+- Manual cookie headers from the resolved ResearchBar config file work on Linux. See `docs/configuration.md` for
+  config-path precedence.
 
 ## Local storage footprint
 When **Settings → Advanced → Track provider local storage** is enabled on macOS, ResearchBar measures:
@@ -114,7 +115,7 @@ Caching: the app holds the snapshot for an in-memory hourly TTL, keyed by the hi
 - Reset: billing cycle end date.
 
 ## Key files
-- `Sources/ResearchBarCore/Providers/Cursor/CursorStatusProbe.swift`
-- `Sources/ResearchBar/CursorLoginRunner.swift` (login flow)
-- `Sources/ResearchBar/Providers/Cursor/CursorLoginFlow.swift` (menu integration)
-- `Sources/ResearchBar/CursorLoginBrowserRouter.swift` (browser routing and selection)
+- `Sources/CodexBarCore/Providers/Cursor/CursorStatusProbe.swift`
+- `Sources/CodexBar/CursorLoginRunner.swift` (login flow)
+- `Sources/CodexBar/Providers/Cursor/CursorLoginFlow.swift` (menu integration)
+- `Sources/CodexBar/CursorLoginBrowserRouter.swift` (browser routing and selection)

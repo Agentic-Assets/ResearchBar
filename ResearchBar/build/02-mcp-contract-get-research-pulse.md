@@ -1,5 +1,7 @@
 # 02. MCP contract: `get_research_pulse`
 
+> **Historical contract sketch (2026-06).** The maintained local wire-contract reference and current Corbis source supersede this file on transport/schema facts. Live curl examples require explicit owner authorization and a non-production test account; fixture-based decoding is the normal client verification path.
+
 The exact JSON the client renders, framed for the Swift client. This is the build-against contract. It supersedes the illustrative table in [`../concept/corbis-api-contracts.md`](../concept/corbis-api-contracts.md) where they disagree (mainly: trend fields are nullable with a status flag and `lowConfidence` is a structured object). Internal IDs and private identity evidence must never appear. Public source provenance may appear inside `academicProfile`, but ResearchBar keeps its default presentation provider-neutral. The full Corbis-side spec is [`../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md`](../../../agentic-assets-app/docs/researchbar-evaluation/08-get-research-pulse-v0-spec.md). All `path:line` references point into the Corbis repo.
 
 ## Call facts
@@ -24,8 +26,8 @@ Trend fields are present but null until history accrues. `profileStatus` selects
 ```json
 {
   "profileStatus": "linked_researcher",
-  "displayName": "Cayman Seagraves",
-  "affiliation": "University of Tulsa",
+  "displayName": "Example Researcher",
+  "affiliation": "Example University",
   "role": null,
   "sector": null,
   "companyName": null,
@@ -165,7 +167,7 @@ curl -s -X POST "$BASE/api/mcp/universal" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_research_pulse","arguments":{}}}' \
   | tee /tmp/pulse.json | jq '.result'
-grep -Ei 'openalex|"A[0-9]{5,}"' /tmp/pulse.json && echo "LEAK FOUND" || echo "clean"
+grep -Ei 'sourceId|authorId|openalexId|privateEmail|credential|apiKey|"A[0-9]{5,}"' /tmp/pulse.json && echo "LEAK FOUND" || echo "clean"
 ```
 
 Discovery (confirm the tool is registered and visible to the token):
