@@ -95,6 +95,9 @@ struct CorbisCredentialStoreTests {
 
             let loaded = try await store.loadCredential()
             #expect(loaded == replacement)
+            let reopenedStore = KeychainCorbisCredentialStore(keychain: keychain)
+            let reopenedCredential = try await reopenedStore.loadCredential()
+            #expect(reopenedCredential == replacement)
             let savedData = try #require(keychain.data)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601

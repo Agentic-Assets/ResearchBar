@@ -118,20 +118,27 @@ private struct SystemCorbisCredentialKeychain: CorbisCredentialKeychainOperating
     func save(data: Data, service: String, account: String) -> Bool {
         guard !KeychainAccessGate.isDisabled else { return false }
         #if os(macOS)
-        var query: [String: Any] = [
+        let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
         ]
-        KeychainNoUIQuery.apply(to: &query)
-        let attributes = [kSecValueData as String: data] as CFDictionary
-        let updateStatus = KeychainSecurity.update(query as CFDictionary, attributes)
+        // A reconnect is user initiated, so it must not force Keychain's no-UI failure
+        // policy. This matches the app's established manual-token store pattern: no custom
+        // ACL and no interaction-disabled authentication context on writes.
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+        ]
+        let updateStatus = KeychainSecurity.update(query as CFDictionary, attributes as CFDictionary)
         if updateStatus == errSecSuccess { return true }
         guard updateStatus == errSecItemNotFound else { return false }
 
-        query[kSecValueData as String] = data
-        query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        return KeychainSecurity.add(query as CFDictionary, nil) == errSecSuccess
+        var addQuery = query
+        for (key, value) in attributes {
+            addQuery[key] = value
+        }
+        return KeychainSecurity.add(addQuery as CFDictionary, nil) == errSecSuccess
         #else
         false
         #endif
@@ -140,12 +147,11 @@ private struct SystemCorbisCredentialKeychain: CorbisCredentialKeychainOperating
     func delete(service: String, account: String) -> CorbisCredentialKeychainDeleteResult {
         guard !KeychainAccessGate.isDisabled else { return .failed }
         #if os(macOS)
-        var query: [String: Any] = [
+        let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
         ]
-        KeychainNoUIQuery.apply(to: &query)
         return switch KeychainSecurity.delete(query as CFDictionary) {
         case errSecSuccess:
             .removed
