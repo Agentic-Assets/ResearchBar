@@ -1,4 +1,7 @@
 import Foundation
+#if os(macOS)
+import Security
+#endif
 import Testing
 @testable import CodexBarCore
 
@@ -114,6 +117,43 @@ struct CorbisCredentialStoreTests {
         }
     }
 
+    #if os(macOS)
+    @Test
+    func `v2 file keychain queries omit data protection only attributes`() {
+        let service = "com.example.researchbar"
+        let account = "corbis-credential"
+        let data = Data("credential".utf8)
+
+        let loadQuery = CorbisCredentialKeychainQuery.load(service: service, account: account)
+        let updateQuery = CorbisCredentialKeychainQuery.item(service: service, account: account)
+        let addQuery = CorbisCredentialKeychainQuery.add(data: data, service: service, account: account)
+        let deleteQuery = CorbisCredentialKeychainQuery.item(service: service, account: account)
+
+        for query in [loadQuery, updateQuery, addQuery, deleteQuery] {
+            #expect(query[kSecAttrService as String] as? String == service)
+            #expect(query[kSecAttrAccount as String] as? String == account)
+            #expect(query[kSecUseDataProtectionKeychain as String] == nil)
+            #expect(query[kSecAttrAccessGroup as String] == nil)
+            #expect(query[kSecAttrAccessible as String] == nil)
+        }
+        #expect(addQuery[kSecValueData as String] as? Data == data)
+        let updateAttributes = CorbisCredentialKeychainQuery.updateAttributes(data: data)
+        #expect(updateAttributes.count == 1)
+        #expect(updateAttributes[kSecValueData as String] as? Data == data)
+    }
+
+    @Test
+    func `failed keychain operation maps to a redacted store failure`() async {
+        let keychain = InMemoryCorbisCredentialKeychain(
+            saveResult: .failed(operation: .add, status: errSecParam))
+        let store = KeychainCorbisCredentialStore(keychain: keychain)
+
+        await #expect(throws: CorbisCredentialStoreError.writeFailed) {
+            try await store.saveCredential(Self.sampleCredential(token: "corbis_mcp_do-not-log"))
+        }
+    }
+    #endif
+
     // MARK: - Helpers
 
     private static func sampleCredential(token: String = "tok-123-abc") -> CorbisCredential {
@@ -142,6 +182,11 @@ struct CorbisCredentialStoreTests {
 private final class InMemoryCorbisCredentialKeychain: CorbisCredentialKeychainOperating, @unchecked Sendable {
     private let lock = NSLock()
     private var storedData: Data?
+    private let saveResult: CorbisCredentialKeychainSaveResult
+
+    init(saveResult: CorbisCredentialKeychainSaveResult = .saved) {
+        self.saveResult = saveResult
+    }
 
     var data: Data? {
         self.lock.withLock { self.storedData }
@@ -154,10 +199,11 @@ private final class InMemoryCorbisCredentialKeychain: CorbisCredentialKeychainOp
         }
     }
 
-    func save(data: Data, service _: String, account _: String) -> Bool {
+    func save(data: Data, service _: String, account _: String) -> CorbisCredentialKeychainSaveResult {
         self.lock.withLock {
+            guard self.saveResult == .saved else { return self.saveResult }
             self.storedData = data
-            return true
+            return .saved
         }
     }
 
