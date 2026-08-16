@@ -94,10 +94,37 @@ public struct CorbisMCPClient: Sendable {
         return CorbisMCPResearchPulseResult(pulse: pulse, rawJSON: structuredData)
     }
 
+    // MARK: - Credential validation
+
+    /// Validate a candidate credential through a protected, non-billed MCP resource.
+    ///
+    /// `tools/list` is intentionally available to unauthenticated callers, so it cannot
+    /// prove that a bearer token is valid. `resources/read` authenticates before handling
+    /// `docs://auth`, and the service reserves credits only for `tools/call`.
+    public func validateCredential(token: String) async throws {
+        let body = CorbisMCPResourceReadRequestBody.authenticationProbe(id: UUID().uuidString)
+        let request = try self.makeRequest(token: token, body: body)
+        let response = try await self.transport.response(for: request, retryPolicy: .disabled)
+        try Self.mapHTTPStatus(response.statusCode)
+
+        let envelope: JSONRPCResponse<JSONValue>
+        do {
+            envelope = try JSONDecoder().decode(JSONRPCResponse<JSONValue>.self, from: response.data)
+        } catch {
+            throw CorbisMCPError.malformedResponse
+        }
+        if let rpcError = envelope.error {
+            throw Self.mapJSONRPCError(rpcError)
+        }
+        guard envelope.result != nil else {
+            throw CorbisMCPError.malformedResponse
+        }
+    }
+
     // MARK: - tools/list
 
-    /// List available tool names via `tools/list`. Used for a sparse credential-validity
-    /// probe; this call returns tool metadata only and is not billed as a pulse fetch.
+    /// List available tool names via `tools/list` for capability discovery. This call is
+    /// not an authentication probe because the service permits anonymous discovery.
     public func listToolNames(token: String) async throws -> [String] {
         let body = CorbisMCPRequestBody.toolsList(id: UUID().uuidString)
         let request = try self.makeRequest(token: token, body: body)
@@ -121,13 +148,13 @@ public struct CorbisMCPClient: Sendable {
 
     // MARK: - Request construction
 
-    private func makeRequest(token: String, body: CorbisMCPRequestBody) throws -> URLRequest {
+    private func makeRequest(token: String, body: some Encodable) throws -> URLRequest {
         var request = URLRequest(url: self.endpointURL)
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         do {
-            request.httpBody = try body.encodedData()
+            request.httpBody = try JSONEncoder().encode(body)
         } catch {
             throw CorbisMCPError.malformedResponse
         }

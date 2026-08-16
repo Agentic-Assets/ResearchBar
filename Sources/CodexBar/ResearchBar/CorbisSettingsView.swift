@@ -47,7 +47,7 @@ final class CorbisSettingsModel {
 // MARK: - CorbisSettingsView
 
 /// Native settings surface for the Corbis research connection. Lets the researcher paste a
-/// `corbis_mcp_` token, connect/reconnect/unlink, and clear the cached pulse, with a
+/// supported Corbis MCP token, connect/reconnect/unlink, and clear the cached pulse, with a
 /// redacted connection diagnostics line.
 @MainActor
 struct CorbisSettingsView: View {
@@ -70,7 +70,9 @@ struct CorbisSettingsView: View {
                     .textFieldStyle(.roundedBorder)
                     .accessibilityLabel("Corbis MCP token")
                 if !self.model.tokenField.isEmpty, !state.isTokenFieldValid {
-                    Text("Token must start with \(CorbisSettingsViewState.tokenPrefix)")
+                    Text(
+                        "Token must start with \(CorbisSettingsViewState.tokenPrefix) or "
+                            + "\(CorbisSettingsViewState.legacyTokenPrefix)")
                         .font(.footnote)
                         .foregroundStyle(.red)
                 }
@@ -115,15 +117,6 @@ struct CorbisSettingsView: View {
     }
 
     private func diagnostics(for state: CorbisSettingsViewState) -> String {
-        switch state.connectionState {
-        case .notConnected:
-            "Paste your Corbis MCP token to start tracking your research pulse."
-        case .connecting:
-            "Validating your connection…"
-        case .connected:
-            "Connection healthy. Pulse refreshes on menu open and manual refresh."
-        case .invalid:
-            "The stored token was rejected. Reconnect with a fresh token."
-        }
+        state.diagnostic
     }
 }

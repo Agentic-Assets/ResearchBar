@@ -255,45 +255,26 @@ extension PreferencesView {
         let cache = self.researchPulseCache
         let client = self.corbisMCPClient
         let model = self.corbisSettingsModel
+        let connector = CorbisCredentialConnector(
+            credentialStore: credentialStore,
+            cache: cache,
+            client: client)
 
         model.onConnect = { [weak model] token in
             Task { @MainActor in
                 guard let model else { return }
                 model.connectionState = .connecting
-                let credential = CorbisCredential(
-                    token: token,
-                    accountID: nil,
-                    displayEmail: nil,
-                    createdAt: Date(),
-                    lastValidatedAt: nil)
-                do {
-                    try await credentialStore.saveCredential(credential)
-                    await cache.clearAll()
+                switch await connector.connect(token: token) {
+                case let .connected(credential):
                     model.tokenField = ""
                     model.displayEmail = credential.displayEmail
-                } catch {
-                    model.connectionState = .invalid
-                    return
-                }
-                // Validate the token with one unbilled tools/list probe so the settings pane
-                // does not claim a healthy connection the menu can immediately contradict.
-                // A rejected token flips to .invalid; a transient transport failure stays
-                // optimistic so a network blip does not mark a good token invalid. Probe
-                // errors are never surfaced verbatim, preserving the no-leak rule.
-                do {
-                    _ = try await client.listToolNames(token: token)
-                    let validated = CorbisCredential(
-                        token: token,
-                        accountID: credential.accountID,
-                        displayEmail: credential.displayEmail,
-                        createdAt: credential.createdAt,
-                        lastValidatedAt: Date())
-                    try? await credentialStore.saveCredential(validated)
-                    model.connectionState = .connected(validated.accountIdentity())
-                } catch CorbisMCPError.invalidCredential {
-                    model.connectionState = .invalid
-                } catch {
                     model.connectionState = .connected(credential.accountIdentity())
+                case .invalidCredential:
+                    model.connectionState = .invalid
+                case .validationUnavailable:
+                    model.connectionState = .validationUnavailable
+                case .storageUnavailableAfterValidation:
+                    model.connectionState = .storageUnavailableAfterValidation
                 }
             }
         }
@@ -308,7 +289,7 @@ extension PreferencesView {
                     model.displayEmail = nil
                     model.connectionState = .notConnected
                 } catch {
-                    model.connectionState = .invalid
+                    model.connectionState = .storageUnavailable
                 }
             }
         }
@@ -329,7 +310,7 @@ extension PreferencesView {
                 self.corbisSettingsModel.displayEmail = credential.displayEmail
                 self.corbisSettingsModel.connectionState = .connected(credential.accountIdentity())
             } catch {
-                self.corbisSettingsModel.connectionState = .invalid
+                self.corbisSettingsModel.connectionState = .storageUnavailable
             }
         }
     }

@@ -70,6 +70,30 @@ struct CorbisMCPClientTests {
         #expect(arguments.isEmpty)
     }
 
+    @Test
+    func `credential validation uses protected non-billed resource`() async throws {
+        let box = RequestBox()
+        let client = Self.client(capturing: { box.set($0) }, respond: { request in
+            let envelope = """
+            {"jsonrpc":"2.0","id":"1","result":{"contents":[]}}
+            """
+            return (Data(envelope.utf8), Self.http(200, url: request.url))
+        })
+
+        try await client.validateCredential(token: Self.token)
+
+        let request = try #require(box.value)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.absoluteString == "https://corbis.test/api/mcp/universal")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer \(Self.token)")
+
+        let body = try #require(request.httpBody)
+        let decoded = try #require(try JSONSerialization.jsonObject(with: body) as? [String: Any])
+        #expect(decoded["method"] as? String == "resources/read")
+        let params = try #require(decoded["params"] as? [String: Any])
+        #expect(params["uri"] as? String == "docs://auth")
+    }
+
     // MARK: - Success
 
     @Test

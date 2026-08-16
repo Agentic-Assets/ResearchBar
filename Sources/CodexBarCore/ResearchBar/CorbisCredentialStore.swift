@@ -1,4 +1,7 @@
 import Foundation
+#if os(macOS)
+import Security
+#endif
 
 /// A stored Corbis MCP credential. The bearer token is redacted from all string
 /// representations so it can never leak into logs or error text.
@@ -61,41 +64,220 @@ public enum CorbisCredentialStoreError: Error, Equatable, Sendable {
     case temporarilyUnavailable
 }
 
-/// Keychain-backed credential store built on `KeychainCacheStore`.
-///
-/// This is a struct (not an actor) so the `@TaskLocal` service override used in
-/// tests propagates synchronously into the underlying `KeychainCacheStore` calls,
-/// keeping the no-UI keychain query and test-store seam available without prompts.
-public struct KeychainCorbisCredentialStore: CorbisCredentialStoring {
-    private let key = KeychainCacheStore.Key(category: "corbis", identifier: "mcp-credential")
+/// Narrow Keychain seam for the dedicated Corbis credential item. Keeping bearer tokens out
+/// of the shared runtime cache prevents an old cache ACL from making reconnect impossible.
+protocol CorbisCredentialKeychainOperating: Sendable {
+    func load(service: String, account: String) -> CorbisCredentialKeychainLoadResult
+    func save(data: Data, service: String, account: String) -> CorbisCredentialKeychainSaveResult
+    func delete(service: String, account: String) -> CorbisCredentialKeychainDeleteResult
+}
 
-    public init() {}
+enum CorbisCredentialKeychainLoadResult: Sendable {
+    case found(Data)
+    case missing
+    case temporarilyUnavailable
+    case failed
+}
+
+enum CorbisCredentialKeychainDeleteResult: Sendable {
+    case removed
+    case missing
+    case failed
+}
+
+enum CorbisCredentialKeychainSaveOperation: String, Equatable, Sendable {
+    case update
+    case add
+}
+
+enum CorbisCredentialKeychainSaveResult: Equatable, Sendable {
+    case saved
+    case disabled
+    case failed(operation: CorbisCredentialKeychainSaveOperation, status: Int32)
+}
+
+#if os(macOS)
+enum CorbisCredentialKeychainQuery {
+    static func item(service: String, account: String) -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+    }
+
+    static func load(service: String, account: String) -> [String: Any] {
+        var query = self.item(service: service, account: account)
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecReturnData as String] = true
+        return query
+    }
+
+    static func add(data: Data, service: String, account: String) -> [String: Any] {
+        var query = self.item(service: service, account: account)
+        query[kSecValueData as String] = data
+        return query
+    }
+
+    static func updateAttributes(data: Data) -> [String: Any] {
+        [kSecValueData as String: data]
+    }
+}
+#endif
+
+private struct SystemCorbisCredentialKeychain: CorbisCredentialKeychainOperating {
+    func load(service: String, account: String) -> CorbisCredentialKeychainLoadResult {
+        guard !KeychainAccessGate.isDisabled else { return .temporarilyUnavailable }
+        #if os(macOS)
+        var query = CorbisCredentialKeychainQuery.load(service: service, account: account)
+        KeychainNoUIQuery.apply(to: &query)
+
+        var result: CFTypeRef?
+        switch KeychainSecurity.copyMatching(query as CFDictionary, &result) {
+        case errSecSuccess:
+            guard let data = result as? Data, !data.isEmpty else { return .failed }
+            return .found(data)
+        case errSecItemNotFound:
+            return .missing
+        case errSecInteractionNotAllowed:
+            return .temporarilyUnavailable
+        default:
+            return .failed
+        }
+        #else
+        .missing
+        #endif
+    }
+
+    func save(data: Data, service: String, account: String) -> CorbisCredentialKeychainSaveResult {
+        guard !KeychainAccessGate.isDisabled else { return .disabled }
+        #if os(macOS)
+        let query = CorbisCredentialKeychainQuery.item(service: service, account: account)
+        let attributes = CorbisCredentialKeychainQuery.updateAttributes(data: data)
+        let updateStatus = KeychainSecurity.update(query as CFDictionary, attributes as CFDictionary)
+        if updateStatus == errSecSuccess { return .saved }
+        guard updateStatus == errSecItemNotFound else {
+            return .failed(operation: .update, status: updateStatus)
+        }
+
+        let addQuery = CorbisCredentialKeychainQuery.add(data: data, service: service, account: account)
+        let addStatus = KeychainSecurity.add(addQuery as CFDictionary, nil)
+        return addStatus == errSecSuccess ? .saved : .failed(operation: .add, status: addStatus)
+        #else
+        return .disabled
+        #endif
+    }
+
+    func delete(service: String, account: String) -> CorbisCredentialKeychainDeleteResult {
+        guard !KeychainAccessGate.isDisabled else { return .failed }
+        #if os(macOS)
+        let query = CorbisCredentialKeychainQuery.item(service: service, account: account)
+        return switch KeychainSecurity.delete(query as CFDictionary) {
+        case errSecSuccess:
+            .removed
+        case errSecItemNotFound:
+            .missing
+        default:
+            .failed
+        }
+        #else
+        return .missing
+        #endif
+    }
+}
+
+/// Keychain-backed credential store using a dedicated generic-password item.
+///
+/// The original credential lived in the ACL-managed runtime cache. It remains a read-only
+/// migration fallback. New bearer credentials use a dedicated generic-password item with
+/// the valid macOS file-keychain attribute set. Local installations must use a stable signing
+/// identity so the item's trusted-application requirement survives rebuilds.
+public struct KeychainCorbisCredentialStore: CorbisCredentialStoring {
+    private static let log = CodexBarLog.logger(LogCategories.corbisCredentialStore)
+    static let currentService = AppIdentity.keychainSecretsService
+    static let currentAccount = "corbis-mcp-credential-v2"
+    /// Read-only compatibility key. Never reuse it for writes because a stale ACL can make
+    /// the record inaccessible until the user explicitly replaces the connection.
+    static let legacyKey = KeychainCacheStore.Key(category: "corbis", identifier: "mcp-credential")
+    private let keychain: any CorbisCredentialKeychainOperating
+
+    public init() {
+        self.keychain = SystemCorbisCredentialKeychain()
+    }
+
+    init(keychain: any CorbisCredentialKeychainOperating) {
+        self.keychain = keychain
+    }
 
     public func loadCredential() async throws -> CorbisCredential? {
-        switch KeychainCacheStore.load(key: self.key, as: CorbisCredential.self) {
+        switch self.keychain.load(service: Self.currentService, account: Self.currentAccount) {
+        case let .found(data):
+            guard let credential = try? Self.decoder.decode(CorbisCredential.self, from: data) else {
+                throw CorbisCredentialStoreError.corrupted
+            }
+            return credential
+        case .missing:
+            break
+        case .temporarilyUnavailable:
+            throw CorbisCredentialStoreError.temporarilyUnavailable
+        case .failed:
+            throw CorbisCredentialStoreError.corrupted
+        }
+
+        // A readable original record keeps existing users connected. An inaccessible original
+        // record is intentionally ignored so reconnect can recover into the new dedicated item.
+        switch KeychainCacheStore.load(key: Self.legacyKey, as: CorbisCredential.self) {
         case let .found(credential):
             return credential
         case .missing:
             return nil
         case .temporarilyUnavailable:
-            throw CorbisCredentialStoreError.temporarilyUnavailable
+            return nil
         case .invalid:
-            throw CorbisCredentialStoreError.corrupted
+            return nil
         }
     }
 
     public func saveCredential(_ credential: CorbisCredential) async throws {
-        guard KeychainCacheStore.storeResult(key: self.key, entry: credential) else {
+        guard let data = try? Self.encoder.encode(credential) else {
             throw CorbisCredentialStoreError.writeFailed
         }
+        switch self.keychain.save(data: data, service: Self.currentService, account: Self.currentAccount) {
+        case .saved:
+            return
+        case .disabled:
+            Self.log.error("Corbis credential Keychain write was disabled")
+        case let .failed(operation, status):
+            Self.log.error(
+                "Corbis credential Keychain write failed",
+                metadata: ["operation": operation.rawValue, "status": String(status)])
+        }
+        throw CorbisCredentialStoreError.writeFailed
     }
 
     public func deleteCredential() async throws {
-        switch KeychainCacheStore.clearResult(key: self.key) {
-        case .removed, .missing:
-            return
-        case .failed:
+        let currentResult = self.keychain.delete(service: Self.currentService, account: Self.currentAccount)
+        guard currentResult != .failed else {
+            throw CorbisCredentialStoreError.deleteFailed
+        }
+
+        let legacyResult = KeychainCacheStore.clearResult(key: Self.legacyKey)
+        if currentResult == .missing, legacyResult == .failed {
+            // With no v2 entry, a legacy credential can still be active. Do not claim the
+            // connection was removed if its accessible record could not be deleted.
             throw CorbisCredentialStoreError.deleteFailed
         }
     }
+
+    private static let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }()
+
+    private static let decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }()
 }
