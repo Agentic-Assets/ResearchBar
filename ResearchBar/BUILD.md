@@ -32,7 +32,7 @@ product naming, and upstream sync strategy are proven.
 
 0. **[`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md): maintained local wire
    reference (transport, auth, billing, schemas, identity handshake, redaction, Phase 0B checklist). Read it first, but
-   resolve conflicts in favor of current `agentic-assets-app` source.**
+   resolve conflicts in favor of current `Agentic-Assets/Corbis` source.**
 1. [`build/00-what-this-means-for-researchbar.md`](build/00-what-this-means-for-researchbar.md): gate, client rules (polling, null trends, cache keyed by account, redaction).
 2. [`build/01-corbis-vs-researchbar-boundary.md`](build/01-corbis-vs-researchbar-boundary.md): ownership table and MUST/MUST NOT allowlist.
 3. [`build/02-mcp-contract-get-research-pulse.md`](build/02-mcp-contract-get-research-pulse.md): JSON contract, Swift Codable sketch, curl smoke tests.

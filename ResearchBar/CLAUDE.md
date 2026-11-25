@@ -2,7 +2,7 @@
 
 ## Most Critical Rule
 
-**Docs describe the product; current Swift behavior lives in `Sources/CodexBar*`.** Intelligence and aggregates belong in `agentic-assets-app`. This folder contains product context, maintained contract guidance, and dated planning evidence; it does not own implementation facts. Builders start with the current source and [`BUILD.md`](BUILD.md), not the concept report.
+**Docs describe the product; current Swift behavior lives in `Sources/CodexBar*`.** Intelligence and aggregates belong in `Agentic-Assets/Corbis`. This folder contains product context, maintained contract guidance, and dated planning evidence; it does not own implementation facts. Builders start with the current source and [`BUILD.md`](BUILD.md), not the concept report.
 
 **Fork strategy:** Reuse CodexBar aggressively. Keep inherited AI provider
 usage code during Track B for upstream sync and implementation patterns, but
@@ -21,12 +21,12 @@ demote provider usage if it competes with the pulse menu.
 | Owns | Delegates |
 |---|---|
 | ResearchBar product spec, client contract, blocker tracker | Corbis implementation: `../../agentic-assets-app/docs/researchbar-evaluation/` |
-| Track B (macOS shell) guidance in `build/06` through `build/10` | Track A backend code: `agentic-assets-app` `lib/mcp/`, `lib/research-profile/` |
+| Track B (macOS shell) guidance in `build/06` through `build/10` | Track A backend code: `Agentic-Assets/Corbis` `lib/mcp/`, `lib/research-profile/` |
 | Open issues and founder decisions | Repo build/test: root `AGENTS.md` |
 
 ## Integration Points
 
-- **Client wire-contract reference: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).** It is a maintained repository copy, not a symlink. For transport/auth/billing or schema changes, re-verify the cited Corbis source in `agentic-assets-app` before editing client code; the backend source wins over this snapshot and all dated plans.
+- **Client wire-contract reference: [`RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md).** It is a maintained repository copy, not a symlink. For transport/auth/billing or schema changes, re-verify the cited Corbis source in `Agentic-Assets/Corbis` before editing client code; the backend source wins over this snapshot and all dated plans.
 - Repo root: [`../AGENTS.md`](../AGENTS.md) (Swift app, scripts, tests)
 - Corbis sibling: [`../../agentic-assets-app/docs/researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/)
 - Authority: current ResearchBar source owns client behavior; current Corbis source owns wire behavior; the maintained wire-contract reference records the integration boundary; `build/`, `concept/`, and `research/` are dated context; blockers are `OPEN-ISSUES.md`.

@@ -9,7 +9,7 @@ ResearchBar is the Agentic Assets fork of CodexBar for academic and industry res
 
 The inherited SwiftPM package, target names, and source folders still use `CodexBar*` names where that keeps upstream sync and avoids a broad risky module rename. The shipped app bundle, executable, CLI helper, widget extension, bundle id, menu bar accessibility identity, storage roots, scripts, and guides are ResearchBar-owned.
 
-Start with [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). The Corbis backend contract lives in `agentic-assets-app/docs/researchbar-evaluation/`.
+Start with [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). The Corbis backend contract lives in [`docs/researchbar-evaluation/`](https://github.com/Agentic-Assets/Corbis/tree/main/docs/researchbar-evaluation).
 
 ## Current App
 

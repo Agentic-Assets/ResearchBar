@@ -6,7 +6,7 @@ The ownership split, reconciled against the Corbis code. The concept's split ([`
 
 ## Ownership table
 
-| Capability | Corbis (`agentic-assets-app`) | ResearchBar (this repo) |
+| Capability | Corbis (`Agentic-Assets/Corbis`) | ResearchBar (this repo) |
 |---|---|---|
 | `get_research_pulse` | **Build (Phase 0)**. Aggregate, ORCID-anchored, redacted, trend fields null until snapshots accrue. | Call once per refresh and render. Handle null trend fields. |
 | `get_data_freshness` | Build (Phase 1). "Data through" dates only in v0; no forward "next release" (no backing table). | Call and render. Cacheable, so cache aggressively client-side too. |

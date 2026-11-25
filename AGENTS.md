@@ -2,7 +2,7 @@
 
 ## ResearchBar product spec
 
-This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS menu bar for academics). Product docs live in **`ResearchBar/`**, start at [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). Code-grounded client plan: [`ResearchBar/build/`](ResearchBar/build/). Corbis backend spec: `agentic-assets-app/docs/researchbar-evaluation/`. Server-side intelligence builds in `agentic-assets-app`; this repo stays the thin client shell.
+This repo is the Agentic Assets fork toward **ResearchBar** (Corbis-gated macOS menu bar for academics). Product docs live in **`ResearchBar/`**, start at [`ResearchBar/README.md`](ResearchBar/README.md), [`ResearchBar/BUILD.md`](ResearchBar/BUILD.md), and [`ResearchBar/researchbar-in-60-seconds.md`](ResearchBar/researchbar-in-60-seconds.md). Code-grounded client plan: [`ResearchBar/build/`](ResearchBar/build/). The Corbis backend spec lives under [`docs/researchbar-evaluation/`](https://github.com/Agentic-Assets/Corbis/tree/main/docs/researchbar-evaluation). Server-side intelligence belongs in `Agentic-Assets/Corbis`; this repo stays the thin client shell.
 
 ResearchBar should reuse CodexBar aggressively. Keep inherited AI provider usage code during Track B for upstream sync and implementation patterns. Generic AI usage may become hidden machinery, diagnostics, or a small optional ResearchBar panel, but Corbis research intelligence is the default product surface.
 

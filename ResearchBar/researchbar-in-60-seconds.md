@@ -13,7 +13,7 @@ brain is not.
 
 | Layer | Where it lives |
 |---|---|
-| Identity (ORCID), citations, radar, freshness, deadlines | Corbis `agentic-assets-app` |
+| Identity (ORCID), citations, radar, freshness, deadlines | Corbis `Agentic-Assets/Corbis` |
 | Menu bar, auth, cache, notifications, agent launch | This repo (`ResearchBar/`) |
 | Linked repos (remote metadata) | Corbis |
 | Local git ahead/behind | ResearchBar only |
