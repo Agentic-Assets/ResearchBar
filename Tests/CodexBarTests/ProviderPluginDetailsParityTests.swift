@@ -201,21 +201,34 @@ struct ProviderPluginDetailsParityTests {
 
     @Test
     func `Poe fixture has Swift core parity and stable details`() async throws {
+        let now = Date()
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        // Both fetchers filter against the current clock. Use recent UTC days
+        // before today so both still agree if the test straddles midnight.
+        let today = calendar.startOfDay(for: now)
+        let latest = today.addingTimeInterval(-8 * 60 * 60)
+        let earlier = latest.addingTimeInterval(-24 * 60 * 60)
+        let history = Self.poeHistory(earlier: earlier, latest: latest)
+        let dayFormatter = ISO8601DateFormatter()
+        dayFormatter.timeZone = .gmt
+        dayFormatter.formatOptions = [.withFullDate]
+        let latestDay = dayFormatter.string(from: latest)
+        let earlierDay = dayFormatter.string(from: earlier)
         let transport = Self.transport { request in
             switch request.url?.path {
             case "/usage/current_balance": Self.poeBalance
-            case "/usage/points_history": Self.poeHistory
+            case "/usage/points_history": history
             default: throw FixtureError.unexpectedURL(request.url)
             }
         }
-        let now = Date(timeIntervalSince1970: 1_785_816_000)
         let swift = try await PoeUsageFetcher._fetchUsage(apiKey: "fixture-key", transport: transport).toUsageSnapshot()
         let script = try await ProviderPluginRuntime(bundledPlugin: "poe", transport: transport)
             .fetchUsage(secrets: ["POE_API_KEY": "fixture-key"], now: now)
 
         Self.expectCoreParity(swift, script)
         #expect(swift.details == script.details)
-        #expect(try script.details == [Self.section(
+        let expected = try Self.section(
             "Points",
             rows: [
                 Self.row("Current balance", "2,500 points"),
@@ -224,12 +237,13 @@ struct ProviderPluginDetailsParityTests {
                 Self.row("Last 30 days", "20.5 points", "2 requests · $0.05"),
                 Self.row("Top model", "gpt-5", "12.5 points"),
                 Self.row("Usage mix", "API: 12.5 points · Chat: 8 points"),
-                Self.row("Recent activity", "08-03 16:00 · claude-sonnet-4", "8 points"),
-                Self.row("08-02 16:00", "gpt-5", "12.5 points"),
+                Self.row("Recent activity", "\(latestDay.suffix(5)) 16:00 · claude-sonnet-4", "8 points"),
+                Self.row("\(earlierDay.suffix(5)) 16:00", "gpt-5", "12.5 points"),
             ],
             chart: Self.chart("Daily points", unit: "points", points: [
-                ("2026-08-02", 12.5), ("2026-08-03", 8),
-            ]))])
+                (earlierDay, 12.5), (latestDay, 8),
+            ]))
+        #expect(script.details == [expected])
     }
 
     @Test
@@ -452,14 +466,19 @@ struct ProviderPluginDetailsParityTests {
     "rate_limit":{"requests":120,"interval":"10s"}}}
     """#
     private static let poeBalance = #"{"current_point_balance":2500}"#
-    private static let poeHistory = #"""
-    {"data":[
-      {"query_id":"p1","creation_time":1785686400000000,"bot_name":"gpt-5","usage_type":"API",
-       "cost_points":12.5,"cost_usd":0.03},
-      {"query_id":"p2","creation_time":1785772800000000,"bot_name":"claude-sonnet-4","usage_type":"Chat",
-       "cost_points":8,"cost_usd":0.02}
-    ],"next_cursor":null}
-    """#
+    private static func poeHistory(earlier: Date, latest: Date) -> String {
+        let earlierMicros = Int(earlier.timeIntervalSince1970 * 1_000_000)
+        let latestMicros = Int(latest.timeIntervalSince1970 * 1_000_000)
+        return #"""
+        {"data":[
+          {"query_id":"p1","creation_time":\#(earlierMicros),"bot_name":"gpt-5","usage_type":"API",
+           "cost_points":12.5,"cost_usd":0.03},
+          {"query_id":"p2","creation_time":\#(latestMicros),"bot_name":"claude-sonnet-4","usage_type":"Chat",
+           "cost_points":8,"cost_usd":0.02}
+        ],"next_cursor":null}
+        """#
+    }
+
     private static let zaiQuota = #"""
     {"code":200,"msg":"success","success":true,"data":{"planName":"Pro","limits":[
       {"type":"TOKENS_LIMIT","unit":3,"number":5,"percentage":25,"nextResetTime":1785816000000},
