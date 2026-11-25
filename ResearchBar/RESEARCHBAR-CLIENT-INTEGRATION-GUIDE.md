@@ -29,7 +29,7 @@ This repo-local guide is a maintained ResearchBar reference for the Corbis backe
 
 ## 0. The 60-second mental model
 
-- **Two repos, one contract.** Corbis (`agentic-assets-app`, a sibling repository) is a Next.js app that exposes a
+- **Two repos, one contract.** Corbis (`Agentic-Assets/Corbis`) is a Next.js app that exposes a
   **Model Context Protocol (MCP)** backend over HTTP. ResearchBar is a separate native macOS menu-bar app that is an
   **MCP client**. ResearchBar never touches the Corbis database, never calls OpenAlex/Semantic Scholar/SSRN directly,
   and never holds Corbis server secrets. It speaks JSON-RPC to one HTTP endpoint with a bearer token.

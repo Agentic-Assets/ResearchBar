@@ -7,7 +7,7 @@ Date: 2026-06-17 (audit); folder renamed from `corbis-integration-plan/` to `bui
 > "today" below describe the dated snapshot unless a newer document explicitly revalidates them. For current
 > ResearchBar status use [`../BUILD.md`](../BUILD.md), the maintained
 > [`../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md`](../RESEARCHBAR-CLIENT-INTEGRATION-GUIDE.md), and current
-> `Sources/`, `Tests/`, and `Scripts/`. Re-verify Corbis facts in the sibling `agentic-assets-app` repository.
+> `Sources/`, `Tests/`, and `Scripts/`. Re-verify Corbis facts in `Agentic-Assets/Corbis`.
 
 Verified, code-grounded plan for the Corbis backend ResearchBar depends on, plus client-side guidance. Start at [`../BUILD.md`](../BUILD.md) or **`00-what-this-means-for-researchbar.md`**.
 

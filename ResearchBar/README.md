@@ -33,7 +33,7 @@ main product.
 
 ## Corbis backend (sibling repo)
 
-Full Corbis Track A evaluation (inventory, gap analysis, design review, implementation spec) lives in the **agentic-assets-app** repo:
+Full Corbis Track A evaluation (inventory, gap analysis, design review, implementation spec) lives in `Agentic-Assets/Corbis`:
 
 **Path:** [`../../agentic-assets-app/docs/researchbar-evaluation/`](../../agentic-assets-app/docs/researchbar-evaluation/)
 
